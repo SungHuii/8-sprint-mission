@@ -20,7 +20,7 @@ public class Channel {
     public Channel(String chName, String chDescription) {
         this.id = UUID.randomUUID();
         this.createdAt = System.currentTimeMillis();
-        this.updatedAt = createdAt;
+        this.updatedAt = this.createdAt;
         this.chName = chName;
         this.chDescription = chDescription;
     }

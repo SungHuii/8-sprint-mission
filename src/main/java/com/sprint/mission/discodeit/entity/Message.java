@@ -12,20 +12,18 @@ public class Message {
     * 채널 참조
     * 메시지 내용
     * */
-    private UUID id;
-    private Long createdAt;
+    private final UUID id;
+    private final Long createdAt;
     private Long updatedAt;
-    private UUID userId;
-    private UUID channelId;
+    private final UUID userId;
+    private final UUID channelId;
     private String message;
 
-    public Message() {
-        id = UUID.randomUUID();
-        createdAt = System.currentTimeMillis();
-        updatedAt = createdAt;
-    }
-
     public Message(UUID userId, UUID channelId, String message) {
+        this.id = UUID.randomUUID();
+        this.createdAt = System.currentTimeMillis();
+        this.updatedAt = this.createdAt;
+
         this.userId = userId;
         this.channelId = channelId;
         this.message = message;
@@ -35,42 +33,20 @@ public class Message {
         return id;
     }
 
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
     public Long getCreatedAt() {
         return createdAt;
-    }
-
-    public void setCreatedAt(Long createdAt) {
-        this.createdAt = createdAt;
     }
 
     public Long getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(Long updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
     public UUID getUserId() {
         return userId;
     }
 
-    public void updateUserId(UUID userId) {
-        this.userId = userId;
-        this.updatedAt = System.currentTimeMillis();
-    }
-
     public UUID getChannelId() {
         return channelId;
-    }
-
-    public void updateChannelId(UUID channelId) {
-        this.channelId = channelId;
-        this.updatedAt = System.currentTimeMillis();
     }
 
     public String getMessage() {
@@ -79,6 +55,10 @@ public class Message {
 
     public void updateMessage(String message) {
         this.message = message;
+        renewUpdatedAt();
+    }
+
+    public void renewUpdatedAt() {
         this.updatedAt = System.currentTimeMillis();
     }
 }
