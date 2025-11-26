@@ -44,7 +44,14 @@ public class JCFUserService implements UserService {
 
     @Override
     public boolean deleteUser(UUID userId) {
-        return data.remove(userId) != null;
+        User userRemoved = data.remove(userId);
+        if (userRemoved != null) {
+            System.out.println("유저가 성공적으로 삭제되었습니다.");
+            return true;
+        } else {
+            System.out.println("해당 유저를 찾을 수 없습니다.");
+            return false;
+        }
     }
 
     @Override
