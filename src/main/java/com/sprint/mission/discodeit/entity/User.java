@@ -27,7 +27,7 @@ public class User {
     public User(String name, String nickname, String phoneNumber, String password, String email, String avatarUrl) {
         this.id = UUID.randomUUID();
         this.createdAt = System.currentTimeMillis();
-        this.updatedAt = createdAt;
+        this.updatedAt = this.createdAt;
 
         this.name = name;
         this.nickname = nickname;
