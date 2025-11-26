@@ -6,31 +6,29 @@ public class User {
 
     /*
     * 고유아이디
-    * 별명(닉네임)
-    * 전화번호
-    * 패스워드
-    * 이메일정보
-    * 사진(아바타)
-    * 생성시간
-    * 수정시간
+     * 생성시간
+     * 수정시간
+     * 별명(닉네임)
+     * 전화번호
+     * 패스워드
+     * 이메일정보
+     * 사진(아바타)
     * */
-    private UUID id;
+    private final UUID id;
+    private final Long createdAt;
+    private Long updatedAt;
     private String name;
     private String nickname;
     private String phoneNumber;
     private String password;
     private String email;
     private String avatarUrl;
-    private Long createdAt;
-    private Long updatedAt;
-
-    public User() {
-        id = UUID.randomUUID();
-        createdAt = System.currentTimeMillis();
-        updatedAt = createdAt;
-    }
 
     public User(String name, String nickname, String phoneNumber, String password, String email, String avatarUrl) {
+        this.id = UUID.randomUUID();
+        this.createdAt = System.currentTimeMillis();
+        this.updatedAt = createdAt;
+
         this.name = name;
         this.nickname = nickname;
         this.phoneNumber = phoneNumber;
@@ -43,17 +41,13 @@ public class User {
         return id;
     }
 
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
     public String getName() {
         return name;
     }
 
     public void updateName(String name) {
         this.name = name;
-        this.updatedAt = System.currentTimeMillis();
+        renewUpdatedAt();
     }
 
     public String getNickname() {
@@ -62,7 +56,7 @@ public class User {
 
     public void updateNickname(String nickname) {
         this.nickname = nickname;
-        this.updatedAt = System.currentTimeMillis();
+        renewUpdatedAt();
     }
 
     public String getPhoneNumber() {
@@ -71,7 +65,7 @@ public class User {
 
     public void updatePhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
-        this.updatedAt = System.currentTimeMillis();
+        renewUpdatedAt();
     }
 
     public String getPassword() {
@@ -80,7 +74,7 @@ public class User {
 
     public void updatePassword(String password) {
         this.password = password;
-        this.updatedAt = System.currentTimeMillis();
+        renewUpdatedAt();
     }
 
     public String getEmail() {
@@ -89,7 +83,7 @@ public class User {
 
     public void updateEmail(String email) {
         this.email = email;
-        this.updatedAt = System.currentTimeMillis();
+        renewUpdatedAt();
     }
 
     public String getAvatarUrl() {
@@ -98,22 +92,18 @@ public class User {
 
     public void updateAvatarUrl(String avatarUrl) {
         this.avatarUrl = avatarUrl;
-        this.updatedAt = System.currentTimeMillis();
+        renewUpdatedAt();
     }
 
     public Long getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Long createdAt) {
-        this.createdAt = createdAt;
-    }
-
     public Long getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(Long updatedAt) {
-        this.updatedAt = updatedAt;
+    private void renewUpdatedAt() {
+        this.updatedAt = System.currentTimeMillis();
     }
 }
