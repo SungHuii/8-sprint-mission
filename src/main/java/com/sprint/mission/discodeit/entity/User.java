@@ -97,7 +97,7 @@ public class User {
     }
 
     public void updateAvatarUrl(String avatarUrl) {
-        avatarUrl = avatarUrl;
+        this.avatarUrl = avatarUrl;
         this.updatedAt = System.currentTimeMillis();
     }
 
