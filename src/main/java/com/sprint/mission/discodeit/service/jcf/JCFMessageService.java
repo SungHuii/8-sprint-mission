@@ -16,21 +16,19 @@ public class JCFMessageService implements MessageService {
     }
 
     @Override
-    public Message createMessage(UUID userId, UUID channelId, String message) {
-        if (userId == null) {
+    public Message createMessage(Message message) {
+        if (message.getUserId() == null) {
             System.out.println("유저 아이디가 유효하지 않습니다.");
             return null;
-        } else if (channelId == null) {
+        } else if (message.getChannelId() == null) {
             System.out.println("채널 아이디가 유효하지 않습니다.");
             return null;
-        } else if (message == null){
+        } else if (message.getMessage()== null || message.getMessage().isEmpty()){
             System.out.println("메세지를 입력해주세요.");
             return null;
-        } else {
-            Message msg = new Message(userId, channelId, message);
-            data.put(msg.getId(), msg);
-            return msg;
         }
+            data.put(message.getId(), message);
+            return message;
     }
 
     @Override

@@ -9,9 +9,10 @@ public interface MessageService {
     /* Message entity CRUD service
     * 생성 / 읽기 / 모두 읽기 / 수정 / 삭제 기능
     * */
-    Message createMessage(UUID userId, UUID channelId, String message);
+    public Message createMessage(Message message);
     Message updateMessage(Message message);
     boolean deleteMessage(UUID messageId);
     Message getMessage(UUID messageId);
     List<Message> getAllMessages();
+
 }
