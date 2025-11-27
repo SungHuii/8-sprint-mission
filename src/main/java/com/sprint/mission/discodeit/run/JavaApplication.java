@@ -22,7 +22,7 @@ public class JavaApplication {
         // 서비스 구현체 생성
         UserService userService = new JCFUserService();
         ChannelService channelService = new JCFChannelService();
-        MessageService messageService = new JCFMessageService();
+        MessageService messageService = new JCFMessageService(userService, channelService);
 
         /* 도메인 별 서비스 구현체 테스트 */
         /* User */

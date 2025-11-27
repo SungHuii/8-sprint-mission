@@ -1,7 +1,9 @@
 package com.sprint.mission.discodeit.service.jcf;
 
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
+import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.*;
 
@@ -11,8 +13,12 @@ public class JCFMessageService implements MessageService {
      * data 필드를 활용해서 CRUD 메소드 구현
      */
     private final Map<UUID, Message> data;
-    public JCFMessageService() {
+    private final UserService userService;
+    private final ChannelService channelService;
+    public JCFMessageService(UserService userService, ChannelService channelService) {
         this.data = new HashMap<>();
+        this.userService = userService;
+        this.channelService = channelService;
     }
 
     @Override
