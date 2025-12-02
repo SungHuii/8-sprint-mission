@@ -13,12 +13,8 @@ public class JCFMessageService implements MessageService {
      * data 필드를 활용해서 CRUD 메소드 구현
      */
     private final Map<UUID, Message> data;
-    private final UserService userService;
-    private final ChannelService channelService;
-    public JCFMessageService(UserService userService, ChannelService channelService) {
+    public JCFMessageService() {
         this.data = new HashMap<>();
-        this.userService = userService;
-        this.channelService = channelService;
     }
 
     @Override
