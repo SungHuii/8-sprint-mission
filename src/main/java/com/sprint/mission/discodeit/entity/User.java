@@ -23,7 +23,7 @@ public class User implements Serializable {
     private String name;
     private String nickname;
     private String phoneNumber;
-    private String password;
+    private transient String password;
     private String email;
     private String avatarUrl;
 
