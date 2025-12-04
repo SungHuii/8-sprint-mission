@@ -3,21 +3,15 @@ package com.sprint.mission.discodeit.run;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.repository.ChannelRepository;
-import com.sprint.mission.discodeit.repository.MessageRepository;
-import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.repository.jcf.JCFChannelRepository;
-import com.sprint.mission.discodeit.repository.jcf.JCFMessageRepository;
-import com.sprint.mission.discodeit.repository.jcf.JCFUserRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
-import com.sprint.mission.discodeit.service.basic.BasicChannelService;
-import com.sprint.mission.discodeit.service.basic.BasicMessageService;
-import com.sprint.mission.discodeit.service.basic.BasicUserService;
 import com.sprint.mission.discodeit.service.file.FileChannelService;
 import com.sprint.mission.discodeit.service.file.FileMessageService;
 import com.sprint.mission.discodeit.service.file.FileUserService;
+import com.sprint.mission.discodeit.service.jcf.JCFChannelService;
+import com.sprint.mission.discodeit.service.jcf.JCFMessageService;
+import com.sprint.mission.discodeit.service.jcf.JCFUserService;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -32,6 +26,11 @@ public class JavaApplicationLegacy {
         UserService userService = new FileUserService();
         ChannelService channelService = new FileChannelService();
         MessageService messageService = new FileMessageService();
+
+        // 의존성 주입
+        UserService jcfUserService = new JCFUserService();
+        ChannelService jcfChannelService = new JCFChannelService();
+        MessageService jcfMessageService = new JCFMessageService(jcfUserService, jcfChannelService);
 
         /* 도메인 별 서비스 구현체 테스트 */
         /* User */
@@ -96,11 +95,11 @@ public class JavaApplicationLegacy {
                 new Channel("공지사항", "공지사항 채널입니다."),
                 new Channel("자유게시판", "자유롭게 이야기하는 채널입니다.")
         );
-        channels.forEach(channelService::createChannel);
+        channels.forEach(channelService1::createChannel);
 
         // 채널명으로 조회
         System.out.println("---- 이름에 '공지'가 포함된 채널 조회 ----");
-        List<Channel> filteredChannel = channelService.getAllChannels()
+        List<Channel> filteredChannel = channelService1.getAllChannels()
                 .stream()
                 .filter(c -> c.getChName().contains("공지"))
                 .toList();
@@ -108,7 +107,7 @@ public class JavaApplicationLegacy {
 
         // 전체 조회
         System.out.println("---- 전체 채널 목록 조회 ----");
-        channelService.getAllChannels().forEach( c -> {
+        channelService1.getAllChannels().forEach(c -> {
             System.out.println("- " + c.getChName() + " (" + c.getChDescription() + ")");
         });
 
@@ -117,22 +116,22 @@ public class JavaApplicationLegacy {
         Channel normalCh = channels.get(0);
         System.out.println("수정 전 채널명 : " + normalCh.getChName());
         System.out.println("수정 전 채널설명 : " + normalCh.getChDescription());
-        System.out.println("수정 전 updatedAt : " + formatTime(channelService.getChannel(normalCh.getId()).getUpdatedAt()) + "");
+        System.out.println("수정 전 updatedAt : " + formatTime(channelService1.getChannel(normalCh.getId()).getUpdatedAt()) + "");
         normalCh.updateChName("수정된 일반 채널명");
         normalCh.updateChDescription("수정된 일반 채널 설명");
-        channelService.updateChannel(normalCh);
+        channelService1.updateChannel(normalCh);
         // 수정된 데이터 조회
         System.out.println("수정 후 채널명 : " + normalCh.getChName());
         System.out.println("수정 후 채널설명 : " + normalCh.getChDescription());
-        System.out.println("수정 후 updatedAt : " + formatTime(channelService.getChannel(normalCh.getId()).getUpdatedAt()) + "");
+        System.out.println("수정 후 updatedAt : " + formatTime(channelService1.getChannel(normalCh.getId()).getUpdatedAt()) + "");
 
         // 삭제
         System.out.println("--- 공지사항 채널 삭제 ---");
         Channel noticeCh = channels.get(1);
-        channelService.deleteChannel(noticeCh.getId());
+        channelService1.deleteChannel(noticeCh.getId());
 
         // 삭제 확인
-        Channel deletedNoticeCh = channelService.getChannel(noticeCh.getId());
+        Channel deletedNoticeCh = channelService1.getChannel(noticeCh.getId());
         if (deletedNoticeCh == null) {
             System.out.println("공지사항 채널은 삭제 되었습니다.");
         } else {

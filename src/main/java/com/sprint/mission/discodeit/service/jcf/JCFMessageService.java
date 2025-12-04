@@ -1,7 +1,9 @@
 package com.sprint.mission.discodeit.service.jcf;
 
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
+import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.*;
 
@@ -11,16 +13,23 @@ public class JCFMessageService implements MessageService {
      * data 필드를 활용해서 CRUD 메소드 구현
      */
     private final Map<UUID, Message> data;
-    public JCFMessageService() {
+
+    // 심화 요구사항 : 서비스 간 의존성 주입
+    private final UserService userService;
+    private final ChannelService channelService;
+
+    public JCFMessageService(UserService userService, ChannelService channelService) {
         this.data = new HashMap<>();
+        this.userService = userService;
+        this.channelService = channelService;
     }
 
     @Override
     public Message createMessage(Message message) {
-        if (message.getUserId() == null) {
+        if (userService.getUser(message.getUserId()) == null) {
             System.out.println("유저 아이디가 유효하지 않습니다.");
             return null;
-        } else if (message.getChannelId() == null) {
+        } else if (channelService.getChannel(message.getChannelId()) == null) {
             System.out.println("채널 아이디가 유효하지 않습니다.");
             return null;
         } else if (message.getMessage()== null || message.getMessage().isEmpty()){
