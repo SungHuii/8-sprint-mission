@@ -1,7 +1,9 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
+import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
 
 import java.util.List;
@@ -10,18 +12,22 @@ import java.util.UUID;
 public class BasicMessageService implements MessageService {
 
     private final MessageRepository messageRepository;
+    private final UserRepository userRepository;
+    private final ChannelRepository channelRepository;
 
-    public  BasicMessageService(MessageRepository messageRepository) {
+    public  BasicMessageService(MessageRepository messageRepository, UserRepository userRepository, ChannelRepository channelRepository) {
         this.messageRepository = messageRepository;
+        this.userRepository = userRepository;
+        this.channelRepository = channelRepository;
     }
 
 
     @Override
     public Message createMessage(Message message) {
-        if (message.getUserId() == null) {
+        if (userRepository.getUser(message.getUserId()) == null) {
             System.out.println("유저 아이디가 유효하지 않습니다.");
             return null;
-        } else if (message.getChannelId() == null) {
+        } else if (channelRepository.getChannel(message.getChannelId()) == null) {
             System.out.println("채널 아이디가 유효하지 않습니다.");
             return null;
         } else if (message.getMessage()== null || message.getMessage().isEmpty()){

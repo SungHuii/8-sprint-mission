@@ -31,7 +31,7 @@ public class JavaApplicationBasic {
         // Basic Service
         UserService userServ = new BasicUserService(userRepo);
         ChannelService channelServ = new BasicChannelService(channelRepo);
-        MessageService messageServ = new BasicMessageService(messageRepo);
+        MessageService messageServ = new BasicMessageService(messageRepo, userRepo, channelRepo);
 
         // 테스트
         User user = setupUser(userServ);
@@ -41,7 +41,10 @@ public class JavaApplicationBasic {
         /* Basic + File 테스트 */
         UserService userServ2 = new BasicUserService(new FileUserRepository());
         ChannelService channelServ2 = new BasicChannelService(new FileChannelRepository());
-        MessageService messageServ2 = new BasicMessageService(new FileMessageRepository());
+        MessageService messageServ2 = new BasicMessageService(
+                new FileMessageRepository(),
+                new FileUserRepository(),
+                new FileChannelRepository());
 
         User user2 = setupUser(userServ2);
         Channel channel2 = setupChannel(channelServ2);
