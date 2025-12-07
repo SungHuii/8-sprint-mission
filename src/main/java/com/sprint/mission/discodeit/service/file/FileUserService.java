@@ -12,7 +12,7 @@ public class FileUserService implements UserService {
      * File IO를 통한 데이터 영속화
      * FileIO와 객체 직렬화를 활용해 메소드 구현
      * */
-    private static final String FILE_PATH = "user.ser";
+    private static final String FILE_PATH = "data/user.ser";
     private Map<UUID, User> data;
 
     public FileUserService() {

@@ -12,7 +12,7 @@ public class FileChannelService implements ChannelService {
      * File IO를 통한 데이터 영속화
      * FileIO와 객체 직렬화를 활용해 메소드 구현
      * */
-    private static final String FILE_PATH = "channel.ser";
+    private static final String FILE_PATH = "data/channel.ser";
     private Map<UUID, Channel> data;
 
     public FileChannelService() {

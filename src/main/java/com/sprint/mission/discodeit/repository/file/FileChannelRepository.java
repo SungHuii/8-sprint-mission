@@ -8,7 +8,7 @@ import java.util.*;
 
 public class FileChannelRepository implements ChannelRepository {
 
-    private static final String FILE_PATH = "channelRepo.ser";
+    private static final String FILE_PATH = "dataRepo/channelRepo.ser";
     private Map<UUID, Channel> data;
 
     public FileChannelRepository() {

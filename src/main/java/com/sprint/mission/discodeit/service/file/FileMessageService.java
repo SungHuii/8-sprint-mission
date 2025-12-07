@@ -12,7 +12,7 @@ public class FileMessageService implements MessageService {
      * File IO를 통한 데이터 영속화
      * FileIO와 객체 직렬화를 활용해 메소드 구현
      * */
-    private static final String FILE_PATH = "message.ser";
+    private static final String FILE_PATH = "data/message.ser";
     private Map<UUID, Message> data;
 
     public FileMessageService() {
