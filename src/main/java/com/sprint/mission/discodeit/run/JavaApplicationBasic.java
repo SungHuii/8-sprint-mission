@@ -39,12 +39,14 @@ public class JavaApplicationBasic {
         messageCreateTest(messageServ, channel, user);
 
         /* Basic + File 테스트 */
-        UserService userServ2 = new BasicUserService(new FileUserRepository());
-        ChannelService channelServ2 = new BasicChannelService(new FileChannelRepository());
+        UserRepository fileUserRepo = new FileUserRepository();
+        ChannelRepository fileChannelRepo = new FileChannelRepository();
+        MessageRepository fileMessageRepo = new FileMessageRepository();
+
+        UserService userServ2 = new BasicUserService(fileUserRepo);
+        ChannelService channelServ2 = new BasicChannelService(fileChannelRepo);
         MessageService messageServ2 = new BasicMessageService(
-                new FileMessageRepository(),
-                new FileUserRepository(),
-                new FileChannelRepository());
+                fileMessageRepo, fileUserRepo, fileChannelRepo);
 
         User user2 = setupUser(userServ2);
         Channel channel2 = setupChannel(channelServ2);
@@ -54,17 +56,29 @@ public class JavaApplicationBasic {
 
     static User setupUser(UserService userService) {
         User user = new User("홍길동", "gildong", "010-1234-5678", "password123", "abc@def.com", "gildong.jpg");
-        return userService.createUser(user);
+        User savedUser = userService.createUser(user);
+        System.out.println("[User 생성] id=" + savedUser.getId()
+                + ", name=" + savedUser.getName()
+                + ", nickname=" + savedUser.getNickname());
+        return savedUser;
     }
 
     static Channel setupChannel(ChannelService channelService) {
         Channel channel = new Channel("공지", "공지 채널입니다");
-        return channelService.createChannel(channel);
+        Channel savedChannel = channelService.createChannel(channel);
+        System.out.println("[Channel 생성] id=" + savedChannel.getId()
+                + ", name=" + savedChannel.getChName());
+        return savedChannel;
     }
 
     static void messageCreateTest(MessageService messageService, Channel channel, User user) {
         Message message = new Message(user.getId(), channel.getId(), "안녕하세요, 반갑습니다!");
-        messageService.createMessage(message);
-        System.out.println("메시지 생성 완료 : " + message.getId());
+        Message savedMessage = messageService.createMessage(message);
+        if (savedMessage != null) {
+            System.out.println("[Message 생성] id=" + savedMessage.getId()
+                    + ", message=" + savedMessage.getMessage());
+        } else {
+            System.out.println("[Message 생성 실패]");
+        }
     }
 }
