@@ -9,9 +9,11 @@ public interface ChannelService {
     /* Channel entity CRUD service
     * 생성 / 읽기 / 모두 읽기 / 수정 / 삭제 기능
     * */
-    Channel createChannel(Channel channel);
+    @Deprecated
+    Channel save(Channel channel);
+    Channel saveChannel(String name, String description);
     Channel updateChannel(Channel channel);
     boolean deleteChannel(UUID channelId);
-    Channel getChannel(UUID channelId);
-    List<Channel> getAllChannels();
+    Channel findById(UUID channelId);
+    List<Channel> findAll();
 }

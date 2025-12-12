@@ -9,10 +9,13 @@ public interface UserService {
     /* User entity CRUD service
     * 생성 / 읽기 / 모두 읽기 / 수정 / 삭제 기능
     * */
-    User createUser(User user);
+
+    @Deprecated
+    User save(User user);
+    User saveUser(String name, String nickname, String phoneNumber, String password, String email, String avatarUrl);
     User updateUser(User user);
     boolean deleteUser(UUID userid);
-    User getUser(UUID userId);
-    List<User> getAllUsers();
+    User findById(UUID userId);
+    List<User> findAll();
 
 }

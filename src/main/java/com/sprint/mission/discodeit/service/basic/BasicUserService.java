@@ -16,17 +16,23 @@ public class BasicUserService implements UserService {
     }
 
     @Override
-    public User createUser(User user) {
+    public User save(User user) {
         if (user.getName() == null || user.getName().isEmpty()) {
             System.out.println("이름이 비어있습니다.");
             return null;
         }
-        return userRepository.createUser(user);
+        return userRepository.save(user);
+    }
+
+    @Override
+    public User saveUser(String name, String nickname, String phoneNumber, String password, String email, String avatarUrl) {
+        User user = new User(name, nickname, phoneNumber, password, email, avatarUrl);
+        return userRepository.save(user);
     }
 
     @Override
     public User updateUser(User user) {
-        User checkExisted = userRepository.getUser(user.getId());
+        User checkExisted = userRepository.findById(user.getId());
 
         if (checkExisted == null) {
             System.out.println("해당 유저가 존재하지 않습니다.");
@@ -48,12 +54,12 @@ public class BasicUserService implements UserService {
     }
 
     @Override
-    public User getUser(UUID userId) {
-        return userRepository.getUser(userId);
+    public User findById(UUID userId) {
+        return userRepository.findById(userId);
     }
 
     @Override
-    public List<User> getAllUsers() {
-        return userRepository.getAllUsers();
+    public List<User> findAll() {
+        return userRepository.findAll();
     }
 }

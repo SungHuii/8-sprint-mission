@@ -55,30 +55,28 @@ public class JavaApplicationBasic {
     }
 
     static User setupUser(UserService userService) {
-        User user = new User("홍길동", "gildong", "010-1234-5678", "password123", "abc@def.com", "gildong.jpg");
-        User savedUser = userService.createUser(user);
-        System.out.println("[User 생성] id=" + savedUser.getId()
-                + ", name=" + savedUser.getName()
-                + ", nickname=" + savedUser.getNickname());
-        return savedUser;
+        User user = userService.saveUser("홍길동", "gildong", "010-1234-5678", "password123", "abc@def.com", "gildong.jpg");
+        System.out.println("[User 생성] id=" + user.getId()
+                + ", name=" + user.getName()
+                + ", nickname=" + user.getNickname());
+        return user;
     }
 
     static Channel setupChannel(ChannelService channelService) {
-        Channel channel = new Channel("공지", "공지 채널입니다");
-        Channel savedChannel = channelService.createChannel(channel);
-        System.out.println("[Channel 생성] id=" + savedChannel.getId()
-                + ", name=" + savedChannel.getChName());
-        return savedChannel;
+        Channel channel = channelService.saveChannel("공지", "공지 채널입니다");
+        System.out.println("[Channel 생성] id=" + channel.getId()
+                + ", name=" + channel.getChName());
+        return channel;
     }
 
-    static void messageCreateTest(MessageService messageService, Channel channel, User user) {
-        Message message = new Message(user.getId(), channel.getId(), "안녕하세요, 반갑습니다!");
-        Message savedMessage = messageService.createMessage(message);
-        if (savedMessage != null) {
-            System.out.println("[Message 생성] id=" + savedMessage.getId()
-                    + ", message=" + savedMessage.getMessage());
-        } else {
+    static Message messageCreateTest(MessageService messageService, Channel channel, User user) {
+        Message message = messageService.saveMessage(user.getId(), channel.getId(), "안녕하세요, 반갑습니다!");
+        if (message == null) {
             System.out.println("[Message 생성 실패]");
         }
+        System.out.println("[Message 생성] id=" + message.getId()
+                + ", message=" + message.getMessage());
+
+        return message;
     }
 }

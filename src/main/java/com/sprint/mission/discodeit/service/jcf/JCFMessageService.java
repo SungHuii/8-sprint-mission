@@ -1,6 +1,8 @@
 package com.sprint.mission.discodeit.service.jcf;
 
+import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
@@ -25,11 +27,11 @@ public class JCFMessageService implements MessageService {
     }
 
     @Override
-    public Message createMessage(Message message) {
-        if (userService.getUser(message.getUserId()) == null) {
+    public Message save(Message message) {
+        if (userService.findById(message.getUserId()) == null) {
             System.out.println("유저 아이디가 유효하지 않습니다.");
             return null;
-        } else if (channelService.getChannel(message.getChannelId()) == null) {
+        } else if (channelService.findById(message.getChannelId()) == null) {
             System.out.println("채널 아이디가 유효하지 않습니다.");
             return null;
         } else if (message.getMessage()== null || message.getMessage().isEmpty()){
@@ -41,31 +43,43 @@ public class JCFMessageService implements MessageService {
     }
 
     @Override
+    public Message saveMessage(UUID userId, UUID channelId, String content) {
+        if ((userService.findById(userId)) == null) {
+            System.out.println("유저 아이디가 유효하지 않습니다.");
+            return null;
+        } else if (channelService.findById(channelId) == null) {
+            System.out.println("채널 아이디가 유효하지 않습니다.");
+            return null;
+        }
+        return new Message(userId, channelId, content);
+    }
+
+    @Override
     public Message updateMessage(Message message) {
         Message existingMessage = data.get(message.getId());
-        if (existingMessage != null) {
-            existingMessage.updateMessage(message.getMessage());
-            return existingMessage;
-        } else {
+        if (existingMessage == null) {
             System.out.println("해당 메시지를 찾을 수 없습니다.");
             return null;
         }
+        existingMessage.updateMessage(message.getMessage());
+        System.out.println("메시지가 성공적으로 수정되었습니다.");
+
+        return existingMessage;
     }
 
     @Override
     public boolean deleteMessage(UUID messageId) {
         Message messageRemoved = data.remove(messageId);
-        if (messageRemoved != null) {
-            System.out.println("메시지가 성공적으로 삭제되었습니다.");
-            return true;
-        } else {
+        if (messageRemoved == null) {
             System.out.println("해당 메시지를 찾을 수 없습니다.");
             return false;
         }
+        System.out.println("메시지가 성공적으로 삭제되었습니다.");
+        return true;
     }
 
     @Override
-    public Message getMessage(UUID messageId) {
+    public Message findById(UUID messageId) {
         Message message = data.get(messageId);
         if (message == null) {
             System.out.println("해당 메시지를 찾을 수 없습니다.");
@@ -75,8 +89,7 @@ public class JCFMessageService implements MessageService {
     }
 
     @Override
-    public List<Message> getAllMessages() {
-        List<Message> allMessages = new ArrayList<>(data.values());
-        return allMessages;
+    public List<Message> findAll() {
+        return new ArrayList<>(data.values());
     }
 }

@@ -17,17 +17,22 @@ public class BasicChannelService implements ChannelService {
 
 
     @Override
-    public Channel createChannel(Channel channel) {
+    public Channel save(Channel channel) {
         if (channel.getChName() == null || channel.getChName().isEmpty()) {
             System.out.println("이름이 비어있습니다.");
             return null;
         }
-        return  channelRepository.createChannel(channel);
+        return  channelRepository.save(channel);
+    }
+
+    @Override
+    public Channel saveChannel(String name, String description) {
+        return new Channel(name, description);
     }
 
     @Override
     public Channel updateChannel(Channel channel) {
-        Channel checkExisted = channelRepository.getChannel(channel.getId());
+        Channel checkExisted = channelRepository.findById(channel.getId());
 
         if (checkExisted == null) {
             System.out.println("해당 채널이 존재하지 않습니다.");
@@ -45,12 +50,12 @@ public class BasicChannelService implements ChannelService {
     }
 
     @Override
-    public Channel getChannel(UUID channelId) {
-        return channelRepository.getChannel(channelId);
+    public Channel findById(UUID channelId) {
+        return channelRepository.findById(channelId);
     }
 
     @Override
-    public List<Channel> getAllChannels() {
-        return channelRepository.getAllChannels();
+    public List<Channel> findAll() {
+        return channelRepository.findAll();
     }
 }

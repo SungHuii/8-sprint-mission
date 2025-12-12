@@ -41,11 +41,11 @@ public class JavaApplicationLegacy {
                 new User("김철수", "chulsoo", "010-8765-4321", "password456", "chulsoo@chul.com", "chulsoo.jpg"),
                 new User("이영수", "youngsoo", "010-1111-2222", "password789", "youngsoo@naver.com", "youngsoo.jpg")
         );
-        users.forEach(userService::createUser);
+        users.forEach(userService::save);
 
         // 이름으로 사용자명 조회
         System.out.println("---- 이름에 '수'가 포함된 유저 조회 ----");
-        List<User> filteredUser = userService.getAllUsers()
+        List<User> filteredUser = userService.findAll()
                 .stream()
                         .filter(u -> u.getName().contains("수"))
                                 .toList();
@@ -53,7 +53,7 @@ public class JavaApplicationLegacy {
 
         // 전체 조회
         System.out.println("---- 전체 유저 목록 조회 ----");
-        userService.getAllUsers().forEach( u -> {
+        userService.findAll().forEach( u -> {
             System.out.println("- " + u.getName() + " (" + u.getNickname() + ")");
         });
 
@@ -62,14 +62,14 @@ public class JavaApplicationLegacy {
         User gildong = users.get(0);
         System.out.println("수정 전 닉네임 : " + gildong.getNickname());
         System.out.println("수정 전 이메일 : " + gildong.getEmail());
-        System.out.println("수정 전 updatedAt : " + formatTime(userService.getUser(gildong.getId()).getUpdatedAt()) + "");
+        System.out.println("수정 전 updatedAt : " + formatTime(userService.findById(gildong.getId()).getUpdatedAt()) + "");
         gildong.updateNickname("new-gildong");
         gildong.updateEmail("new-gildong@dong.com");
         userService.updateUser(gildong);
         // 수정된 데이터 조회
         System.out.println("수정 후 닉네임 : " + gildong.getNickname());
         System.out.println("수정 후 이메일 : " + gildong.getEmail());
-        System.out.println("수정 후 updatedAt : " + formatTime(userService.getUser(gildong.getId()).getUpdatedAt()) + "");
+        System.out.println("수정 후 updatedAt : " + formatTime(userService.findById(gildong.getId()).getUpdatedAt()) + "");
         //System.out.println("수정된 닉네임 : " + userService.getUser(gildong.getId()).getNickname());
         //System.out.println("수정된 이메일 : " + userService.getUser(gildong.getId()).getEmail());
 
@@ -80,7 +80,7 @@ public class JavaApplicationLegacy {
 
         // 삭제 확인
         // deleteUser에 삭제 확인 출력문을 넣어놓았음.
-        User deletedChulsoo = userService.getUser(chulsoo.getId());
+        User deletedChulsoo = userService.findById(chulsoo.getId());
         if (deletedChulsoo == null) {
             System.out.println("김철수 유저는 삭제 되었습니다.");
         } else {
@@ -95,11 +95,11 @@ public class JavaApplicationLegacy {
                 new Channel("공지사항", "공지사항 채널입니다."),
                 new Channel("자유게시판", "자유롭게 이야기하는 채널입니다.")
         );
-        channels.forEach(channelService::createChannel);
+        channels.forEach(channelService::save);
 
         // 채널명으로 조회
         System.out.println("---- 이름에 '공지'가 포함된 채널 조회 ----");
-        List<Channel> filteredChannel = channelService.getAllChannels()
+        List<Channel> filteredChannel = channelService.findAll()
                 .stream()
                 .filter(c -> c.getChName().contains("공지"))
                 .toList();
@@ -107,7 +107,7 @@ public class JavaApplicationLegacy {
 
         // 전체 조회
         System.out.println("---- 전체 채널 목록 조회 ----");
-        channelService.getAllChannels().forEach(c -> {
+        channelService.findAll().forEach(c -> {
             System.out.println("- " + c.getChName() + " (" + c.getChDescription() + ")");
         });
 
@@ -116,14 +116,14 @@ public class JavaApplicationLegacy {
         Channel normalCh = channels.get(0);
         System.out.println("수정 전 채널명 : " + normalCh.getChName());
         System.out.println("수정 전 채널설명 : " + normalCh.getChDescription());
-        System.out.println("수정 전 updatedAt : " + formatTime(channelService.getChannel(normalCh.getId()).getUpdatedAt()) + "");
+        System.out.println("수정 전 updatedAt : " + formatTime(channelService.findById(normalCh.getId()).getUpdatedAt()) + "");
         normalCh.updateChName("수정된 일반 채널명");
         normalCh.updateChDescription("수정된 일반 채널 설명");
         channelService.updateChannel(normalCh);
         // 수정된 데이터 조회
         System.out.println("수정 후 채널명 : " + normalCh.getChName());
         System.out.println("수정 후 채널설명 : " + normalCh.getChDescription());
-        System.out.println("수정 후 updatedAt : " + formatTime(channelService.getChannel(normalCh.getId()).getUpdatedAt()) + "");
+        System.out.println("수정 후 updatedAt : " + formatTime(channelService.findById(normalCh.getId()).getUpdatedAt()) + "");
 
         // 삭제
         System.out.println("--- 공지사항 채널 삭제 ---");
@@ -131,7 +131,7 @@ public class JavaApplicationLegacy {
         channelService.deleteChannel(noticeCh.getId());
 
         // 삭제 확인
-        Channel deletedNoticeCh = channelService.getChannel(noticeCh.getId());
+        Channel deletedNoticeCh = channelService.findById(noticeCh.getId());
         if (deletedNoticeCh == null) {
             System.out.println("공지사항 채널은 삭제 되었습니다.");
         } else {
@@ -146,11 +146,11 @@ public class JavaApplicationLegacy {
                 new Message(users.get(2).getId(), channels.get(0).getId(), "하이요, 이영수입니다"),
                 new Message(users.get(0).getId(), channels.get(2).getId(), "자유게시판에 오신 것을 환영합니다!")
         );
-        messages.forEach(messageService::createMessage);
+        messages.forEach(messageService::save);
 
         // 메시지 내용으로 조회
         System.out.println("---- 이름에 '관리'가 포함된 메시지 조회 ----");
-        List<Message> filteredMessage = messageService.getAllMessages()
+        List<Message> filteredMessage = messageService.findAll()
                 .stream()
                 .filter(m -> m.getMessage().contains("관리"))
                 .toList();
@@ -158,7 +158,7 @@ public class JavaApplicationLegacy {
 
         // 전체 조회 (메시지 내용 + 생성시각)
         System.out.println("---- 전체 메시지 목록 조회 ----");
-        messageService.getAllMessages().forEach( m -> {
+        messageService.findAll().forEach( m -> {
             System.out.println("- " + m.getMessage() + " (" + formatTime(m.getCreatedAt()) + ")");
         });
 
@@ -166,12 +166,12 @@ public class JavaApplicationLegacy {
         System.out.println("--- 첫번째 메시지 수정 ---");
         Message firstMsg = messages.get(0);
         System.out.println("수정 전 메시지 : " + firstMsg.getMessage());
-        System.out.println("수정 전 updatedAt : " + formatTime(messageService.getMessage(firstMsg.getId()).getUpdatedAt()) + "");
+        System.out.println("수정 전 updatedAt : " + formatTime(messageService.findById(firstMsg.getId()).getUpdatedAt()) + "");
         firstMsg.updateMessage("하이요, 관리자 홍길동입니다!");
         messageService.updateMessage(firstMsg);
         // 수정된 데이터 조회
         System.out.println("수정 후 메시지 : " + firstMsg.getMessage());
-        System.out.println("수정 후 updatedAt : " + formatTime(messageService.getMessage(firstMsg.getId()).getUpdatedAt()) + "");
+        System.out.println("수정 후 updatedAt : " + formatTime(messageService.findById(firstMsg.getId()).getUpdatedAt()) + "");
 
         // 삭제
         System.out.println("--- 이영수 메시지 삭제 ---");
@@ -179,7 +179,7 @@ public class JavaApplicationLegacy {
         messageService.deleteMessage(ysMsg.getId());
 
         // 삭제 확인
-        Message deletedYsMsg = messageService.getMessage(ysMsg.getId());
+        Message deletedYsMsg = messageService.findById(ysMsg.getId());
         if (deletedYsMsg == null) {
             System.out.println("메시지가 삭제되었습니다.");
         } else {

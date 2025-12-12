@@ -7,9 +7,9 @@ import java.util.UUID;
 
 public interface UserRepository {
 
-    User createUser(User user);
+    User save(User user);
     User updateUser(User user);
     boolean deleteUser(UUID userId);
-    User getUser(UUID userId);
-    List<User> getAllUsers();
+    User findById(UUID userId);
+    List<User> findAll();
 }

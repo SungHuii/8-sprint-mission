@@ -13,10 +13,69 @@ public class FileUserRepository implements UserRepository {
 
     public FileUserRepository() {
         this.data = new HashMap<>();
-        load();
+        loadFile();
     }
 
-    private void save() {
+
+    @Override
+    public User save(User user) {
+        if (data.containsKey(user.getId())) {
+            System.out.println("이미 존재하는 유저입니다.");
+            return null;
+        }
+        data.put(user.getId(), user);
+        saveFile();
+        return user;
+    }
+
+    @Override
+    public User updateUser(User user) {
+        User existingUser = data.get(user.getId());
+        if (existingUser == null) {
+            System.out.println("해당 유저를 찾을 수 없습니다.");
+            return null;
+        }
+        existingUser.updateName(user.getName());
+        existingUser.updateNickname(user.getNickname());
+        existingUser.updatePhoneNumber(user.getPhoneNumber());
+        existingUser.updateEmail(user.getEmail());
+        existingUser.updateAvatarUrl(user.getAvatarUrl());
+        existingUser.updatePassword(user.getPassword());
+        saveFile();
+        System.out.println("유저 정보가 성공적으로 업데이트되었습니다.");
+
+        return existingUser;
+    }
+
+    @Override
+    public boolean deleteUser(UUID userId) {
+        User userRemoved = data.remove(userId);
+        if (userRemoved == null) {
+            System.out.println("해당 유저를 찾을 수 없습니다.");
+            return false;
+        }
+        saveFile();
+        System.out.println("유저가 성공적으로 삭제되었습니다.");
+
+        return true;
+    }
+
+    @Override
+    public User findById(UUID userId) {
+        User user = data.get(userId);
+        if (user == null) {
+            System.out.println("해당 유저를 찾을 수 없습니다.");
+            return null;
+        }
+        return user;
+    }
+
+    @Override
+    public List<User> findAll() {
+        return new ArrayList<>(data.values());
+    }
+
+    private void saveFile() {
         try (ObjectOutputStream oos =
                      new ObjectOutputStream(new FileOutputStream(FILE_PATH))) {
             oos.writeObject(data);
@@ -25,7 +84,7 @@ public class FileUserRepository implements UserRepository {
         }
     }
 
-    private void load() {
+    private void loadFile() {
         File file = new File(FILE_PATH);
         if (!file.exists()) return;
 
@@ -39,63 +98,5 @@ public class FileUserRepository implements UserRepository {
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
-    }
-
-    @Override
-    public User createUser(User user) {
-        if (data.containsKey(user.getId())) {
-            System.out.println("이미 존재하는 유저입니다.");
-            return null;
-        }
-        data.put(user.getId(), user);
-        save();
-        return user;
-    }
-
-    @Override
-    public User updateUser(User user) {
-        User existingUser = data.get(user.getId());
-        if (existingUser != null) {
-            existingUser.updateName(user.getName());
-            existingUser.updateNickname(user.getNickname());
-            existingUser.updatePhoneNumber(user.getPhoneNumber());
-            existingUser.updateEmail(user.getEmail());
-            existingUser.updateAvatarUrl(user.getAvatarUrl());
-            existingUser.updatePassword(user.getPassword());
-            save();
-        } else {
-            System.out.println("해당 유저를 찾을 수 없습니다.");
-            return null;
-        }
-        return existingUser;
-    }
-
-    @Override
-    public boolean deleteUser(UUID userId) {
-        User userRemoved = data.remove(userId);
-        if (userRemoved != null) {
-            System.out.println("유저가 성공적으로 삭제되었습니다.");
-            save();
-            return true;
-        } else {
-            System.out.println("해당 유저를 찾을 수 없습니다.");
-            return false;
-        }
-    }
-
-    @Override
-    public User getUser(UUID userId) {
-        User user = data.get(userId);
-        if (user == null) {
-            System.out.println("해당 유저를 찾을 수 없습니다.");
-            return null;
-        }
-        return user;
-    }
-
-    @Override
-    public List<User> getAllUsers() {
-        List<User> allUsers =  new ArrayList<>(data.values());
-        return allUsers;
     }
 }
