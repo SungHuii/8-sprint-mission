@@ -189,8 +189,8 @@ public class JavaApplicationLegacy {
 
     /* System.currentTimeMillis() 형식을 예쁘게 볼 수 있도록 변경
     * 초 단위까지만 나타내면 차이가 보이지 않아, 밀리초까지 포함 */
-    private static String formatTime(Long epochMillis) {
-        return Instant.ofEpochMilli(epochMillis)
+    private static String formatTime(Instant epochMillis) {
+        return Instant.ofEpochMilli(epochMillis.toEpochMilli())
                 .atZone(ZoneId.systemDefault())
                 .toLocalDateTime()
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));

@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.entity;
 import lombok.Getter;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.UUID;
 
 @Getter
@@ -21,8 +22,8 @@ public class User implements Serializable {
     * */
     private static final long serialVersionUID = 1L;
     private final UUID id;
-    private final Long createdAt;
-    private Long updatedAt;
+    private final Instant createdAt;
+    private Instant updatedAt;
     private String name;
     private String nickname;
     private String phoneNumber;
@@ -32,7 +33,7 @@ public class User implements Serializable {
 
     public User(String name, String nickname, String phoneNumber, String password, String email, String avatarUrl) {
         this.id = UUID.randomUUID();
-        this.createdAt = System.currentTimeMillis();
+        this.createdAt = Instant.now();
         this.updatedAt = this.createdAt;
 
         this.name = name;
@@ -74,6 +75,6 @@ public class User implements Serializable {
     }
 
     private void renewUpdatedAt() {
-        this.updatedAt = System.currentTimeMillis();
+        this.updatedAt = Instant.now();
     }
 }
