@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.entity;
 
 import lombok.Getter;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.UUID;
@@ -17,6 +18,7 @@ public class Channel implements Serializable {
     * 채널명
     * 채널설명
     * */
+    @Serial
     private static final long serialVersionUID = 1L;
     private final UUID id;
     private final Instant createdAt;

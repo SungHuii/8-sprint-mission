@@ -8,42 +8,44 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Getter
-public class Message implements Serializable {
+public class ReadStatus implements Serializable {
 
     /*
-    * 직렬화 UID
-    * 고유아이디
-    * 생성시간
-    * 수정시간
-    * 유저 참조
-    * 채널 참조
-    * 메시지 내용
-    * */
+     * 직렬화 UID
+     * 고유아이디
+     * 생성시간
+     * 수정시간
+     * 유저 참조
+     * 채널 참조
+     * 마지막으로 읽은 시간
+     * */
+
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static  final long serialVersionUID = 1L;
     private final UUID id;
     private final Instant createdAt;
     private Instant updatedAt;
     private final UUID userId;
     private final UUID channelId;
-    private String message;
+    private Instant lastReadAt;
 
-    public Message(UUID userId, UUID channelId, String message) {
+    public ReadStatus(UUID userId, UUID channelId, Instant lastReadAt) {
         this.id = UUID.randomUUID();
         this.createdAt = Instant.now();
         this.updatedAt = this.createdAt;
-
         this.userId = userId;
         this.channelId = channelId;
-        this.message = message;
+        this.lastReadAt = lastReadAt != null
+                ? lastReadAt
+                : Instant.now();
     }
 
-    public void updateMessage(String message) {
-        this.message = message;
+    public void updateLastReadAt(Instant lastReadAt) {
+        this.lastReadAt = lastReadAt;
         renewUpdatedAt();
     }
 
-    public void renewUpdatedAt() {
+    private void renewUpdatedAt() {
         this.updatedAt = Instant.now();
     }
 }

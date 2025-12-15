@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.entity;
 
 import lombok.Getter;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.UUID;
@@ -20,6 +21,7 @@ public class User implements Serializable {
      * 이메일정보
      * 사진(아바타)
     * */
+    @Serial
     private static final long serialVersionUID = 1L;
     private final UUID id;
     private final Instant createdAt;
