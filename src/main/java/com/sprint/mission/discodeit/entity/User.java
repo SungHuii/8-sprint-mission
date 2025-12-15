@@ -1,8 +1,11 @@
 package com.sprint.mission.discodeit.entity;
 
+import lombok.Getter;
+
 import java.io.Serializable;
 import java.util.UUID;
 
+@Getter
 public class User implements Serializable {
 
     /*
@@ -40,21 +43,9 @@ public class User implements Serializable {
         this.avatarUrl = avatarUrl;
     }
 
-    public UUID getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
     public void updateName(String name) {
         this.name = name;
         renewUpdatedAt();
-    }
-
-    public String getNickname() {
-        return nickname;
     }
 
     public void updateNickname(String nickname) {
@@ -62,17 +53,9 @@ public class User implements Serializable {
         renewUpdatedAt();
     }
 
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
     public void updatePhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
         renewUpdatedAt();
-    }
-
-    public String getPassword() {
-        return password;
     }
 
     public void updatePassword(String password) {
@@ -80,30 +63,14 @@ public class User implements Serializable {
         renewUpdatedAt();
     }
 
-    public String getEmail() {
-        return email;
-    }
-
     public void updateEmail(String email) {
         this.email = email;
         renewUpdatedAt();
     }
 
-    public String getAvatarUrl() {
-        return avatarUrl;
-    }
-
     public void updateAvatarUrl(String avatarUrl) {
         this.avatarUrl = avatarUrl;
         renewUpdatedAt();
-    }
-
-    public Long getCreatedAt() {
-        return createdAt;
-    }
-
-    public Long getUpdatedAt() {
-        return updatedAt;
     }
 
     private void renewUpdatedAt() {
