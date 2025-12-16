@@ -9,6 +9,6 @@ public record UserResponse(
         String phoneNumber,
         String email,
         UUID profileId, // nullable
-        boolean isOnline
+        boolean online
 ) {
 }
