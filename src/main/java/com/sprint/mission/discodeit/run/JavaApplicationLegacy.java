@@ -1,4 +1,5 @@
 package com.sprint.mission.discodeit.run;
+/*
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
@@ -32,8 +33,12 @@ public class JavaApplicationLegacy {
         ChannelService jcfChannelService = new JCFChannelService();
         MessageService jcfMessageService = new JCFMessageService(jcfUserService, jcfChannelService);
 
-        /* 도메인 별 서비스 구현체 테스트 */
-        /* User */
+        */
+/* 도메인 별 서비스 구현체 테스트 *//*
+
+        */
+/* User *//*
+
         System.out.println("============ User ===========");
         // 등록
         List<User> users = Arrays.asList(
@@ -76,7 +81,7 @@ public class JavaApplicationLegacy {
         // 삭제
         System.out.println("--- 김철수 유저 삭제 ---");
         User chulsoo = users.get(1);
-        userService.deleteUser(chulsoo.getId());
+        userService.deleteById(chulsoo.getId());
 
         // 삭제 확인
         // deleteUser에 삭제 확인 출력문을 넣어놓았음.
@@ -87,7 +92,9 @@ public class JavaApplicationLegacy {
             System.out.println("삭제 실패! 김철수 유저가 유저 목록에 남아 있습니다!");
         }
 
-        /* Channel */
+        */
+/* Channel *//*
+
         System.out.println("============ Channel ===========");
         // 등록
         List<Channel> channels = Arrays.asList(
@@ -138,7 +145,9 @@ public class JavaApplicationLegacy {
             System.out.println("삭제 실패! 공지사항 채널이 채널 목록에 남아 있습니다!");
         }
 
-        /* Message */
+        */
+/* Message *//*
+
         System.out.println("============ Message ===========");
         // 등록
         List<Message> messages = Arrays.asList(
@@ -187,8 +196,10 @@ public class JavaApplicationLegacy {
         }
     }
 
-    /* System.currentTimeMillis() 형식을 예쁘게 볼 수 있도록 변경
-    * 초 단위까지만 나타내면 차이가 보이지 않아, 밀리초까지 포함 */
+    */
+/* System.currentTimeMillis() 형식을 예쁘게 볼 수 있도록 변경
+    * 초 단위까지만 나타내면 차이가 보이지 않아, 밀리초까지 포함 *//*
+
     private static String formatTime(Instant epochMillis) {
         return Instant.ofEpochMilli(epochMillis.toEpochMilli())
                 .atZone(ZoneId.systemDefault())
@@ -196,3 +207,4 @@ public class JavaApplicationLegacy {
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
     }
 }
+*/

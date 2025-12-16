@@ -14,7 +14,7 @@ public interface UserService {
     User save(User user);
     User saveUser(String name, String nickname, String phoneNumber, String password, String email);
     User updateUser(User user);
-    boolean deleteUser(UUID userid);
+    void deleteById(UUID userid);
     User findById(UUID userId);
     List<User> findAll();
 

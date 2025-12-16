@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -32,12 +33,8 @@ public class BasicUserService implements UserService {
 
     @Override
     public User updateUser(User user) {
-        User checkExisted = userRepository.findById(user.getId());
-
-        if (checkExisted == null) {
-            System.out.println("해당 유저가 존재하지 않습니다.");
-            return null;
-        }
+        User checkExisted = userRepository.findById(user.getId())
+                        .orElseThrow(() -> new IllegalArgumentException("해당 유저가 존재하지 않습니다."));
         checkExisted.updateName(user.getName());
         checkExisted.updateNickname(user.getNickname());
         checkExisted.updatePhoneNumber(user.getPhoneNumber());
@@ -45,17 +42,18 @@ public class BasicUserService implements UserService {
         checkExisted.updateProfileId(user.getProfileId());
         checkExisted.updatePassword(user.getPassword());
 
-        return userRepository.updateUser(user);
+        return userRepository.updateUser(checkExisted);
     }
 
     @Override
-    public boolean deleteUser(UUID userid) {
-        return userRepository.deleteUser(userid);
+    public void deleteById(UUID userid) {
+        userRepository.deleteById(userid);
     }
 
     @Override
     public User findById(UUID userId) {
-        return userRepository.findById(userId);
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
     }
 
     @Override
