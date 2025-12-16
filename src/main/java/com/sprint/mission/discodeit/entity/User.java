@@ -19,7 +19,7 @@ public class User implements Serializable {
      * 전화번호
      * 패스워드
      * 이메일정보
-     * 사진(아바타)
+     * 프로필 사진 고유아이디
     * */
     @Serial
     private static final long serialVersionUID = 1L;
@@ -31,19 +31,18 @@ public class User implements Serializable {
     private String phoneNumber;
     private transient String password;
     private String email;
-    private String avatarUrl;
+    private UUID profileId;
 
-    public User(String name, String nickname, String phoneNumber, String password, String email, String avatarUrl) {
+    public User(String name, String nickname, String phoneNumber, String password, String email) {
         this.id = UUID.randomUUID();
         this.createdAt = Instant.now();
         this.updatedAt = this.createdAt;
-
         this.name = name;
         this.nickname = nickname;
         this.phoneNumber = phoneNumber;
         this.password = password;
         this.email = email;
-        this.avatarUrl = avatarUrl;
+        this.profileId = null;
     }
 
     public void updateName(String name) {
@@ -71,8 +70,8 @@ public class User implements Serializable {
         renewUpdatedAt();
     }
 
-    public void updateAvatarUrl(String avatarUrl) {
-        this.avatarUrl = avatarUrl;
+    public void updateProfileId(UUID profileId) {
+        this.profileId = profileId;
         renewUpdatedAt();
     }
 

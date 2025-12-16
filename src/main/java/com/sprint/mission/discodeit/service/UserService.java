@@ -12,7 +12,7 @@ public interface UserService {
 
     @Deprecated
     User save(User user);
-    User saveUser(String name, String nickname, String phoneNumber, String password, String email, String avatarUrl);
+    User saveUser(String name, String nickname, String phoneNumber, String password, String email);
     User updateUser(User user);
     boolean deleteUser(UUID userid);
     User findById(UUID userId);

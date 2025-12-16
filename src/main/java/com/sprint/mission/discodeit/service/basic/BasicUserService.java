@@ -25,8 +25,8 @@ public class BasicUserService implements UserService {
     }
 
     @Override
-    public User saveUser(String name, String nickname, String phoneNumber, String password, String email, String avatarUrl) {
-        User user = new User(name, nickname, phoneNumber, password, email, avatarUrl);
+    public User saveUser(String name, String nickname, String phoneNumber, String password, String email) {
+        User user = new User(name, nickname, phoneNumber, password, email);
         return userRepository.save(user);
     }
 
@@ -42,7 +42,7 @@ public class BasicUserService implements UserService {
         checkExisted.updateNickname(user.getNickname());
         checkExisted.updatePhoneNumber(user.getPhoneNumber());
         checkExisted.updateEmail(user.getEmail());
-        checkExisted.updateAvatarUrl(user.getAvatarUrl());
+        checkExisted.updateProfileId(user.getProfileId());
         checkExisted.updatePassword(user.getPassword());
 
         return userRepository.updateUser(user);

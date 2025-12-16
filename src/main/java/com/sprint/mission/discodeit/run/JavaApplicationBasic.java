@@ -55,7 +55,7 @@ public class JavaApplicationBasic {
     }
 
     static User setupUser(UserService userService) {
-        User user = userService.saveUser("홍길동", "gildong", "010-1234-5678", "password123", "abc@def.com", "gildong.jpg");
+        User user = userService.saveUser("홍길동", "gildong", "010-1234-5678", "password123", "abc@def.com");
         System.out.println("[User 생성] id=" + user.getId()
                 + ", name=" + user.getName()
                 + ", nickname=" + user.getNickname());

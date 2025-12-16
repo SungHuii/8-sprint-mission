@@ -37,9 +37,9 @@ public class JavaApplicationLegacy {
         System.out.println("============ User ===========");
         // 등록
         List<User> users = Arrays.asList(
-                new User("홍길동", "gildong", "010-1234-5678", "password123", "abc@def.com", "gildong.jpg"),
-                new User("김철수", "chulsoo", "010-8765-4321", "password456", "chulsoo@chul.com", "chulsoo.jpg"),
-                new User("이영수", "youngsoo", "010-1111-2222", "password789", "youngsoo@naver.com", "youngsoo.jpg")
+                new User("홍길동", "gildong", "010-1234-5678", "password123", "abc@def.com"),
+                new User("김철수", "chulsoo", "010-8765-4321", "password456", "chulsoo@chul.com"),
+                new User("이영수", "youngsoo", "010-1111-2222", "password789", "youngsoo@naver.com")
         );
         users.forEach(userService::save);
 

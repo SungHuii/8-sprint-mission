@@ -31,7 +31,7 @@ public class JCFUserRepository implements UserRepository {
         existingUser.updateNickname(user.getNickname());
         existingUser.updatePhoneNumber(user.getPhoneNumber());
         existingUser.updateEmail(user.getEmail());
-        existingUser.updateAvatarUrl(user.getAvatarUrl());
+        existingUser.updateProfileId(user.getProfileId());
         existingUser.updatePassword(user.getPassword());
         System.out.println("유저 정보가 성공적으로 업데이트되었습니다.");
 
