@@ -142,9 +142,9 @@ public class JavaApplicationLegacy {
         System.out.println("============ Message ===========");
         // 등록
         List<Message> messages = Arrays.asList(
-                new Message(users.get(0).getId(), channels.get(0).getId(), "안녕하세요, 관리자 홍길동입니다!"),
-                new Message(users.get(2).getId(), channels.get(0).getId(), "하이요, 이영수입니다"),
-                new Message(users.get(0).getId(), channels.get(2).getId(), "자유게시판에 오신 것을 환영합니다!")
+                new Message(users.get(0).getId(), channels.get(0).getId(), "안녕하세요, 관리자 홍길동입니다!", null),
+                new Message(users.get(2).getId(), channels.get(0).getId(), "하이요, 이영수입니다", null),
+                new Message(users.get(0).getId(), channels.get(2).getId(), "자유게시판에 오신 것을 환영합니다!", null)
         );
         messages.forEach(messageService::save);
 
@@ -152,25 +152,25 @@ public class JavaApplicationLegacy {
         System.out.println("---- 이름에 '관리'가 포함된 메시지 조회 ----");
         List<Message> filteredMessage = messageService.findAll()
                 .stream()
-                .filter(m -> m.getMessage().contains("관리"))
+                .filter(m -> m.getMessageContent().contains("관리"))
                 .toList();
-        filteredMessage.forEach(m -> System.out.println("이름에 '관리'가 포함된 메시지: " + m.getMessage()));
+        filteredMessage.forEach(m -> System.out.println("이름에 '관리'가 포함된 메시지: " + m.getMessageContent()));
 
         // 전체 조회 (메시지 내용 + 생성시각)
         System.out.println("---- 전체 메시지 목록 조회 ----");
         messageService.findAll().forEach( m -> {
-            System.out.println("- " + m.getMessage() + " (" + formatTime(m.getCreatedAt()) + ")");
+            System.out.println("- " + m.getMessageContent() + " (" + formatTime(m.getCreatedAt()) + ")");
         });
 
         // 수정
         System.out.println("--- 첫번째 메시지 수정 ---");
         Message firstMsg = messages.get(0);
-        System.out.println("수정 전 메시지 : " + firstMsg.getMessage());
+        System.out.println("수정 전 메시지 : " + firstMsg.getMessageContent());
         System.out.println("수정 전 updatedAt : " + formatTime(messageService.findById(firstMsg.getId()).getUpdatedAt()) + "");
         firstMsg.updateMessage("하이요, 관리자 홍길동입니다!");
         messageService.updateMessage(firstMsg);
         // 수정된 데이터 조회
-        System.out.println("수정 후 메시지 : " + firstMsg.getMessage());
+        System.out.println("수정 후 메시지 : " + firstMsg.getMessageContent());
         System.out.println("수정 후 updatedAt : " + formatTime(messageService.findById(firstMsg.getId()).getUpdatedAt()) + "");
 
         // 삭제

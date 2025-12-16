@@ -26,13 +26,13 @@ public class FileMessageService implements MessageService {
 
     @Override
     public Message save(Message message) {
-        if (message.getUserId() == null) {
+        if (message.getAuthorId() == null) {
             System.out.println("유저 아이디가 유효하지 않습니다.");
             return null;
         } else if (message.getChannelId() == null) {
             System.out.println("채널 아이디가 유효하지 않습니다.");
             return null;
-        } else if (message.getMessage()== null || message.getMessage().isEmpty()){
+        } else if (message.getMessageContent()== null || message.getMessageContent().isEmpty()){
             System.out.println("메세지를 입력해주세요.");
             return null;
         }
@@ -42,15 +42,15 @@ public class FileMessageService implements MessageService {
     }
 
     @Override
-    public Message saveMessage(UUID userId, UUID channelId, String content) {
-        if (userId == null) {
+    public Message saveMessage(UUID authorId, UUID channelId, String content, List<UUID> attachmentIds) {
+        if (authorId == null) {
             System.out.println("유저 아이디가 유효하지 않습니다.");
             return null;
         } else if (channelId == null) {
             System.out.println("채널 아이디가 유효하지 않습니다.");
             return null;
         }
-        return new Message(userId, channelId, content);
+        return new Message(authorId, channelId, content, attachmentIds);
     }
 
     @Override
@@ -60,7 +60,7 @@ public class FileMessageService implements MessageService {
             System.out.println("해당 메시지를 찾을 수 없습니다.");
             return null;
         }
-        existingMessage.updateMessage(message.getMessage());
+        existingMessage.updateMessage(message.getMessageContent());
         saveFile();
         System.out.println("메시지가 성공적으로 수정되었습니다.");
 

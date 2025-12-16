@@ -5,6 +5,8 @@ import lombok.Getter;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -18,32 +20,36 @@ public class Message implements Serializable {
     * 유저 참조
     * 채널 참조
     * 메시지 내용
+    * 첨부 파일 참조 리스트
     * */
     @Serial
     private static final long serialVersionUID = 1L;
     private final UUID id;
     private final Instant createdAt;
     private Instant updatedAt;
-    private final UUID userId;
+    private final UUID authorId;
     private final UUID channelId;
-    private String message;
+    private String messageContent;
+    private final List<UUID> attachmentIds;
 
-    public Message(UUID userId, UUID channelId, String message) {
+    public Message(UUID authorId, UUID channelId, String messageContent, List<UUID> attachmentIds) {
         this.id = UUID.randomUUID();
         this.createdAt = Instant.now();
         this.updatedAt = this.createdAt;
-
-        this.userId = userId;
+        this.authorId = authorId;
         this.channelId = channelId;
-        this.message = message;
+        this.messageContent = messageContent;
+        this.attachmentIds = (attachmentIds != null)
+                ? new ArrayList<>(attachmentIds)
+                : new ArrayList<>();
     }
 
-    public void updateMessage(String message) {
-        this.message = message;
+    public void updateMessage(String messageContent) {
+        this.messageContent = messageContent;
         renewUpdatedAt();
     }
 
-    public void renewUpdatedAt() {
+    private void renewUpdatedAt() {
         this.updatedAt = Instant.now();
     }
 }

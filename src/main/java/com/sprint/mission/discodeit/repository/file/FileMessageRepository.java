@@ -21,13 +21,13 @@ public class FileMessageRepository implements MessageRepository {
 
     @Override
     public Message save(Message message) {
-        if (message.getUserId() == null) {
-            System.out.println("유저 아이디가 유효하지 않습니다.");
+        if (message.getAuthorId() == null) {
+            System.out.println("작성자 아이디가 유효하지 않습니다.");
             return null;
         } else if (message.getChannelId() == null) {
             System.out.println("채널 아이디가 유효하지 않습니다.");
             return null;
-        } else if (message.getMessage()== null || message.getMessage().isEmpty()){
+        } else if (message.getMessageContent()== null || message.getMessageContent().isEmpty()){
             System.out.println("메세지를 입력해주세요.");
             return null;
         }
@@ -43,7 +43,7 @@ public class FileMessageRepository implements MessageRepository {
             System.out.println("해당 메시지를 찾을 수 없습니다.");
             return null;
         }
-        existingMessage.updateMessage(message.getMessage());
+        existingMessage.updateMessage(message.getMessageContent());
         saveFile();
         System.out.println("메시지가 성공적으로 수정되었습니다.");
 

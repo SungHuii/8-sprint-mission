@@ -13,7 +13,7 @@ public interface MessageService {
     * */
     @Deprecated
     Message save(Message message);
-    Message saveMessage(UUID userId, UUID channelId, String content);
+    Message saveMessage(UUID authorId, UUID channelId, String messageContent, List<UUID> attachmentIds);
     Message updateMessage(Message message);
     boolean deleteMessage(UUID messageId);
     Message findById(UUID messageId);

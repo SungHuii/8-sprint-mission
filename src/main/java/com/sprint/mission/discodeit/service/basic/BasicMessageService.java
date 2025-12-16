@@ -23,13 +23,13 @@ public class BasicMessageService implements MessageService {
 
     @Override
     public Message save(Message message) {
-        if (userRepository.findById(message.getUserId()) == null) {
+        if (userRepository.findById(message.getAuthorId()) == null) {
             System.out.println("유저 아이디가 유효하지 않습니다.");
             return null;
         } else if (channelRepository.findById(message.getChannelId()) == null) {
             System.out.println("채널 아이디가 유효하지 않습니다.");
             return null;
-        } else if (message.getMessage()== null || message.getMessage().isEmpty()){
+        } else if (message.getMessageContent()== null || message.getMessageContent().isEmpty()){
             System.out.println("메세지를 입력해주세요.");
             return null;
         }
@@ -37,8 +37,8 @@ public class BasicMessageService implements MessageService {
     }
 
     @Override
-    public Message saveMessage(UUID userId, UUID channelId, String content) {
-        return new Message(userId, channelId, content);
+    public Message saveMessage(UUID authorId, UUID channelId, String content, List<UUID> attachmentIds) {
+        return new Message(authorId, channelId, content, attachmentIds);
     }
 
     @Override
@@ -49,7 +49,7 @@ public class BasicMessageService implements MessageService {
             System.out.println("해당 메세지가 존재하지 않습니다.");
             return null;
         }
-        checkExisted.updateMessage(message.getMessage());
+        checkExisted.updateMessage(message.getMessageContent());
         return messageRepository.updateMessage(message);
     }
 

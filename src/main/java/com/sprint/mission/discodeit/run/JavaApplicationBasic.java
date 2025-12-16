@@ -70,12 +70,12 @@ public class JavaApplicationBasic {
     }
 
     static Message messageCreateTest(MessageService messageService, Channel channel, User user) {
-        Message message = messageService.saveMessage(user.getId(), channel.getId(), "안녕하세요, 반갑습니다!");
+        Message message = messageService.saveMessage(user.getId(), channel.getId(), "안녕하세요, 반갑습니다!", null);
         if (message == null) {
             System.out.println("[Message 생성 실패]");
         }
         System.out.println("[Message 생성] id=" + message.getId()
-                + ", message=" + message.getMessage());
+                + ", message=" + message.getMessageContent());
 
         return message;
     }
