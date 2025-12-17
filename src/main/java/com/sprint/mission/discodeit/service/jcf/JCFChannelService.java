@@ -1,5 +1,5 @@
 package com.sprint.mission.discodeit.service.jcf;
-
+/*
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.service.ChannelService;
 
@@ -7,9 +7,9 @@ import java.util.*;
 
 public class JCFChannelService implements ChannelService {
 
-    /* JCF(Java Collections Framework) 기반으로 데이터를 저장할 수 있는 필드(data)를 final로 선언하고 생성자에서 초기화
+    *//* JCF(Java Collections Framework) 기반으로 데이터를 저장할 수 있는 필드(data)를 final로 선언하고 생성자에서 초기화
      * data 필드를 활용해서 CRUD 메소드 구현
-     */
+     *//*
 
     private final Map<UUID, Channel> data;
     public JCFChannelService() {
@@ -70,4 +70,4 @@ public class JCFChannelService implements ChannelService {
     public List<Channel> findAll() {
         return new ArrayList<>(data.values());
     }
-}
+}*/
