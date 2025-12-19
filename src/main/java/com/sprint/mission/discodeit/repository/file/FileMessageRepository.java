@@ -78,6 +78,19 @@ public class FileMessageRepository implements MessageRepository {
         return new ArrayList<>(data.values());
     }
 
+    @Override
+    public List<Message> findAllByChannelId(UUID channelId) {
+        return data.values().stream()
+                .filter(message -> channelId.equals(message.getChannelId()))
+                .toList();
+    }
+
+    @Override
+    public void deleteAllByChannelId(UUID channelId) {
+        data.values().removeIf(message -> channelId.equals(message.getChannelId()));
+        saveFile();
+    }
+
     private void saveFile() {
         try (ObjectOutputStream oos =
                      new ObjectOutputStream(new FileOutputStream(FILE_PATH))) {

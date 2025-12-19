@@ -1,22 +1,50 @@
-package com.sprint.mission.discodeit.service;
+﻿package com.sprint.mission.discodeit.service;
 
-import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.dto.MessageCreateRequest;
+import com.sprint.mission.discodeit.dto.MessageResponse;
+import com.sprint.mission.discodeit.dto.MessageUpdateRequest;
 import com.sprint.mission.discodeit.entity.Message;
-import com.sprint.mission.discodeit.entity.User;
 
 import java.util.List;
 import java.util.UUID;
 
 public interface MessageService {
     /* Message entity CRUD service
-    * 생성 / 읽기 / 모두 읽기 / 수정 / 삭제 기능
     * */
+
+    // create
+    default MessageResponse create(MessageCreateRequest request) {
+        throw new UnsupportedOperationException("create not implemented");
+    }
+
+    // find
+    default List<MessageResponse> findAllByChannelId(UUID channelId) {
+        throw new UnsupportedOperationException("findAllByChannelId not implemented");
+    }
+
+    // update
+    default MessageResponse update(MessageUpdateRequest request) {
+        throw new UnsupportedOperationException("update not implemented");
+    }
+
+    // delete
+    default void deleteById(UUID messageId) {
+        throw new UnsupportedOperationException("deleteById not implemented");
+    }
+
+    /*
+    Spring 이전 버전 코드
+    */
     @Deprecated
     Message save(Message message);
+    @Deprecated
     Message saveMessage(UUID authorId, UUID channelId, String messageContent, List<UUID> attachmentIds);
+    @Deprecated
     Message updateMessage(Message message);
+    @Deprecated
     boolean deleteMessage(UUID messageId);
+    @Deprecated
     Message findById(UUID messageId);
+    @Deprecated
     List<Message> findAll();
-
 }
