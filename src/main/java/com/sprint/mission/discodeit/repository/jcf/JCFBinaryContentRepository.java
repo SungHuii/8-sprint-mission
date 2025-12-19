@@ -40,7 +40,7 @@ public class JCFBinaryContentRepository implements BinaryContentRepository {
     public void deleteById(UUID id) {
         BinaryContent removed = data.remove(id);
         if (removed == null) {
-            throw new NoSuchElementException("해당 BinaryContent가 존재하지 않습니다. id=" + id);
+            throw new NoSuchElementException("해당 Binary Content가 존재하지 않습니다. id=" + id);
         }
     }
 }

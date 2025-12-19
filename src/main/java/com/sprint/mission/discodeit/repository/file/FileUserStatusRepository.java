@@ -58,7 +58,7 @@ public class FileUserStatusRepository implements UserStatusRepository {
     public void deleteById(UUID userStatusId) {
         UserStatus removed = data.remove(userStatusId);
         if (removed == null) {
-            System.out.println("해당 UserStatus가 존재하지 않습니다. id=" + userStatusId);
+            System.out.println("해당 유저 상태가 존재하지 않습니다. id=" + userStatusId);
         }
         saveFile();
     }
@@ -67,7 +67,7 @@ public class FileUserStatusRepository implements UserStatusRepository {
     public void deleteByUserId(UUID userId) {
         Optional<UserStatus> existing = findByUserId(userId);
         if (existing.isEmpty()) {
-            System.out.println("해당 UserStatus가 존재하지 않습니다. userId=" + userId);
+            System.out.println("해당 유저 상태가 존재하지 않습니다. userId=" + userId);
             return;
         }
         data.remove(existing.get().getId());

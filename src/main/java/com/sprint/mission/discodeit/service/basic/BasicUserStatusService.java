@@ -33,7 +33,7 @@ public class BasicUserStatusService implements UserStatusService {
         userStatusRepository.findByUserId(request.userId())
                 .ifPresent(status -> {
                     throw new IllegalArgumentException(
-                            "이미 UserStatus가 존재합니다. userId=" + request.userId());
+                            "이미 유저 상태가 존재합니다. userId=" + request.userId());
                 });
 
         Instant lastActiveAt = request.lastActiveAt() != null ? request.lastActiveAt() : Instant.now();
@@ -50,7 +50,7 @@ public class BasicUserStatusService implements UserStatusService {
 
         UserStatus status = userStatusRepository.findById(userStatusId)
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "해당 UserStatus가 존재하지 않습니다. userStatusId=" + userStatusId));
+                        "해당 유저 상태가 존재하지 않습니다. userStatusId=" + userStatusId));
 
         return toUserStatusResponse(status);
     }
@@ -68,7 +68,7 @@ public class BasicUserStatusService implements UserStatusService {
 
         UserStatus status = userStatusRepository.findById(request.userStatusId())
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "해당 UserStatus가 존재하지 않습니다. userStatusId=" + request.userStatusId()));
+                        "해당 유저 상태가 존재하지 않습니다. userStatusId=" + request.userStatusId()));
 
         status.updateLastActiveAt(request.lastActiveAt());
         UserStatus updated = userStatusRepository.save(status);
@@ -82,7 +82,7 @@ public class BasicUserStatusService implements UserStatusService {
 
         UserStatus status = userStatusRepository.findByUserId(request.userId())
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "해당 UserStatus가 존재하지 않습니다. userId=" + request.userId()));
+                        "해당 유저 상태가 존재하지 않습니다. userId=" + request.userId()));
 
         status.updateLastActiveAt(request.lastActiveAt());
         UserStatus updated = userStatusRepository.save(status);
@@ -98,7 +98,7 @@ public class BasicUserStatusService implements UserStatusService {
 
         userStatusRepository.findById(userStatusId)
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "해당 UserStatus가 존재하지 않습니다. userStatusId=" + userStatusId));
+                        "해당 유저 상태가 존재하지 않습니다. userStatusId=" + userStatusId));
 
         userStatusRepository.deleteById(userStatusId);
     }

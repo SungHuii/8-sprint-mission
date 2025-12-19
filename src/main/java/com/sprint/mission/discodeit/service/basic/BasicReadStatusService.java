@@ -37,7 +37,7 @@ public class BasicReadStatusService implements ReadStatusService {
 
         readStatusRepository.findByUserIdAndChannelId(request.userId(), request.channelId())
                 .ifPresent(status -> {
-                    throw new IllegalArgumentException("이미 ReadStatus가 존재합니다. userId="
+                    throw new IllegalArgumentException("이미 읽음 상태가 존재합니다. userId="
                             + request.userId() + ", channelId=" + request.channelId());
                 });
 
@@ -59,7 +59,7 @@ public class BasicReadStatusService implements ReadStatusService {
 
         ReadStatus status = readStatusRepository.findById(readStatusId)
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "해당 ReadStatus가 존재하지 않습니다. readStatusId=" + readStatusId));
+                        "해당 읽음 상태가 존재하지 않습니다. readStatusId=" + readStatusId));
 
         return toReadStatusResponse(status);
     }
@@ -81,7 +81,7 @@ public class BasicReadStatusService implements ReadStatusService {
 
         ReadStatus status = readStatusRepository.findById(request.readStatusId())
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "해당 ReadStatus가 존재하지 않습니다. readStatusId=" + request.readStatusId()));
+                        "해당 읽음 상태가 존재하지 않습니다. readStatusId=" + request.readStatusId()));
 
         status.updateLastReadAt(request.lastReadAt());
         ReadStatus updated = readStatusRepository.save(status);
@@ -97,7 +97,7 @@ public class BasicReadStatusService implements ReadStatusService {
 
         readStatusRepository.findById(readStatusId)
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "해당 ReadStatus가 존재하지 않습니다. readStatusId=" + readStatusId));
+                        "해당 읽음 상태가 존재하지 않습니다. readStatusId=" + readStatusId));
 
         readStatusRepository.deleteById(readStatusId);
     }

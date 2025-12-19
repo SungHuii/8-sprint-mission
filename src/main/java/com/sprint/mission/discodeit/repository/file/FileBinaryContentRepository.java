@@ -54,7 +54,7 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
     public void deleteById(UUID id) {
         BinaryContent removed = data.remove(id);
         if (removed == null) {
-            System.out.println("해당 BinaryContent가 존재하지 않습니다. id=" + id);
+            System.out.println("해당 Binary Content가 존재하지 않습니다. id=" + id);
         }
         saveFile();
     }

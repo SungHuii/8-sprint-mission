@@ -44,7 +44,7 @@ public class JCFUserStatusRepository implements UserStatusRepository {
     public void deleteById(UUID userStatusId) {
         UserStatus removed = data.remove(userStatusId);
         if (removed == null) {
-            throw new NoSuchElementException("해당 UserStatus가 존재하지 않습니다. id=" + userStatusId);
+            throw new NoSuchElementException("해당 유저 상태가 존재하지 않습니다. id=" + userStatusId);
         }
     }
 
@@ -52,7 +52,7 @@ public class JCFUserStatusRepository implements UserStatusRepository {
     public void deleteByUserId(UUID userId) {
         UserStatus existing = findByUserId(userId)
                 .orElseThrow(() -> new NoSuchElementException(
-                        "해당 UserStatus가 존재하지 않습니다. userId=" + userId));
+                        "해당 유저 상태가 존재하지 않습니다. userId=" + userId));
         data.remove(existing.getId());
     }
 }

@@ -37,7 +37,7 @@ public class BasicBinaryContentService implements BinaryContentService {
 
         return binaryContentRepository.findById(binaryContentId)
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "해당 BinaryContent가 존재하지 않습니다. binaryContentId=" + binaryContentId));
+                        "해당 Binary Content가 존재하지 않습니다. binaryContentId=" + binaryContentId));
     }
 
     @Override
@@ -57,7 +57,7 @@ public class BasicBinaryContentService implements BinaryContentService {
 
         binaryContentRepository.findById(binaryContentId)
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "해당 BinaryContent가 존재하지 않습니다. binaryContentId=" + binaryContentId));
+                        "해당 Binary Content가 존재하지 않습니다. binaryContentId=" + binaryContentId));
 
         binaryContentRepository.deleteById(binaryContentId);
     }
@@ -77,4 +77,3 @@ public class BasicBinaryContentService implements BinaryContentService {
         }
     }
 }
-

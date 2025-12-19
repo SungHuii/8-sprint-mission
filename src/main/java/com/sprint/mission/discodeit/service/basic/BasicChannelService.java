@@ -100,7 +100,7 @@ public class BasicChannelService implements ChannelService {
         }
 
         if (channel.getChType() == ChannelType.PRIVATE) {
-            throw new IllegalStateException("PRIVATE 채널은 수정할 수 없습니다.");
+            throw new IllegalStateException("비공개 채널은 수정할 수 없습니다.");
         }
 
         // 부분 수정

@@ -3,7 +3,6 @@ package com.sprint.mission.discodeit.repository.jcf;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +60,7 @@ public class JCFReadStatusRepository implements ReadStatusRepository {
     public void deleteById(UUID readStatusId) {
         ReadStatus removed = data.remove(readStatusId);
         if (removed == null) {
-            throw new NoSuchElementException("해당 ReadStatus가 존재하지 않습니다. id=" + readStatusId);
+            throw new NoSuchElementException("해당 읽음 상태가 존재하지 않습니다. id=" + readStatusId);
         }
     }
 

@@ -74,7 +74,7 @@ public class FileReadStatusRepository implements ReadStatusRepository {
     public void deleteById(UUID readStatusId) {
         ReadStatus removed = data.remove(readStatusId);
         if (removed == null) {
-            System.out.println("해당 ReadStatus가 존재하지 않습니다. id=" + readStatusId);
+            System.out.println("해당 읽음 상태가 존재하지 않습니다. id=" + readStatusId);
         }
         saveFile();
     }
