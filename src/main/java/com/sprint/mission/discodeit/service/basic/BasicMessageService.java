@@ -127,7 +127,7 @@ public class BasicMessageService implements MessageService {
         }
     }
 
-    @Deprecated
+    /*@Deprecated
     @Override
     public Message save(Message message) {
         if (message == null) {
@@ -187,7 +187,7 @@ public class BasicMessageService implements MessageService {
     @Override
     public List<Message> findAll() {
         return messageRepository.findAll();
-    }
+    }*/
 
     private MessageResponse toMessageResponse(Message message) {
         return new MessageResponse(
