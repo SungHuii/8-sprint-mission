@@ -1,14 +1,14 @@
-package com.sprint.mission.discodeit.dto;
+﻿package com.sprint.mission.discodeit.dto.userstatus;
 
 import java.time.Instant;
 import java.util.UUID;
 
-public record ReadStatusResponse(
+public record UserStatusResponse(
         UUID id,
         UUID userId,
-        UUID channelId,
-        Instant lastReadAt,
+        Instant lastActiveAt,
         Instant createdAt,
         Instant updatedAt
 ) {
 }
+

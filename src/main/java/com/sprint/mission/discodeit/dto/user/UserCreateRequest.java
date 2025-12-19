@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.dto;
+﻿package com.sprint.mission.discodeit.dto.user;
 
 public record UserCreateRequest(
         String name,
@@ -8,3 +8,4 @@ public record UserCreateRequest(
         String email,
         BinaryContentCreateRequest profile // nullable
 ) {}
+

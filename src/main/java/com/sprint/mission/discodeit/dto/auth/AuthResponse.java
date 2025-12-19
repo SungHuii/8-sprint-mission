@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.dto;
+﻿package com.sprint.mission.discodeit.dto.auth;
 
 import java.util.UUID;
 
@@ -11,3 +11,4 @@ public record AuthResponse(
         UUID profileId
 ) {
 }
+

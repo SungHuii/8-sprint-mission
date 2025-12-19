@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.dto;
+﻿package com.sprint.mission.discodeit.dto.message;
 
 import java.time.Instant;
 import java.util.List;
@@ -14,3 +14,4 @@ public record MessageResponse(
         Instant updatedAt
 ) {
 }
+

@@ -1,8 +1,8 @@
-package com.sprint.mission.discodeit.service;
+﻿package com.sprint.mission.discodeit.service;
 
-import com.sprint.mission.discodeit.dto.UserCreateRequest;
-import com.sprint.mission.discodeit.dto.UserResponse;
-import com.sprint.mission.discodeit.dto.UserUpdateRequest;
+import com.sprint.mission.discodeit.dto.user.UserCreateRequest;
+import com.sprint.mission.discodeit.dto.user.UserResponse;
+import com.sprint.mission.discodeit.dto.user.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.User;
 
 import java.util.List;
@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public interface UserService {
     /* User entity CRUD service
-    * 생성 / 읽기 / 모두 읽기 / 수정 / 삭제 기능
+    * ?앹꽦 / ?쎄린 / 紐⑤몢 ?쎄린 / ?섏젙 / ??젣 湲곕뒫
     * */
 
     // create
@@ -27,7 +27,7 @@ public interface UserService {
     void deleteById(UUID userId);
 
     /*
-    Spring 도입에 따라 주석 처리
+    Spring ?꾩엯???곕씪 二쇱꽍 泥섎━
     @Deprecated
     User save(User user);
     User saveUser(String name, String nickname, String phoneNumber, String password, String email);
@@ -37,3 +37,4 @@ public interface UserService {
     List<User> findAll();
     */
 }
+
