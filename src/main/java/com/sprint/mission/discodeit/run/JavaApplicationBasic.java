@@ -1,4 +1,5 @@
-package com.sprint.mission.discodeit.run;
+﻿package com.sprint.mission.discodeit.run;
+/*
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
@@ -22,7 +23,9 @@ import com.sprint.mission.discodeit.service.basic.BasicUserService;
 public class JavaApplicationBasic {
     public static void main(String[] args) {
 
-        /* Basic + JCF 테스트 */
+        */
+/* Basic + JCF 테스트 *//*
+
         // Repository 주입
         UserRepository userRepo = new JCFUserRepository();
         ChannelRepository channelRepo = new JCFChannelRepository();
@@ -38,7 +41,9 @@ public class JavaApplicationBasic {
         Channel channel = setupChannel(channelServ);
         messageCreateTest(messageServ, channel, user);
 
-        /* Basic + File 테스트 */
+        */
+/* Basic + File 테스트 *//*
+
         UserRepository fileUserRepo = new FileUserRepository();
         ChannelRepository fileChannelRepo = new FileChannelRepository();
         MessageRepository fileMessageRepo = new FileMessageRepository();
@@ -80,3 +85,4 @@ public class JavaApplicationBasic {
         return message;
     }
 }
+*/
