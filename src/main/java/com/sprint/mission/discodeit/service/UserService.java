@@ -13,17 +13,6 @@ public interface UserService {
     * 생성 / 읽기 / 모두 읽기 / 수정 / 삭제 기능
     * */
 
-    /*
-    Spring 도입에 따라 주석 처리
-    @Deprecated
-    User save(User user);
-    User saveUser(String name, String nickname, String phoneNumber, String password, String email);
-    User updateUser(User user);
-    void deleteById(UUID userid);
-    User findById(UUID userId);
-    List<User> findAll();
-    */
-
     // create
     UserResponse create(UserCreateRequest request);
 
@@ -36,4 +25,15 @@ public interface UserService {
 
     // delete
     void deleteById(UUID userId);
+
+    /*
+    Spring 도입에 따라 주석 처리
+    @Deprecated
+    User save(User user);
+    User saveUser(String name, String nickname, String phoneNumber, String password, String email);
+    User updateUser(User user);
+    void deleteById(UUID userid);
+    User findById(UUID userId);
+    List<User> findAll();
+    */
 }
