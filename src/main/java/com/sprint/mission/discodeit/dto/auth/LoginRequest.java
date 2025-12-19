@@ -1,4 +1,4 @@
-﻿package com.sprint.mission.discodeit.dto.auth;
+package com.sprint.mission.discodeit.dto.auth;
 
 public record LoginRequest(
         String nickname,

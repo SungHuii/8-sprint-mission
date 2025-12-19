@@ -1,4 +1,4 @@
-﻿package com.sprint.mission.discodeit.service.basic;
+package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.auth.AuthResponse;
 import com.sprint.mission.discodeit.dto.auth.LoginRequest;

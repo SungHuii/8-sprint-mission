@@ -1,4 +1,4 @@
-﻿package com.sprint.mission.discodeit.run;
+package com.sprint.mission.discodeit.run;
 /*
 
 import com.sprint.mission.discodeit.entity.Channel;
