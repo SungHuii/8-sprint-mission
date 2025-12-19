@@ -13,28 +13,19 @@ public interface MessageService {
     * */
 
     // create
-    default MessageResponse create(MessageCreateRequest request) {
-        throw new UnsupportedOperationException("create not implemented");
-    }
+    MessageResponse create(MessageCreateRequest request);
 
     // find
-    default List<MessageResponse> findAllByChannelId(UUID channelId) {
-        throw new UnsupportedOperationException("findAllByChannelId not implemented");
-    }
+    List<MessageResponse> findAllByChannelId(UUID channelId);
 
     // update
-    default MessageResponse update(MessageUpdateRequest request) {
-        throw new UnsupportedOperationException("update not implemented");
-    }
+    MessageResponse update(MessageUpdateRequest request);
 
     // delete
-    default void deleteById(UUID messageId) {
-        throw new UnsupportedOperationException("deleteById not implemented");
-    }
+    void deleteById(UUID messageId);
 
     /*
     Spring 이전 버전 코드
-    */
     @Deprecated
     Message save(Message message);
     @Deprecated
@@ -47,4 +38,5 @@ public interface MessageService {
     Message findById(UUID messageId);
     @Deprecated
     List<Message> findAll();
+    */
 }
