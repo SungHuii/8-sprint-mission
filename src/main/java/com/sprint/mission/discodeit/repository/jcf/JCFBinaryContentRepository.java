@@ -1,7 +1,10 @@
 package com.sprint.mission.discodeit.repository.jcf;
 
 import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.config.RepoProps;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Repository;
 
 import java.util.HashMap;
 import java.util.List;
@@ -10,6 +13,13 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
+@Repository
+@ConditionalOnProperty(
+        prefix = RepoProps.PREFIX,
+        name = RepoProps.TYPE_NAME,
+        havingValue = RepoProps.TYPE_JCF,
+        matchIfMissing = true
+)
 public class JCFBinaryContentRepository implements BinaryContentRepository {
 
     private final Map<UUID, BinaryContent> data = new HashMap<>();

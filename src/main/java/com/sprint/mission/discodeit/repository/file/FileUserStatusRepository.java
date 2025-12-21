@@ -1,7 +1,10 @@
 package com.sprint.mission.discodeit.repository.file;
 
 import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.config.RepoProps;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import java.io.File;
@@ -17,13 +20,19 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
+@ConditionalOnProperty(
+        prefix = RepoProps.PREFIX,
+        name = RepoProps.TYPE_NAME,
+        havingValue = RepoProps.TYPE_FILE
+)
 public class FileUserStatusRepository implements UserStatusRepository {
 
-    private static final String FILE_PATH = "dataRepo/userStatusRepo.ser";
+    private final String filePath;
     private Map<UUID, UserStatus> data;
 
-    public FileUserStatusRepository() {
+    public FileUserStatusRepository(@Value(RepoProps.FILE_DIRECTORY_PLACEHOLDER) String baseDir) {
         this.data = new HashMap<>();
+        this.filePath = new File(baseDir, "userStatusRepo.ser").getPath();
         loadFile();
     }
 
@@ -75,8 +84,9 @@ public class FileUserStatusRepository implements UserStatusRepository {
     }
 
     private void saveFile() {
+        ensureParentDir();
         try (ObjectOutputStream oos =
-                     new ObjectOutputStream(new FileOutputStream(FILE_PATH))) {
+                     new ObjectOutputStream(new FileOutputStream(filePath))) {
             oos.writeObject(data);
         } catch (IOException e) {
             e.printStackTrace();
@@ -84,11 +94,11 @@ public class FileUserStatusRepository implements UserStatusRepository {
     }
 
     private void loadFile() {
-        File file = new File(FILE_PATH);
+        File file = new File(filePath);
         if (!file.exists()) return;
 
         try (ObjectInputStream ois =
-                     new ObjectInputStream(new FileInputStream(FILE_PATH))) {
+                     new ObjectInputStream(new FileInputStream(filePath))) {
 
             Object obj = ois.readObject();
             if (obj instanceof Map) {
@@ -96,6 +106,15 @@ public class FileUserStatusRepository implements UserStatusRepository {
             }
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void ensureParentDir() {
+        /* 상위 파일 디렉토리가 있는지 확인. 없으면 생성 */
+        File file = new File(filePath);
+        File parent = file.getParentFile();
+        if (parent != null && !parent.exists()) {
+            parent.mkdirs();
         }
     }
 }

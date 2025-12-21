@@ -9,10 +9,9 @@ import java.util.UUID;
 public record ChannelResponse(
         UUID id,
         ChannelType type,
-        String name,                // PUBLIC 梨꾨꼸??寃쎌슦留?媛믪씠 ?덉쓬
-        String description,         // PUBLIC 梨꾨꼸??寃쎌슦留?媛믪씠 ?덉쓬
-        Instant lastMessageAt,      // 硫붿떆吏媛 ?녿떎硫?null
-        List<UUID> participantIds   // PUBLIC 梨꾨꼸??寃쎌슦 鍮?由ъ뒪??/ PRIVATE 梨꾨꼸??寃쎌슦 李몄뿬??紐⑸줉
+        String name,                // PUBLIC 채널일 때만 값이 있음.
+        String description,         // PUBLIC 채널일 때만 값이 있음.
+        Instant lastMessageAt,      // 메시지가 없으면 null.
+        List<UUID> participantIds   // PUBLIC 채널은 빈 리스트, PRIVATE 채널은 참여자 목록.
 ) {
 }
-
