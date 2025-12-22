@@ -1,6 +1,6 @@
 package com.sprint.mission.discodeit.service.file;
 
-import com.sprint.mission.discodeit.entity.Channel;
+/*import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.MessageService;
@@ -10,10 +10,10 @@ import java.util.*;
 
 public class FileMessageService implements MessageService {
 
-    /*
+    *//*
      * File IO를 통한 데이터 영속화
      * FileIO와 객체 직렬화를 활용해 메소드 구현
-     * */
+     * *//*
     private static final String FILE_PATH = "data/message.ser";
     private Map<UUID, Message> data;
 
@@ -95,7 +95,7 @@ public class FileMessageService implements MessageService {
         return new ArrayList<>(data.values());
     }
 
-    /* 파일 저장 */
+    *//* 파일 저장 *//*
     private void saveFile() {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(FILE_PATH))) {
             oos.writeObject(data);
@@ -104,7 +104,7 @@ public class FileMessageService implements MessageService {
         }
     }
 
-    /* 파일 불러오기 */
+    *//* 파일 불러오기 *//*
     private void loadFile() {
         File file = new File(FILE_PATH);
         if (!file.exists()) {
@@ -120,4 +120,4 @@ public class FileMessageService implements MessageService {
             e.printStackTrace();
         }
     }
-}
+}*/

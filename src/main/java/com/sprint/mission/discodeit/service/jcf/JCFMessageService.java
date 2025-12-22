@@ -1,6 +1,6 @@
 package com.sprint.mission.discodeit.service.jcf;
 
-import com.sprint.mission.discodeit.entity.Channel;
+/*import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
@@ -11,9 +11,9 @@ import java.util.*;
 
 public class JCFMessageService implements MessageService {
 
-    /* JCF(Java Collections Framework) 기반으로 데이터를 저장할 수 있는 필드(data)를 final로 선언하고 생성자에서 초기화
+    *//* JCF(Java Collections Framework) 기반으로 데이터를 저장할 수 있는 필드(data)를 final로 선언하고 생성자에서 초기화
      * data 필드를 활용해서 CRUD 메소드 구현
-     */
+     *//*
     private final Map<UUID, Message> data;
 
     // 심화 요구사항 : 서비스 간 의존성 주입
@@ -92,4 +92,4 @@ public class JCFMessageService implements MessageService {
     public List<Message> findAll() {
         return new ArrayList<>(data.values());
     }
-}
+}*/

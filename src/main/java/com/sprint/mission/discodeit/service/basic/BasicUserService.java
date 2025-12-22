@@ -1,8 +1,8 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.UserCreateRequest;
-import com.sprint.mission.discodeit.dto.UserResponse;
-import com.sprint.mission.discodeit.dto.UserUpdateRequest;
+import com.sprint.mission.discodeit.dto.user.UserCreateRequest;
+import com.sprint.mission.discodeit.dto.user.UserResponse;
+import com.sprint.mission.discodeit.dto.user.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
@@ -29,15 +29,13 @@ public class BasicUserService implements UserService {
 
     @Override
     public UserResponse create(UserCreateRequest request) {
-        // 검증 로직 메서드
         validateCreateRequest(request);
 
-        // 중복 검사
         if (userRepository.findByNickname(request.nickname()).isPresent()) {
-            throw new IllegalArgumentException("이미 존재하는 nickname 입니다.");
+            throw new IllegalArgumentException("이미 존재하는 닉네임입니다.");
         }
         if (userRepository.findByEmail(request.email()).isPresent()) {
-            throw new IllegalArgumentException("이미 존재하는 email 입니다.");
+            throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
         }
 
         User user = new User(
@@ -48,7 +46,6 @@ public class BasicUserService implements UserService {
                 request.email()
         );
 
-        // 프로필 이미지가 있는 경우 저장 후 profileId 설정
         if (request.profile() != null) {
             var profileReq = request.profile();
 
@@ -80,7 +77,7 @@ public class BasicUserService implements UserService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
 
         UserStatus status = userStatusRepository.findByUserId(userId)
-                .orElseThrow(() -> new IllegalStateException("UserStatus가 존재하지 않습니다. userId=" + userId));
+                .orElseThrow(() -> new IllegalStateException("유저 상태가 존재하지 않습니다. userId=" + userId));
 
         boolean isOnline = status.isOnline(Instant.now());
         return toUserResponse(user, isOnline);
@@ -95,7 +92,7 @@ public class BasicUserService implements UserService {
                 .collect(Collectors.toMap(
                         UserStatus::getUserId,
                         s -> s,
-                        (a, b) -> a // 혹시 중복이면 첫번째 유지(정상 데이터면 중복 없어야 함)
+                        (a, b) -> a
                 ));
 
         Instant now = Instant.now();
@@ -104,7 +101,7 @@ public class BasicUserService implements UserService {
                 .map(user -> {
                     UserStatus status = statusMap.get(user.getId());
                     if (status == null) {
-                        throw new IllegalStateException("UserStatus가 존재하지 않습니다. userId=" + user.getId());
+                        throw new IllegalStateException("유저 상태가 존재하지 않습니다. userId=" + user.getId());
                     }
                     return toUserResponse(user, status.isOnline(now));
                 })
@@ -115,20 +112,18 @@ public class BasicUserService implements UserService {
     public UserResponse update(UserUpdateRequest request) {
         validateUpdateRequest(request);
 
-        // 1. 업데이트 대상 유저 조회 (없으면 예외 처리)
         User user = userRepository.findById(request.userId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저가 존재하지 않습니다. userId=" + request.userId()));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "해당 유저가 존재하지 않습니다. userId=" + request.userId()));
 
-        // 2. 부분 수정 - null이 아닌 값만 업데이트
         if (request.name() != null) {
             user.updateName(request.name());
         }
         if (request.nickname() != null) {
-            // nickname 변경이면 중복 검사 필요(본인 제외)
             userRepository.findByNickname(request.nickname())
-                    .filter(found -> !found.getId().equals(user.getId())) // 유저 닉네임과 같은 닉네임이 있는지 확인
+                    .filter(found -> !found.getId().equals(user.getId()))
                     .ifPresent(found -> {
-                        throw new IllegalArgumentException("이미 존재하는 nickname 입니다.");
+                        throw new IllegalArgumentException("이미 존재하는 닉네임입니다.");
                     });
             user.updateNickname(request.nickname());
         }
@@ -136,11 +131,10 @@ public class BasicUserService implements UserService {
             user.updatePhoneNumber(request.phoneNumber());
         }
         if (request.email() != null) {
-            // email 변경이면 중복 검사 필요(본인 제외)
             userRepository.findByEmail(request.email())
-                    .filter(found -> !found.getId().equals(user.getId())) // 유저 이메일과 같은 이메일이 있는지 확인
+                    .filter(found -> !found.getId().equals(user.getId()))
                     .ifPresent(found -> {
-                        throw new IllegalArgumentException("이미 존재하는 email 입니다.");
+                        throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
                     });
             user.updateEmail(request.email());
         }
@@ -148,9 +142,7 @@ public class BasicUserService implements UserService {
             user.updatePassword(request.password());
         }
 
-        // 3. 프로필 이미지 교체 - 새로운 이미지가 있으면 기존 삭제 후 새로 저장
         if (request.newProfile() != null) {
-            // 기존 프로필 이미지 삭제
             UUID oldProfileId = user.getProfileId();
             if (oldProfileId != null) {
                 binaryContentRepository.deleteById(oldProfileId);
@@ -167,12 +159,11 @@ public class BasicUserService implements UserService {
             user.updateProfileId(saved.getId());
         }
 
-        // 4. 저장
         User updated = userRepository.updateUser(user);
 
-        // 5. online 상태 포함해서 리턴
         UserStatus status = userStatusRepository.findByUserId(updated.getId())
-                .orElseThrow(() -> new IllegalStateException("UserStatus가 존재하지 않습니다. userId=" + updated.getId()));
+                .orElseThrow(() -> new IllegalStateException(
+                        "유저 상태가 존재하지 않습니다. userId=" + updated.getId()));
 
         boolean online = status.isOnline(Instant.now());
         return toUserResponse(updated, online);
@@ -184,22 +175,20 @@ public class BasicUserService implements UserService {
             throw new IllegalArgumentException("userId는 필수입니다.");
         }
 
-        // 1. 유저 조회 (없으면 예외)
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저가 존재하지 않습니다. userId=" + userId));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "해당 유저가 존재하지 않습니다. userId=" + userId));
 
-        // 2. 프로필이 존재할 때 삭제
         UUID profileId = user.getProfileId();
         if (profileId != null) {
             binaryContentRepository.deleteById(profileId);
         }
 
-        // 3. UserStatus 삭제
         userStatusRepository.findByUserId(userId)
-                .orElseThrow(() -> new IllegalStateException("UserStatus가 존재하지 않습니다. userId=" + userId));
+                .orElseThrow(() -> new IllegalStateException(
+                        "유저 상태가 존재하지 않습니다. userId=" + userId));
         userStatusRepository.deleteByUserId(userId);
 
-        // 4. User 삭제
         userRepository.deleteById(userId);
     }
 
@@ -220,19 +209,19 @@ public class BasicUserService implements UserService {
             throw new IllegalArgumentException("요청이 null입니다.");
         }
         if (request.name() == null || request.name().isBlank()) {
-            throw new IllegalArgumentException("name은 필수입니다.");
+            throw new IllegalArgumentException("이름은 필수입니다.");
         }
         if (request.nickname() == null || request.nickname().isBlank()) {
-            throw new IllegalArgumentException("nickname은 필수입니다.");
+            throw new IllegalArgumentException("닉네임은 필수입니다.");
         }
         if (request.phoneNumber() == null || request.phoneNumber().isBlank()) {
-            throw new IllegalArgumentException("phoneNumber는 필수입니다.");
+            throw new IllegalArgumentException("전화번호는 필수입니다.");
         }
         if (request.password() == null || request.password().isBlank()) {
-            throw new IllegalArgumentException("password는 필수입니다.");
+            throw new IllegalArgumentException("비밀번호는 필수입니다.");
         }
         if (request.email() == null || request.email().isBlank()) {
-            throw new IllegalArgumentException("email은 필수입니다.");
+            throw new IllegalArgumentException("이메일은 필수입니다.");
         }
     }
 
@@ -260,7 +249,7 @@ public class BasicUserService implements UserService {
 
 
     /*
-    Spring Boot 이전 버전 코드들
+    Spring Boot 이전 버전 코드
     @Override
     public User save(User user) {
         if (user.getName() == null || user.getName().isEmpty()) {

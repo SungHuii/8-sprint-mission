@@ -1,4 +1,5 @@
 package com.sprint.mission.discodeit.service.file;
+/*
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.service.ChannelService;
@@ -8,10 +9,12 @@ import java.util.*;
 
 public class FileChannelService implements ChannelService {
 
-    /*
+    */
+/*
      * File IO를 통한 데이터 영속화
      * FileIO와 객체 직렬화를 활용해 메소드 구현
-     * */
+     * *//*
+
     private static final String FILE_PATH = "data/channel.ser";
     private Map<UUID, Channel> data;
 
@@ -79,7 +82,9 @@ public class FileChannelService implements ChannelService {
         return new ArrayList<>(data.values());
     }
 
-    /* 파일 저장 */
+    */
+/* 파일 저장 *//*
+
     private void saveFile() {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(FILE_PATH))) {
             oos.writeObject(data);
@@ -88,7 +93,9 @@ public class FileChannelService implements ChannelService {
         }
     }
 
-    /* 파일 불러오기 */
+    */
+/* 파일 불러오기 *//*
+
     private void loadFile() {
         File file = new File(FILE_PATH);
         if (!file.exists()) {
@@ -105,3 +112,4 @@ public class FileChannelService implements ChannelService {
         }
     }
 }
+*/

@@ -1,10 +1,20 @@
 package com.sprint.mission.discodeit.repository.jcf;
 
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.config.RepoProps;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Repository;
 
 import java.util.*;
 
+@Repository
+@ConditionalOnProperty(
+        prefix = RepoProps.PREFIX,
+        name = RepoProps.TYPE_NAME,
+        havingValue = RepoProps.TYPE_JCF,
+        matchIfMissing = true
+)
 public class JCFUserRepository implements UserRepository {
 
     private final Map<UUID, User> data = new HashMap<>();

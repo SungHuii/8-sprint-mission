@@ -1,1 +1,8 @@
-spring.application.name=discodeit
+spring:
+  application:
+    name: discodeit
+
+discodeit:
+  repository:
+    type: file # RepoProps.TYPE_JCF | RepoProps.TYPE_FILE
+    file-directory: .discodeit # RepoProps.FILE_DIRECTORY_DEFAULT

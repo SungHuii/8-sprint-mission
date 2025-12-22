@@ -1,71 +1,82 @@
-# [SB] 스프린트 미션 2
-### Java 기반 콘솔 애플리케이션입니다.
-### 1차 JCF -> 2차 File IO -> Repository + Service
+# [SB] 스프린트 미션 3
+
+Spring Boot 기반 디스코드잇(Discodeit) 프로젝트입니다.  
+JCF/File 저장소, DTO 기반 서비스, 신규 도메인(ReadStatus/UserStatus/BinaryContent)을 포함합니다.
 
 ## 목표
-- Git과 GitHub을 통해 프로젝트를 관리할 수 있다.
-- 채팅 서비스의 도메인 모델을 설계하고, Java로 구현할 수 있다.
-- 인터페이스를 설계하고 구현체를 구현할 수 있다.
-- 싱글톤 패턴을 구현할 수 있다.
-- Java Collections Framework에 데이터를 생성/수정/삭제할 수 있다.
-- Stream API를 통해 JCF의 데이터를 조회할 수 있다.
+- Spring Boot + IoC/DI 기반으로 서비스/레포지토리 구성하기
+- DTO를 활용한 서비스 계층 고도화
+- 신규 도메인과 연관 로직 구현
+- JCF/File Repository 구현체를 설정값으로 선택
 
-## 프로젝트 마일스톤
-- 프로젝트 초기화 (Java, Gradle)
-- 도메인 모델 구현
-- 서비스 인터페이스 설계 및 구현체 구현
-  - 각 도메인 모델별 CRUD
-  - JCFx메모리 기반
-- 의존성 주입
+## 핵심 기능
+- User/Channel/Message CRUD + DTO 응답
+- Auth 로그인 기능
+- ReadStatus/UserStatus 관리
+- BinaryContent 저장/조회
+- 시간 타입: `Instant` 통일
+
+## 실행
+- IDE에서 `DiscodeitApplication` 실행
+- 또는 `./gradlew bootRun`
+
+## 설정
+`src/main/resources/application.yaml`
+```
+# Repository 구현체 선택 및 파일 저장 경로
+# type: jcf | file
+
+discodeit:
+  repository:
+    type: jcf
+    file-directory: .discodeit
+```
 
 ## 프로젝트 구조
 ```
 src
-└── main
-└── java
-└── com.sprint.mission.discodeit
-├── entity
-│   ├── Channel.java
-│   ├── Message.java
-│   └── User.java
-│
-├── repository
-│   ├── ChannelRepository.java
-│   ├── MessageRepository.java
-│   └── UserRepository.java
-│
-│   ├── file
-│   │   ├── FileChannelRepository.java
-│   │   ├── FileMessageRepository.java
-│   │   └── FileUserRepository.java
-│   │
-│   └── jcf
-│       ├── JCFChannelRepository.java
-│       ├── JCFMessageRepository.java
-│       └── JCFUserRepository.java
-│
-├── service
-│   ├── ChannelService.java
-│   ├── MessageService.java
-│   └── UserService.java
-│
-│   ├── basic
-│   │   ├── BasicChannelService.java
-│   │   ├── BasicMessageService.java
-│   │   └── BasicUserService.java
-│   │
-│   ├── file
-│   │   ├── FileChannelService.java
-│   │   ├── FileMessageService.java
-│   │   └── FileUserService.java
-│   │
-│   └── jcf
-│       ├── JCFChannelService.java
-│       ├── JCFMessageService.java
-│       └── JCFUserService.java
-│
-└── run
-├── JavaApplicationBasic.java
-└── JavaApplicationLegacy.java
+└─ main
+   ├─ java
+   │  └─ com.sprint.mission.discodeit
+   │     ├─ DiscodeitApplication.java
+   │     ├─ config
+   │     │  └─ RepoProps.java
+   │     ├─ dto
+   │     │  ├─ auth
+   │     │  ├─ binary
+   │     │  ├─ channel
+   │     │  ├─ message
+   │     │  ├─ readstatus
+   │     │  ├─ user
+   │     │  └─ userstatus
+   │     ├─ entity
+   │     │  ├─ BinaryContent.java
+   │     │  ├─ Channel.java
+   │     │  ├─ Message.java
+   │     │  ├─ ReadStatus.java
+   │     │  ├─ User.java
+   │     │  └─ UserStatus.java
+   │     ├─ repository
+   │     │  ├─ BinaryContentRepository.java
+   │     │  ├─ ChannelRepository.java
+   │     │  ├─ MessageRepository.java
+   │     │  ├─ ReadStatusRepository.java
+   │     │  ├─ UserRepository.java
+   │     │  ├─ UserStatusRepository.java
+   │     │  ├─ file
+   │     │  └─ jcf
+   │     ├─ service
+   │     │  ├─ AuthService.java
+   │     │  ├─ BinaryContentService.java
+   │     │  ├─ ChannelService.java
+   │     │  ├─ MessageService.java
+   │     │  ├─ ReadStatusService.java
+   │     │  ├─ UserService.java
+   │     │  ├─ UserStatusService.java
+   │     │  └─ basic
+   │     └─ run
+   │        ├─ JavaApplicationBasic.java
+   │        └─ JavaApplicationLegacy.java
+   └─ resources
+      └─ application.yaml
 ```
-
