@@ -1,8 +1,13 @@
 package com.sprint.mission.discodeit.entity;
 
+import lombok.Getter;
+
+import java.io.Serial;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.UUID;
 
+@Getter
 public class User implements Serializable {
 
     /*
@@ -14,38 +19,30 @@ public class User implements Serializable {
      * 전화번호
      * 패스워드
      * 이메일정보
-     * 사진(아바타)
+     * 프로필 사진 고유아이디
     * */
+    @Serial
     private static final long serialVersionUID = 1L;
     private final UUID id;
-    private final Long createdAt;
-    private Long updatedAt;
+    private final Instant createdAt;
+    private Instant updatedAt;
     private String name;
     private String nickname;
     private String phoneNumber;
     private transient String password;
     private String email;
-    private String avatarUrl;
+    private UUID profileId;
 
-    public User(String name, String nickname, String phoneNumber, String password, String email, String avatarUrl) {
+    public User(String name, String nickname, String phoneNumber, String password, String email) {
         this.id = UUID.randomUUID();
-        this.createdAt = System.currentTimeMillis();
+        this.createdAt = Instant.now();
         this.updatedAt = this.createdAt;
-
         this.name = name;
         this.nickname = nickname;
         this.phoneNumber = phoneNumber;
         this.password = password;
         this.email = email;
-        this.avatarUrl = avatarUrl;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
+        this.profileId = null;
     }
 
     public void updateName(String name) {
@@ -53,17 +50,9 @@ public class User implements Serializable {
         renewUpdatedAt();
     }
 
-    public String getNickname() {
-        return nickname;
-    }
-
     public void updateNickname(String nickname) {
         this.nickname = nickname;
         renewUpdatedAt();
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
     }
 
     public void updatePhoneNumber(String phoneNumber) {
@@ -71,17 +60,9 @@ public class User implements Serializable {
         renewUpdatedAt();
     }
 
-    public String getPassword() {
-        return password;
-    }
-
     public void updatePassword(String password) {
         this.password = password;
         renewUpdatedAt();
-    }
-
-    public String getEmail() {
-        return email;
     }
 
     public void updateEmail(String email) {
@@ -89,24 +70,12 @@ public class User implements Serializable {
         renewUpdatedAt();
     }
 
-    public String getAvatarUrl() {
-        return avatarUrl;
-    }
-
-    public void updateAvatarUrl(String avatarUrl) {
-        this.avatarUrl = avatarUrl;
+    public void updateProfileId(UUID profileId) {
+        this.profileId = profileId;
         renewUpdatedAt();
     }
 
-    public Long getCreatedAt() {
-        return createdAt;
-    }
-
-    public Long getUpdatedAt() {
-        return updatedAt;
-    }
-
     private void renewUpdatedAt() {
-        this.updatedAt = System.currentTimeMillis();
+        this.updatedAt = Instant.now();
     }
 }
