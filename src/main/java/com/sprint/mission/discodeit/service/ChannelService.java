@@ -11,7 +11,6 @@ import java.util.UUID;
 
 public interface ChannelService {
     /* Channel entity CRUD service
-    * ?앹꽦 / ?쎄린 / 紐⑤몢 ?쎄린 / ?섏젙 / ??젣 湲곕뒫
     * */
 
     // create
@@ -31,7 +30,7 @@ public interface ChannelService {
     void deleteById(UUID channelId);
 
     /*
-    Spring ?꾩엯???곕씪 二쇱꽍 泥섎━
+    Spring 도입 이전 코드
     @Deprecated
     Channel save(Channel channel);
     Channel saveChannel(String name, String description);

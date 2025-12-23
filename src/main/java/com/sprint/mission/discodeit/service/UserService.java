@@ -10,7 +10,6 @@ import java.util.UUID;
 
 public interface UserService {
     /* User entity CRUD service
-    * ?앹꽦 / ?쎄린 / 紐⑤몢 ?쎄린 / ?섏젙 / ??젣 湲곕뒫
     * */
 
     // create
@@ -27,7 +26,7 @@ public interface UserService {
     void deleteById(UUID userId);
 
     /*
-    Spring ?꾩엯???곕씪 二쇱꽍 泥섎━
+    Spring 도입 이전 코드
     @Deprecated
     User save(User user);
     User saveUser(String name, String nickname, String phoneNumber, String password, String email);
