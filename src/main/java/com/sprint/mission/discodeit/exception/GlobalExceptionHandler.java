@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.controller;
+package com.sprint.mission.discodeit.exception;
 
 import com.sprint.mission.discodeit.dto.error.ErrorCode;
 import com.sprint.mission.discodeit.dto.error.ErrorResponse;
