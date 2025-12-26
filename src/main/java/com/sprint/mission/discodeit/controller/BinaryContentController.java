@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -21,5 +22,10 @@ public class BinaryContentController {
     @RequestMapping(value = "/find", method = RequestMethod.GET)
     public ResponseEntity<BinaryContent> findById(@RequestParam UUID binaryContentId) {
         return ResponseEntity.ok(binaryContentService.findById(binaryContentId));
+    }
+
+    @RequestMapping(value = "/findAll", method = RequestMethod.GET)
+    public ResponseEntity<List<BinaryContent>> findAllByIdIn(@RequestParam List<UUID> binaryContentIds) {
+        return ResponseEntity.ok(binaryContentService.findAllByIdIn(binaryContentIds));
     }
 }
