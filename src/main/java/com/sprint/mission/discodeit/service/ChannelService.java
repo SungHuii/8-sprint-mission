@@ -28,15 +28,5 @@ public interface ChannelService {
 
     // delete
     void deleteById(UUID channelId);
-
-    /*
-    Spring 도입 이전 코드
-    @Deprecated
-    Channel save(Channel channel);
-    Channel saveChannel(String name, String description);
-    Channel updateChannel(Channel channel);
-    boolean deleteChannel(UUID channelId);
-    Channel findById(UUID channelId);
-    List<Channel> findAll();*/
 }
 

@@ -66,13 +66,8 @@ public class FileChannelRepository implements ChannelRepository {
     }
 
     @Override
-    public Channel findById(UUID channelId) {
-        Channel channel = data.get(channelId);
-        if (channel == null) {
-            System.out.println("해당 채널을 찾을 수 없습니다.");
-            return null;
-        }
-        return channel;
+    public Optional<Channel> findById(UUID channelId) {
+        return Optional.ofNullable(data.get(channelId));
     }
 
     @Override

@@ -64,10 +64,9 @@ public class BasicChannelService implements ChannelService {
         }
 
         // 채널 조회
-        Channel channel = channelRepository.findById(channelId);
-        if (channel == null) {
-            throw new IllegalArgumentException("해당 채널이 존재하지 않습니다. channelId=" + channelId);
-        }
+        Channel channel = channelRepository.findById(channelId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "해당 채널이 존재하지 않습니다. channelId=" + channelId));
 
         Instant lastMessageAt = findLastMessageAt(channelId);
         return toChannelResponse(channel, lastMessageAt);
@@ -94,10 +93,9 @@ public class BasicChannelService implements ChannelService {
         // 요청 검증
         validateUpdateRequest(request);
 
-        Channel channel = channelRepository.findById(request.channelId());
-        if (channel == null) {
-            throw new IllegalArgumentException("해당 채널이 존재하지 않습니다. channelId=" + request.channelId());
-        }
+        Channel channel = channelRepository.findById(request.channelId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "해당 채널이 존재하지 않습니다. channelId=" + request.channelId()));
 
         if (channel.getChType() == ChannelType.PRIVATE) {
             throw new IllegalStateException("비공개 채널은 수정할 수 없습니다.");
