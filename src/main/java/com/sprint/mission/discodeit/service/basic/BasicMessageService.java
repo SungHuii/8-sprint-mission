@@ -125,68 +125,6 @@ public class BasicMessageService implements MessageService {
         }
     }
 
-    /*@Deprecated
-    @Override
-    public Message save(Message message) {
-        if (message == null) {
-            throw new IllegalArgumentException("요청이 null입니다.");
-        }
-
-        userRepository.findById(message.getAuthorId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "해당 유저가 존재하지 않습니다. userId=" + message.getAuthorId()));
-
-        if (channelRepository.findById(message.getChannelId()) == null) {
-            throw new IllegalArgumentException("해당 채널이 존재하지 않습니다. channelId=" + message.getChannelId());
-        }
-
-        if (message.getMessageContent() == null || message.getMessageContent().isBlank()) {
-            throw new IllegalArgumentException("messageContent는 필수입니다.");
-        }
-
-        return messageRepository.save(message);
-    }
-
-    @Deprecated
-    @Override
-    public Message saveMessage(UUID authorId, UUID channelId, String content, List<UUID> attachmentIds) {
-        return new Message(authorId, channelId, content, attachmentIds);
-    }
-
-    @Deprecated
-    @Override
-    public Message updateMessage(Message message) {
-        if (message == null) {
-            throw new IllegalArgumentException("요청이 null입니다.");
-        }
-
-        Message existing = messageRepository.findById(message.getId());
-        if (existing == null) {
-            throw new IllegalArgumentException("해당 메시지가 존재하지 않습니다. messageId=" + message.getId());
-        }
-
-        existing.updateMessage(message.getMessageContent());
-        return messageRepository.updateMessage(existing);
-    }
-
-    @Deprecated
-    @Override
-    public boolean deleteMessage(UUID messageId) {
-        return messageRepository.deleteMessage(messageId);
-    }
-
-    @Deprecated
-    @Override
-    public Message findById(UUID messageId) {
-        return messageRepository.findById(messageId);
-    }
-
-    @Deprecated
-    @Override
-    public List<Message> findAll() {
-        return messageRepository.findAll();
-    }*/
-
     private MessageResponse toMessageResponse(Message message) {
         return new MessageResponse(
                 message.getId(),
