@@ -4,9 +4,9 @@ import com.sprint.mission.discodeit.dto.auth.AuthResponse;
 import com.sprint.mission.discodeit.dto.auth.LoginRequest;
 import com.sprint.mission.discodeit.service.AuthService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -16,8 +16,9 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @RequestMapping(value = "/login", method = RequestMethod.POST)
-    public AuthResponse login(@RequestBody LoginRequest request) {
-        return authService.login(request);
+    @RequestMapping(value = "/login", method = RequestMethod.GET)
+    public AuthResponse login(@RequestParam String nickname,
+                              @RequestParam String password) {
+        return authService.login(new LoginRequest(nickname, password));
     }
 }

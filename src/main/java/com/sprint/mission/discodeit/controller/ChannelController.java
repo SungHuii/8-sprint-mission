@@ -7,7 +7,6 @@ import com.sprint.mission.discodeit.dto.channel.PublicChannelCreateRequest;
 import com.sprint.mission.discodeit.service.ChannelService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -23,14 +22,15 @@ public class ChannelController {
 
     private final ChannelService channelService;
 
-    @RequestMapping(value = "/public", method = RequestMethod.POST)
-    public ChannelResponse createPublic(@RequestBody PublicChannelCreateRequest request) {
-        return channelService.createPublic(request);
+    @RequestMapping(value = "/public", method = RequestMethod.GET)
+    public ChannelResponse createPublic(@RequestParam String name,
+                                        @RequestParam(required = false) String description) {
+        return channelService.createPublic(new PublicChannelCreateRequest(name, description));
     }
 
-    @RequestMapping(value = "/private", method = RequestMethod.POST)
-    public ChannelResponse createPrivate(@RequestBody PrivateChannelCreateRequest request) {
-        return channelService.createPrivate(request);
+    @RequestMapping(value = "/private", method = RequestMethod.GET)
+    public ChannelResponse createPrivate(@RequestParam List<UUID> participantIds) {
+        return channelService.createPrivate(new PrivateChannelCreateRequest(participantIds));
     }
 
     @RequestMapping(method = RequestMethod.GET)
@@ -43,17 +43,19 @@ public class ChannelController {
         return channelService.findById(channelId);
     }
 
-    @RequestMapping(value = "/{channelId}", method = RequestMethod.PUT)
-    public ChannelResponse update(@PathVariable UUID channelId, @RequestBody ChannelUpdateRequest request) {
+    @RequestMapping(value = "/{channelId}/update", method = RequestMethod.GET)
+    public ChannelResponse update(@PathVariable UUID channelId,
+                                  @RequestParam(required = false) String name,
+                                  @RequestParam(required = false) String description) {
         ChannelUpdateRequest boundRequest = new ChannelUpdateRequest(
                 channelId,
-                request.name(),
-                request.description()
+                name,
+                description
         );
         return channelService.update(boundRequest);
     }
 
-    @RequestMapping(value = "/{channelId}", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/{channelId}/delete", method = RequestMethod.GET)
     public void delete(@PathVariable UUID channelId) {
         channelService.deleteById(channelId);
     }
