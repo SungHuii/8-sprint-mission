@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -22,7 +22,7 @@ import java.util.UUID;
 )
 public class JCFMessageRepository implements MessageRepository {
 
-    private final Map<UUID, Message> data = new HashMap<>();
+    private final Map<UUID, Message> data = new ConcurrentHashMap<>();
 
     @Override
     public Message save(Message message) {

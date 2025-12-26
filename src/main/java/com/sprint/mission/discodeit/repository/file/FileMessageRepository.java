@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 @Repository
 @ConditionalOnProperty(
         prefix = RepoProps.PREFIX,
@@ -21,7 +22,7 @@ public class FileMessageRepository implements MessageRepository {
     private Map<UUID, Message> data;
 
     public FileMessageRepository(@Value(RepoProps.FILE_DIRECTORY_PLACEHOLDER) String baseDir) {
-        this.data = new HashMap<>();
+        this.data = new ConcurrentHashMap<>();
         this.filePath = new File(baseDir, "messageRepo.ser").getPath();
         loadFile();
     }

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
 @ConditionalOnProperty(
@@ -22,7 +23,7 @@ public class FileChannelRepository implements ChannelRepository {
     private Map<UUID, Channel> data;
 
     public FileChannelRepository(@Value(RepoProps.FILE_DIRECTORY_PLACEHOLDER) String baseDir) {
-        this.data = new HashMap<>();
+        this.data = new ConcurrentHashMap<>();
         this.filePath = new File(baseDir, "channelRepo.ser").getPath();
         loadFile();
     }

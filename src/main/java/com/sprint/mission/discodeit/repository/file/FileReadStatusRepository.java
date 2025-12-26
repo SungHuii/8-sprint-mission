@@ -13,7 +13,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -31,7 +31,7 @@ public class FileReadStatusRepository implements ReadStatusRepository {
     private Map<UUID, ReadStatus> data;
 
     public FileReadStatusRepository(@Value(RepoProps.FILE_DIRECTORY_PLACEHOLDER) String baseDir) {
-        this.data = new HashMap<>();
+        this.data = new ConcurrentHashMap<>();
         this.filePath = new File(baseDir, "readStatusRepo.ser").getPath();
         loadFile();
     }

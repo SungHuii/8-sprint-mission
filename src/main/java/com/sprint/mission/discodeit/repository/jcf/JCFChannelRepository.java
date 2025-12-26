@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -22,7 +22,7 @@ import java.util.UUID;
 )
 public class JCFChannelRepository implements ChannelRepository {
 
-    private final Map<UUID, Channel> data = new HashMap<>();
+    private final Map<UUID, Channel> data = new ConcurrentHashMap<>();
 
 
     @Override
