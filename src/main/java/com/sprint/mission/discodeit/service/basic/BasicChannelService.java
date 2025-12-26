@@ -33,7 +33,7 @@ public class BasicChannelService implements ChannelService {
         validatePublicCreateRequest(request);
 
         // 채널 생성 및 저장
-        Channel channel = new Channel(request.name(), request.description());
+        Channel channel = Channel.ofPublic(request.name(), request.description());
         Channel saved = channelRepository.save(channel);
 
         return toChannelResponse(saved, null);
@@ -45,7 +45,7 @@ public class BasicChannelService implements ChannelService {
         validatePrivateCreateRequest(request);
 
         // 채널 생성 및 저장
-        Channel channel = new Channel(request.participantIds());
+        Channel channel = Channel.ofPrivate(request.participantIds());
         Channel saved = channelRepository.save(channel);
 
         // 참여자별 ReadStatus 생성
@@ -196,7 +196,7 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     public Channel saveChannel(String name, String description) {
-        return new Channel(name, description);
+        return Channel.ofPublic(name, description);
     }
 
     @Override
