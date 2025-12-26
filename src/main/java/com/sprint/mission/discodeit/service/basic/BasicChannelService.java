@@ -89,6 +89,15 @@ public class BasicChannelService implements ChannelService {
     }
 
     @Override
+    public List<ChannelResponse> findAll() {
+        List<Channel> channels = channelRepository.findAll();
+
+        return channels.stream()
+                .map(channel -> toChannelResponse(channel, findLastMessageAt(channel.getId())))
+                .toList();
+    }
+
+    @Override
     public ChannelResponse update(ChannelUpdateRequest request) {
         // 요청 검증
         validateUpdateRequest(request);
@@ -180,4 +189,3 @@ public class BasicChannelService implements ChannelService {
         }
     }
 }
-

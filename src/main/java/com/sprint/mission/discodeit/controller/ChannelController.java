@@ -38,6 +38,11 @@ public class ChannelController {
         return channelService.findAllByUserId(userId);
     }
 
+    @RequestMapping(value = "/all", method = RequestMethod.GET)
+    public List<ChannelResponse> findAll() {
+        return channelService.findAll();
+    }
+
     @RequestMapping(value = "/{channelId}", method = RequestMethod.GET)
     public ChannelResponse findById(@PathVariable UUID channelId) {
         return channelService.findById(channelId);

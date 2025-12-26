@@ -20,8 +20,9 @@ public interface ChannelService {
     // find
     ChannelResponse findById(UUID channelId);
 
-    // findAll -> findAllByUserId 濡?蹂寃?
+    // findAll -> findAllByUserId
     List<ChannelResponse> findAllByUserId(UUID userId);
+    List<ChannelResponse> findAll();
 
     // update
     ChannelResponse update(ChannelUpdateRequest request);
@@ -29,4 +30,5 @@ public interface ChannelService {
     // delete
     void deleteById(UUID channelId);
 }
+
 
