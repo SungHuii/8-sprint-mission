@@ -22,7 +22,9 @@ public class BasicAuthService implements AuthService {
     public AuthResponse login(LoginRequest request) {
         validateLoginRequest(request);
 
-        User user = userRepository.findByNickname(request.nickname())
+        String nickname = request.nickname().trim();
+
+        User user = userRepository.findByNickname(nickname)
                 .filter(u -> u.getPassword() != null && u.getPassword().equals(request.password()))
                 .orElseThrow(() -> new IllegalArgumentException("닉네임과 비밀번호가 일치하지 않습니다."));
 
