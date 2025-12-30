@@ -14,11 +14,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final AuthService authService;
+  private final AuthService authService;
 
-    @RequestMapping(value = "/login", method = RequestMethod.GET)
-    public AuthResponse login(@RequestParam String nickname,
-                              @RequestParam String password) {
-        return authService.login(new LoginRequest(nickname, password));
-    }
+  @RequestMapping(value = "/login", method = RequestMethod.GET)
+  public AuthResponse login(@RequestParam String nickname,
+      @RequestParam String password) {
+    return authService.login(new LoginRequest(nickname, password));
+  }
 }

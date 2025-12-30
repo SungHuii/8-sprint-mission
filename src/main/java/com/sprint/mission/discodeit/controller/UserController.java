@@ -27,98 +27,98 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserService userService;
-    private final UserStatusService userStatusService;
+  private final UserService userService;
+  private final UserStatusService userStatusService;
 
-    @RequestMapping(value = "/users", method = RequestMethod.GET)
-    public UserResponse create(@RequestParam String name,
-                               @RequestParam String nickname,
-                               @RequestParam String phoneNumber,
-                               @RequestParam String password,
-                               @RequestParam String email,
-                               @RequestParam(required = false) String profileData,
-                               @RequestParam(required = false) String profileContentType,
-                               @RequestParam(required = false) String profileOriginalName) {
-        BinaryContentCreateRequest profile = toBinaryContentRequest(
-                profileData,
-                profileContentType,
-                profileOriginalName
-        );
-        UserCreateRequest request = new UserCreateRequest(
-                name,
-                nickname,
-                phoneNumber,
-                password,
-                email,
-                profile
-        );
-        return userService.create(request);
-    }
+  @RequestMapping(value = "/users", method = RequestMethod.GET)
+  public UserResponse create(@RequestParam String name,
+      @RequestParam String nickname,
+      @RequestParam String phoneNumber,
+      @RequestParam String password,
+      @RequestParam String email,
+      @RequestParam(required = false) String profileData,
+      @RequestParam(required = false) String profileContentType,
+      @RequestParam(required = false) String profileOriginalName) {
+    BinaryContentCreateRequest profile = toBinaryContentRequest(
+        profileData,
+        profileContentType,
+        profileOriginalName
+    );
+    UserCreateRequest request = new UserCreateRequest(
+        name,
+        nickname,
+        phoneNumber,
+        password,
+        email,
+        profile
+    );
+    return userService.create(request);
+  }
 
-    @RequestMapping(value = "/user/findAll", method = RequestMethod.GET)
-    public ResponseEntity<List<UserDto>> findAll() {
-        return ResponseEntity.ok(userService.findAllUserDtos());
-    }
+  @RequestMapping(value = "/user/findAll", method = RequestMethod.GET)
+  public ResponseEntity<List<UserDto>> findAll() {
+    return ResponseEntity.ok(userService.findAllUserDtos());
+  }
 
-    @RequestMapping(value = "/users/{userId}", method = RequestMethod.GET)
-    public UserResponse findById(@PathVariable UUID userId) {
-        return userService.findById(userId);
-    }
+  @RequestMapping(value = "/users/{userId}", method = RequestMethod.GET)
+  public UserResponse findById(@PathVariable UUID userId) {
+    return userService.findById(userId);
+  }
 
-    @RequestMapping(value = "/users/{userId}/update", method = RequestMethod.GET)
-    public UserResponse update(@PathVariable UUID userId,
-                               @RequestParam(required = false) String name,
-                               @RequestParam(required = false) String nickname,
-                               @RequestParam(required = false) String phoneNumber,
-                               @RequestParam(required = false) String password,
-                               @RequestParam(required = false) String email,
-                               @RequestParam(required = false) String newProfileData,
-                               @RequestParam(required = false) String newProfileContentType,
-                               @RequestParam(required = false) String newProfileOriginalName) {
-        BinaryContentCreateRequest newProfile = toBinaryContentRequest(
-                newProfileData,
-                newProfileContentType,
-                newProfileOriginalName
-        );
-        UserUpdateRequest boundRequest = new UserUpdateRequest(
-                userId,
-                name,
-                nickname,
-                phoneNumber,
-                password,
-                email,
-                newProfile
-        );
-        return userService.update(boundRequest);
-    }
+  @RequestMapping(value = "/users/{userId}/update", method = RequestMethod.GET)
+  public UserResponse update(@PathVariable UUID userId,
+      @RequestParam(required = false) String name,
+      @RequestParam(required = false) String nickname,
+      @RequestParam(required = false) String phoneNumber,
+      @RequestParam(required = false) String password,
+      @RequestParam(required = false) String email,
+      @RequestParam(required = false) String newProfileData,
+      @RequestParam(required = false) String newProfileContentType,
+      @RequestParam(required = false) String newProfileOriginalName) {
+    BinaryContentCreateRequest newProfile = toBinaryContentRequest(
+        newProfileData,
+        newProfileContentType,
+        newProfileOriginalName
+    );
+    UserUpdateRequest boundRequest = new UserUpdateRequest(
+        userId,
+        name,
+        nickname,
+        phoneNumber,
+        password,
+        email,
+        newProfile
+    );
+    return userService.update(boundRequest);
+  }
 
-    @RequestMapping(value = "/users/{userId}/delete", method = RequestMethod.GET)
-    public void delete(@PathVariable UUID userId) {
-        userService.deleteById(userId);
-    }
+  @RequestMapping(value = "/users/{userId}/delete", method = RequestMethod.GET)
+  public void delete(@PathVariable UUID userId) {
+    userService.deleteById(userId);
+  }
 
-    @RequestMapping(value = "/users/{userId}/status", method = RequestMethod.GET)
-    public UserStatusResponse updateStatus(@PathVariable UUID userId,
-                                           @RequestParam(required = false) String lastActiveAt) {
-        UserStatusUpdateByUserIdRequest boundRequest =
-                new UserStatusUpdateByUserIdRequest(userId, parseInstant(lastActiveAt));
-        return userStatusService.updateByUserId(boundRequest);
-    }
+  @RequestMapping(value = "/users/{userId}/status", method = RequestMethod.GET)
+  public UserStatusResponse updateStatus(@PathVariable UUID userId,
+      @RequestParam(required = false) String lastActiveAt) {
+    UserStatusUpdateByUserIdRequest boundRequest =
+        new UserStatusUpdateByUserIdRequest(userId, parseInstant(lastActiveAt));
+    return userStatusService.updateByUserId(boundRequest);
+  }
 
-    private BinaryContentCreateRequest toBinaryContentRequest(String data,
-                                                              String contentType,
-                                                              String originalName) {
-        if (data == null || data.isBlank()) {
-            return null;
-        }
-        byte[] decoded = Base64.getDecoder().decode(data);
-        return new BinaryContentCreateRequest(decoded, contentType, originalName);
+  private BinaryContentCreateRequest toBinaryContentRequest(String data,
+      String contentType,
+      String originalName) {
+    if (data == null || data.isBlank()) {
+      return null;
     }
+    byte[] decoded = Base64.getDecoder().decode(data);
+    return new BinaryContentCreateRequest(decoded, contentType, originalName);
+  }
 
-    private Instant parseInstant(String value) {
-        if (value == null || value.isBlank()) {
-            return null;
-        }
-        return Instant.parse(value);
+  private Instant parseInstant(String value) {
+    if (value == null || value.isBlank()) {
+      return null;
     }
+    return Instant.parse(value);
+  }
 }

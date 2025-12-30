@@ -9,21 +9,23 @@ import java.util.List;
 import java.util.UUID;
 
 public interface UserService {
-    /* User entity CRUD service
-    * */
+  /* User entity CRUD service
+   * */
 
-    // create
-    UserResponse create(UserCreateRequest request);
+  // create
+  UserResponse create(UserCreateRequest request);
 
-    // read
-    UserResponse findById(UUID userId);
-    List<UserResponse> findAll();
-    List<UserDto> findAllUserDtos();
+  // read
+  UserResponse findById(UUID userId);
 
-    // update
-    UserResponse update(UserUpdateRequest request);
+  List<UserResponse> findAll();
 
-    // delete
-    void deleteById(UUID userId);
+  List<UserDto> findAllUserDtos();
+
+  // update
+  UserResponse update(UserUpdateRequest request);
+
+  // delete
+  void deleteById(UUID userId);
 }
 

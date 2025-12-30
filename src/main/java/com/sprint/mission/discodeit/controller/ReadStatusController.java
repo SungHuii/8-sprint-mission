@@ -20,44 +20,44 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ReadStatusController {
 
-    private final ReadStatusService readStatusService;
+  private final ReadStatusService readStatusService;
 
-    @RequestMapping(value = "/create", method = RequestMethod.GET)
-    public ReadStatusResponse create(@RequestParam UUID userId,
-                                     @RequestParam UUID channelId,
-                                     @RequestParam(required = false) String lastReadAt) {
-        ReadStatusCreateRequest request = new ReadStatusCreateRequest(
-                userId,
-                channelId,
-                parseInstant(lastReadAt)
-        );
-        return readStatusService.create(request);
-    }
+  @RequestMapping(value = "/create", method = RequestMethod.GET)
+  public ReadStatusResponse create(@RequestParam UUID userId,
+      @RequestParam UUID channelId,
+      @RequestParam(required = false) String lastReadAt) {
+    ReadStatusCreateRequest request = new ReadStatusCreateRequest(
+        userId,
+        channelId,
+        parseInstant(lastReadAt)
+    );
+    return readStatusService.create(request);
+  }
 
-    @RequestMapping(method = RequestMethod.GET)
-    public List<ReadStatusResponse> findAllByUserId(@RequestParam UUID userId) {
-        return readStatusService.findAllByUserId(userId);
-    }
+  @RequestMapping(method = RequestMethod.GET)
+  public List<ReadStatusResponse> findAllByUserId(@RequestParam UUID userId) {
+    return readStatusService.findAllByUserId(userId);
+  }
 
-    @RequestMapping(value = "/{readStatusId}/update", method = RequestMethod.GET)
-    public ReadStatusResponse update(@PathVariable UUID readStatusId,
-                                     @RequestParam(required = false) String lastReadAt) {
-        ReadStatusUpdateRequest boundRequest = new ReadStatusUpdateRequest(
-                readStatusId,
-                parseInstant(lastReadAt)
-        );
-        return readStatusService.update(boundRequest);
-    }
+  @RequestMapping(value = "/{readStatusId}/update", method = RequestMethod.GET)
+  public ReadStatusResponse update(@PathVariable UUID readStatusId,
+      @RequestParam(required = false) String lastReadAt) {
+    ReadStatusUpdateRequest boundRequest = new ReadStatusUpdateRequest(
+        readStatusId,
+        parseInstant(lastReadAt)
+    );
+    return readStatusService.update(boundRequest);
+  }
 
-    @RequestMapping(value = "/{readStatusId}/delete", method = RequestMethod.GET)
-    public void delete(@PathVariable UUID readStatusId) {
-        readStatusService.deleteById(readStatusId);
-    }
+  @RequestMapping(value = "/{readStatusId}/delete", method = RequestMethod.GET)
+  public void delete(@PathVariable UUID readStatusId) {
+    readStatusService.deleteById(readStatusId);
+  }
 
-    private Instant parseInstant(String value) {
-        if (value == null || value.isBlank()) {
-            return null;
-        }
-        return Instant.parse(value);
+  private Instant parseInstant(String value) {
+    if (value == null || value.isBlank()) {
+      return null;
     }
+    return Instant.parse(value);
+  }
 }

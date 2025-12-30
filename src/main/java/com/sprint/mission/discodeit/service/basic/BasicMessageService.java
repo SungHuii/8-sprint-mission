@@ -22,146 +22,146 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class BasicMessageService implements MessageService {
 
-    private final MessageRepository messageRepository;
-    private final UserRepository userRepository;
-    private final ChannelRepository channelRepository;
-    private final BinaryContentRepository binaryContentRepository;
+  private final MessageRepository messageRepository;
+  private final UserRepository userRepository;
+  private final ChannelRepository channelRepository;
+  private final BinaryContentRepository binaryContentRepository;
 
-    @Override
-    public MessageResponse create(MessageCreateRequest request) {
-        validateCreateRequest(request);
+  @Override
+  public MessageResponse create(MessageCreateRequest request) {
+    validateCreateRequest(request);
 
-        userRepository.findById(request.authorId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "해당 유저가 존재하지 않습니다. userId=" + request.authorId()));
+    userRepository.findById(request.authorId())
+        .orElseThrow(() -> new IllegalArgumentException(
+            "해당 유저가 존재하지 않습니다. userId=" + request.authorId()));
 
-        channelRepository.findById(request.channelId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "해당 채널이 존재하지 않습니다. channelId=" + request.channelId()));
+    channelRepository.findById(request.channelId())
+        .orElseThrow(() -> new IllegalArgumentException(
+            "해당 채널이 존재하지 않습니다. channelId=" + request.channelId()));
 
-        List<UUID> attachmentIds = new ArrayList<>();
-        if (request.attachments() != null) {
-            for (BinaryContentCreateRequest attachmentRequest : request.attachments()) {
-                if (attachmentRequest == null) {
-                    throw new IllegalArgumentException("attachment 요청이 null입니다.");
-                }
-
-                BinaryContent attachment = new BinaryContent(
-                        attachmentRequest.data(),
-                        attachmentRequest.contentType(),
-                        attachmentRequest.originalName()
-                );
-                BinaryContent saved = binaryContentRepository.save(attachment);
-                attachmentIds.add(saved.getId());
-            }
+    List<UUID> attachmentIds = new ArrayList<>();
+    if (request.attachments() != null) {
+      for (BinaryContentCreateRequest attachmentRequest : request.attachments()) {
+        if (attachmentRequest == null) {
+          throw new IllegalArgumentException("attachment 요청이 null입니다.");
         }
 
-        Message message = new Message(
-                request.authorId(),
-                request.channelId(),
-                request.content(),
-                attachmentIds
+        BinaryContent attachment = new BinaryContent(
+            attachmentRequest.data(),
+            attachmentRequest.contentType(),
+            attachmentRequest.originalName()
         );
-        Message saved = messageRepository.save(message);
-        if (saved == null) {
-            throw new IllegalStateException("메시지 저장에 실패했습니다.");
-        }
-
-        return toMessageResponse(saved);
+        BinaryContent saved = binaryContentRepository.save(attachment);
+        attachmentIds.add(saved.getId());
+      }
     }
 
-    @Override
-    public List<MessageResponse> findAllByChannelId(UUID channelId) {
-        if (channelId == null) {
-            throw new IllegalArgumentException("channelId는 필수입니다.");
-        }
-
-        channelRepository.findById(channelId)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "해당 채널이 존재하지 않습니다. channelId=" + channelId));
-
-        return messageRepository.findAllByChannelId(channelId).stream()
-                .map(this::toMessageResponse)
-                .toList();
+    Message message = new Message(
+        request.authorId(),
+        request.channelId(),
+        request.content(),
+        attachmentIds
+    );
+    Message saved = messageRepository.save(message);
+    if (saved == null) {
+      throw new IllegalStateException("메시지 저장에 실패했습니다.");
     }
 
-    @Override
-    public MessageResponse update(MessageUpdateRequest request) {
-        validateUpdateRequest(request);
+    return toMessageResponse(saved);
+  }
 
-        Message message = messageRepository.findById(request.messageId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "해당 메시지가 존재하지 않습니다. messageId=" + request.messageId()));
-
-        message.updateMessage(request.content());
-        Message updated = messageRepository.updateMessage(message);
-        if (updated == null) {
-            throw new IllegalStateException("메시지 수정에 실패했습니다. messageId=" + request.messageId());
-        }
-
-        return toMessageResponse(updated);
+  @Override
+  public List<MessageResponse> findAllByChannelId(UUID channelId) {
+    if (channelId == null) {
+      throw new IllegalArgumentException("channelId는 필수입니다.");
     }
 
-    @Override
-    public void deleteById(UUID messageId) {
-        if (messageId == null) {
-            throw new IllegalArgumentException("messageId는 필수입니다.");
-        }
+    channelRepository.findById(channelId)
+        .orElseThrow(() -> new IllegalArgumentException(
+            "해당 채널이 존재하지 않습니다. channelId=" + channelId));
 
-        Message message = messageRepository.findById(messageId)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "해당 메시지가 존재하지 않습니다. messageId=" + messageId));
+    return messageRepository.findAllByChannelId(channelId).stream()
+        .map(this::toMessageResponse)
+        .toList();
+  }
 
-        List<UUID> attachmentIds = message.getAttachmentIds();
-        if (attachmentIds != null) {
-            for (UUID attachmentId : attachmentIds) {
-                binaryContentRepository.deleteById(attachmentId);
-            }
-        }
+  @Override
+  public MessageResponse update(MessageUpdateRequest request) {
+    validateUpdateRequest(request);
 
-        boolean deleted = messageRepository.deleteMessage(messageId);
-        if (!deleted) {
-            throw new IllegalArgumentException("메시지 삭제 실패(존재하지 않을 수 있음). messageId=" + messageId);
-        }
+    Message message = messageRepository.findById(request.messageId())
+        .orElseThrow(() -> new IllegalArgumentException(
+            "해당 메시지가 존재하지 않습니다. messageId=" + request.messageId()));
+
+    message.updateMessage(request.content());
+    Message updated = messageRepository.updateMessage(message);
+    if (updated == null) {
+      throw new IllegalStateException("메시지 수정에 실패했습니다. messageId=" + request.messageId());
     }
 
-    private MessageResponse toMessageResponse(Message message) {
-        return new MessageResponse(
-                message.getId(),
-                message.getChannelId(),
-                message.getAuthorId(),
-                message.getMessageContent(),
-                message.getAttachmentIds(),
-                message.getCreatedAt(),
-                message.getUpdatedAt()
-        );
+    return toMessageResponse(updated);
+  }
+
+  @Override
+  public void deleteById(UUID messageId) {
+    if (messageId == null) {
+      throw new IllegalArgumentException("messageId는 필수입니다.");
     }
 
-    private void validateCreateRequest(MessageCreateRequest request) {
-        if (request == null) {
-            throw new IllegalArgumentException("요청이 null입니다.");
-        }
-        if (request.authorId() == null) {
-            throw new IllegalArgumentException("authorId는 필수입니다.");
-        }
-        if (request.channelId() == null) {
-            throw new IllegalArgumentException("channelId는 필수입니다.");
-        }
-        if (request.content() == null || request.content().isBlank()) {
-            throw new IllegalArgumentException("content는 필수입니다.");
-        }
+    Message message = messageRepository.findById(messageId)
+        .orElseThrow(() -> new IllegalArgumentException(
+            "해당 메시지가 존재하지 않습니다. messageId=" + messageId));
+
+    List<UUID> attachmentIds = message.getAttachmentIds();
+    if (attachmentIds != null) {
+      for (UUID attachmentId : attachmentIds) {
+        binaryContentRepository.deleteById(attachmentId);
+      }
     }
 
-    private void validateUpdateRequest(MessageUpdateRequest request) {
-        if (request == null) {
-            throw new IllegalArgumentException("요청이 null입니다.");
-        }
-        if (request.messageId() == null) {
-            throw new IllegalArgumentException("messageId는 필수입니다.");
-        }
-        if (request.content() == null || request.content().isBlank()) {
-            throw new IllegalArgumentException("content는 필수입니다.");
-        }
+    boolean deleted = messageRepository.deleteMessage(messageId);
+    if (!deleted) {
+      throw new IllegalArgumentException("메시지 삭제 실패(존재하지 않을 수 있음). messageId=" + messageId);
     }
+  }
+
+  private MessageResponse toMessageResponse(Message message) {
+    return new MessageResponse(
+        message.getId(),
+        message.getChannelId(),
+        message.getAuthorId(),
+        message.getMessageContent(),
+        message.getAttachmentIds(),
+        message.getCreatedAt(),
+        message.getUpdatedAt()
+    );
+  }
+
+  private void validateCreateRequest(MessageCreateRequest request) {
+    if (request == null) {
+      throw new IllegalArgumentException("요청이 null입니다.");
+    }
+    if (request.authorId() == null) {
+      throw new IllegalArgumentException("authorId는 필수입니다.");
+    }
+    if (request.channelId() == null) {
+      throw new IllegalArgumentException("channelId는 필수입니다.");
+    }
+    if (request.content() == null || request.content().isBlank()) {
+      throw new IllegalArgumentException("content는 필수입니다.");
+    }
+  }
+
+  private void validateUpdateRequest(MessageUpdateRequest request) {
+    if (request == null) {
+      throw new IllegalArgumentException("요청이 null입니다.");
+    }
+    if (request.messageId() == null) {
+      throw new IllegalArgumentException("messageId는 필수입니다.");
+    }
+    if (request.content() == null || request.content().isBlank()) {
+      throw new IllegalArgumentException("content는 필수입니다.");
+    }
+  }
 }
 

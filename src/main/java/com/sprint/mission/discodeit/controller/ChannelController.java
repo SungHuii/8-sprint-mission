@@ -20,48 +20,48 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ChannelController {
 
-    private final ChannelService channelService;
+  private final ChannelService channelService;
 
-    @RequestMapping(value = "/public", method = RequestMethod.GET)
-    public ChannelResponse createPublic(@RequestParam String name,
-                                        @RequestParam(required = false) String description) {
-        return channelService.createPublic(new PublicChannelCreateRequest(name, description));
-    }
+  @RequestMapping(value = "/public", method = RequestMethod.GET)
+  public ChannelResponse createPublic(@RequestParam String name,
+      @RequestParam(required = false) String description) {
+    return channelService.createPublic(new PublicChannelCreateRequest(name, description));
+  }
 
-    @RequestMapping(value = "/private", method = RequestMethod.GET)
-    public ChannelResponse createPrivate(@RequestParam List<UUID> participantIds) {
-        return channelService.createPrivate(new PrivateChannelCreateRequest(participantIds));
-    }
+  @RequestMapping(value = "/private", method = RequestMethod.GET)
+  public ChannelResponse createPrivate(@RequestParam List<UUID> participantIds) {
+    return channelService.createPrivate(new PrivateChannelCreateRequest(participantIds));
+  }
 
-    @RequestMapping(method = RequestMethod.GET)
-    public List<ChannelResponse> findAllByUserId(@RequestParam UUID userId) {
-        return channelService.findAllByUserId(userId);
-    }
+  @RequestMapping(method = RequestMethod.GET)
+  public List<ChannelResponse> findAllByUserId(@RequestParam UUID userId) {
+    return channelService.findAllByUserId(userId);
+  }
 
-    @RequestMapping(value = "/all", method = RequestMethod.GET)
-    public List<ChannelResponse> findAll() {
-        return channelService.findAll();
-    }
+  @RequestMapping(value = "/all", method = RequestMethod.GET)
+  public List<ChannelResponse> findAll() {
+    return channelService.findAll();
+  }
 
-    @RequestMapping(value = "/{channelId}", method = RequestMethod.GET)
-    public ChannelResponse findById(@PathVariable UUID channelId) {
-        return channelService.findById(channelId);
-    }
+  @RequestMapping(value = "/{channelId}", method = RequestMethod.GET)
+  public ChannelResponse findById(@PathVariable UUID channelId) {
+    return channelService.findById(channelId);
+  }
 
-    @RequestMapping(value = "/{channelId}/update", method = RequestMethod.GET)
-    public ChannelResponse update(@PathVariable UUID channelId,
-                                  @RequestParam(required = false) String name,
-                                  @RequestParam(required = false) String description) {
-        ChannelUpdateRequest boundRequest = new ChannelUpdateRequest(
-                channelId,
-                name,
-                description
-        );
-        return channelService.update(boundRequest);
-    }
+  @RequestMapping(value = "/{channelId}/update", method = RequestMethod.GET)
+  public ChannelResponse update(@PathVariable UUID channelId,
+      @RequestParam(required = false) String name,
+      @RequestParam(required = false) String description) {
+    ChannelUpdateRequest boundRequest = new ChannelUpdateRequest(
+        channelId,
+        name,
+        description
+    );
+    return channelService.update(boundRequest);
+  }
 
-    @RequestMapping(value = "/{channelId}/delete", method = RequestMethod.GET)
-    public void delete(@PathVariable UUID channelId) {
-        channelService.deleteById(channelId);
-    }
+  @RequestMapping(value = "/{channelId}/delete", method = RequestMethod.GET)
+  public void delete(@PathVariable UUID channelId) {
+    channelService.deleteById(channelId);
+  }
 }

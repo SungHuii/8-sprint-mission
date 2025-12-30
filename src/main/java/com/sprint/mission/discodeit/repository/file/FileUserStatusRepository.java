@@ -21,100 +21,102 @@ import java.util.UUID;
 
 @Repository
 @ConditionalOnProperty(
-        prefix = RepoProps.PREFIX,
-        name = RepoProps.TYPE_NAME,
-        havingValue = RepoProps.TYPE_FILE
+    prefix = RepoProps.PREFIX,
+    name = RepoProps.TYPE_NAME,
+    havingValue = RepoProps.TYPE_FILE
 )
 public class FileUserStatusRepository implements UserStatusRepository {
 
-    private final String filePath;
-    private Map<UUID, UserStatus> data;
+  private final String filePath;
+  private Map<UUID, UserStatus> data;
 
-    public FileUserStatusRepository(@Value(RepoProps.FILE_DIRECTORY_PLACEHOLDER) String baseDir) {
-        this.data = new ConcurrentHashMap<>();
-        this.filePath = new File(baseDir, "userStatusRepo.ser").getPath();
-        loadFile();
+  public FileUserStatusRepository(@Value(RepoProps.FILE_DIRECTORY_PLACEHOLDER) String baseDir) {
+    this.data = new ConcurrentHashMap<>();
+    this.filePath = new File(baseDir, "userStatusRepo.ser").getPath();
+    loadFile();
+  }
+
+  @Override
+  public UserStatus save(UserStatus userStatus) {
+    data.put(userStatus.getId(), userStatus);
+    saveFile();
+    return userStatus;
+  }
+
+  @Override
+  public Optional<UserStatus> findById(UUID userStatusId) {
+    return Optional.ofNullable(data.get(userStatusId));
+  }
+
+  @Override
+  public Optional<UserStatus> findByUserId(UUID userId) {
+    if (userId == null) {
+      return Optional.empty();
+    }
+    return data.values().stream()
+        .filter(status -> userId.equals(status.getUserId()))
+        .findFirst();
+  }
+
+  @Override
+  public List<UserStatus> findAll() {
+    return List.copyOf(data.values());
+  }
+
+  @Override
+  public void deleteById(UUID userStatusId) {
+    UserStatus removed = data.remove(userStatusId);
+    if (removed == null) {
+      System.out.println("해당 유저 상태가 존재하지 않습니다. id=" + userStatusId);
+    }
+    saveFile();
+  }
+
+  @Override
+  public void deleteByUserId(UUID userId) {
+    Optional<UserStatus> existing = findByUserId(userId);
+    if (existing.isEmpty()) {
+      System.out.println("해당 유저 상태가 존재하지 않습니다. userId=" + userId);
+      return;
+    }
+    data.remove(existing.get().getId());
+    saveFile();
+  }
+
+  private void saveFile() {
+    ensureParentDir();
+    try (ObjectOutputStream oos =
+        new ObjectOutputStream(new FileOutputStream(filePath))) {
+      oos.writeObject(data);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void loadFile() {
+    File file = new File(filePath);
+    if (!file.exists()) {
+      return;
     }
 
-    @Override
-    public UserStatus save(UserStatus userStatus) {
-        data.put(userStatus.getId(), userStatus);
-        saveFile();
-        return userStatus;
+    try (ObjectInputStream ois =
+        new ObjectInputStream(new FileInputStream(filePath))) {
+
+      Object obj = ois.readObject();
+      if (obj instanceof Map) {
+        data = (Map<UUID, UserStatus>) obj;
+      }
+    } catch (IOException | ClassNotFoundException e) {
+      e.printStackTrace();
     }
+  }
 
-    @Override
-    public Optional<UserStatus> findById(UUID userStatusId) {
-        return Optional.ofNullable(data.get(userStatusId));
+  private void ensureParentDir() {
+    /* 상위 파일 디렉토리가 있는지 확인. 없으면 생성 */
+    File file = new File(filePath);
+    File parent = file.getParentFile();
+    if (parent != null && !parent.exists()) {
+      parent.mkdirs();
     }
-
-    @Override
-    public Optional<UserStatus> findByUserId(UUID userId) {
-        if (userId == null) {
-            return Optional.empty();
-        }
-        return data.values().stream()
-                .filter(status -> userId.equals(status.getUserId()))
-                .findFirst();
-    }
-
-    @Override
-    public List<UserStatus> findAll() {
-        return List.copyOf(data.values());
-    }
-
-    @Override
-    public void deleteById(UUID userStatusId) {
-        UserStatus removed = data.remove(userStatusId);
-        if (removed == null) {
-            System.out.println("해당 유저 상태가 존재하지 않습니다. id=" + userStatusId);
-        }
-        saveFile();
-    }
-
-    @Override
-    public void deleteByUserId(UUID userId) {
-        Optional<UserStatus> existing = findByUserId(userId);
-        if (existing.isEmpty()) {
-            System.out.println("해당 유저 상태가 존재하지 않습니다. userId=" + userId);
-            return;
-        }
-        data.remove(existing.get().getId());
-        saveFile();
-    }
-
-    private void saveFile() {
-        ensureParentDir();
-        try (ObjectOutputStream oos =
-                     new ObjectOutputStream(new FileOutputStream(filePath))) {
-            oos.writeObject(data);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void loadFile() {
-        File file = new File(filePath);
-        if (!file.exists()) return;
-
-        try (ObjectInputStream ois =
-                     new ObjectInputStream(new FileInputStream(filePath))) {
-
-            Object obj = ois.readObject();
-            if (obj instanceof Map) {
-                data = (Map<UUID, UserStatus>) obj;
-            }
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void ensureParentDir() {
-        /* 상위 파일 디렉토리가 있는지 확인. 없으면 생성 */
-        File file = new File(filePath);
-        File parent = file.getParentFile();
-        if (parent != null && !parent.exists()) {
-            parent.mkdirs();
-        }
-    }
+  }
 }

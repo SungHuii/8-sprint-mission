@@ -9,19 +9,19 @@ import java.util.List;
 import java.util.UUID;
 
 public interface MessageService {
-    /* Message entity CRUD service
-    * */
+  /* Message entity CRUD service
+   * */
 
-    // create
-    MessageResponse create(MessageCreateRequest request);
+  // create
+  MessageResponse create(MessageCreateRequest request);
 
-    // find
-    List<MessageResponse> findAllByChannelId(UUID channelId);
+  // find
+  List<MessageResponse> findAllByChannelId(UUID channelId);
 
-    // update
-    MessageResponse update(MessageUpdateRequest request);
+  // update
+  MessageResponse update(MessageUpdateRequest request);
 
-    // delete
-    void deleteById(UUID messageId);
+  // delete
+  void deleteById(UUID messageId);
 }
 

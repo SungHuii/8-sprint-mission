@@ -22,75 +22,75 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class MessageController {
 
-    private final MessageService messageService;
+  private final MessageService messageService;
 
-    @RequestMapping(value = "/create", method = RequestMethod.GET)
-    public MessageResponse create(@RequestParam UUID authorId,
-                                  @RequestParam UUID channelId,
-                                  @RequestParam String content,
-                                  @RequestParam(required = false) List<String> attachmentData,
-                                  @RequestParam(required = false) List<String> attachmentContentType,
-                                  @RequestParam(required = false) List<String> attachmentOriginalName) {
-        List<BinaryContentCreateRequest> attachments = toAttachmentRequests(
-                attachmentData,
-                attachmentContentType,
-                attachmentOriginalName
-        );
-        MessageCreateRequest request = new MessageCreateRequest(
-                authorId,
-                channelId,
-                content,
-                attachments
-        );
-        return messageService.create(request);
+  @RequestMapping(value = "/create", method = RequestMethod.GET)
+  public MessageResponse create(@RequestParam UUID authorId,
+      @RequestParam UUID channelId,
+      @RequestParam String content,
+      @RequestParam(required = false) List<String> attachmentData,
+      @RequestParam(required = false) List<String> attachmentContentType,
+      @RequestParam(required = false) List<String> attachmentOriginalName) {
+    List<BinaryContentCreateRequest> attachments = toAttachmentRequests(
+        attachmentData,
+        attachmentContentType,
+        attachmentOriginalName
+    );
+    MessageCreateRequest request = new MessageCreateRequest(
+        authorId,
+        channelId,
+        content,
+        attachments
+    );
+    return messageService.create(request);
+  }
+
+  @RequestMapping(method = RequestMethod.GET)
+  public List<MessageResponse> findAllByChannelId(@RequestParam UUID channelId) {
+    return messageService.findAllByChannelId(channelId);
+  }
+
+  @RequestMapping(value = "/{messageId}/update", method = RequestMethod.GET)
+  public MessageResponse update(@PathVariable UUID messageId,
+      @RequestParam String content) {
+    MessageUpdateRequest boundRequest = new MessageUpdateRequest(
+        messageId,
+        content
+    );
+    return messageService.update(boundRequest);
+  }
+
+  @RequestMapping(value = "/{messageId}/delete", method = RequestMethod.GET)
+  public void delete(@PathVariable UUID messageId) {
+    messageService.deleteById(messageId);
+  }
+
+  private List<BinaryContentCreateRequest> toAttachmentRequests(List<String> dataList,
+      List<String> contentTypeList,
+      List<String> originalNameList) {
+    if (dataList == null || dataList.isEmpty()) {
+      return null;
+    }
+    if (contentTypeList == null || originalNameList == null) {
+      throw new IllegalArgumentException("attachment metadata는 필수입니다.");
+    }
+    if (dataList.size() != contentTypeList.size() || dataList.size() != originalNameList.size()) {
+      throw new IllegalArgumentException("attachment 파라미터 개수가 일치해야 합니다.");
     }
 
-    @RequestMapping(method = RequestMethod.GET)
-    public List<MessageResponse> findAllByChannelId(@RequestParam UUID channelId) {
-        return messageService.findAllByChannelId(channelId);
+    List<BinaryContentCreateRequest> attachments = new ArrayList<>(dataList.size());
+    for (int i = 0; i < dataList.size(); i++) {
+      String data = dataList.get(i);
+      if (data == null || data.isBlank()) {
+        throw new IllegalArgumentException("attachment data는 필수입니다.");
+      }
+      byte[] decoded = Base64.getDecoder().decode(data);
+      attachments.add(new BinaryContentCreateRequest(
+          decoded,
+          contentTypeList.get(i),
+          originalNameList.get(i)
+      ));
     }
-
-    @RequestMapping(value = "/{messageId}/update", method = RequestMethod.GET)
-    public MessageResponse update(@PathVariable UUID messageId,
-                                  @RequestParam String content) {
-        MessageUpdateRequest boundRequest = new MessageUpdateRequest(
-                messageId,
-                content
-        );
-        return messageService.update(boundRequest);
-    }
-
-    @RequestMapping(value = "/{messageId}/delete", method = RequestMethod.GET)
-    public void delete(@PathVariable UUID messageId) {
-        messageService.deleteById(messageId);
-    }
-
-    private List<BinaryContentCreateRequest> toAttachmentRequests(List<String> dataList,
-                                                                  List<String> contentTypeList,
-                                                                  List<String> originalNameList) {
-        if (dataList == null || dataList.isEmpty()) {
-            return null;
-        }
-        if (contentTypeList == null || originalNameList == null) {
-            throw new IllegalArgumentException("attachment metadata는 필수입니다.");
-        }
-        if (dataList.size() != contentTypeList.size() || dataList.size() != originalNameList.size()) {
-            throw new IllegalArgumentException("attachment 파라미터 개수가 일치해야 합니다.");
-        }
-
-        List<BinaryContentCreateRequest> attachments = new ArrayList<>(dataList.size());
-        for (int i = 0; i < dataList.size(); i++) {
-            String data = dataList.get(i);
-            if (data == null || data.isBlank()) {
-                throw new IllegalArgumentException("attachment data는 필수입니다.");
-            }
-            byte[] decoded = Base64.getDecoder().decode(data);
-            attachments.add(new BinaryContentCreateRequest(
-                    decoded,
-                    contentTypeList.get(i),
-                    originalNameList.get(i)
-            ));
-        }
-        return attachments;
-    }
+    return attachments;
+  }
 }
