@@ -6,7 +6,12 @@ import com.sprint.mission.discodeit.repository.ChannelRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 @ConditionalOnProperty(
@@ -17,7 +22,7 @@ import java.util.*;
 )
 public class JCFChannelRepository implements ChannelRepository {
 
-    private final Map<UUID, Channel> data = new HashMap<>();
+    private final Map<UUID, Channel> data = new ConcurrentHashMap<>();
 
 
     @Override
@@ -57,13 +62,8 @@ public class JCFChannelRepository implements ChannelRepository {
     }
 
     @Override
-    public Channel findById(UUID channelId) {
-        Channel channel = data.get(channelId);
-        if (channel == null) {
-            System.out.println("해당 채널을 찾을 수 없습니다.");
-            return null;
-        }
-        return channel;
+    public Optional<Channel> findById(UUID channelId) {
+        return Optional.ofNullable(data.get(channelId));
     }
 
     @Override

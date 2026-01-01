@@ -6,7 +6,7 @@ import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -22,7 +22,7 @@ import java.util.UUID;
 )
 public class JCFUserStatusRepository implements UserStatusRepository {
 
-    private final Map<UUID, UserStatus> data = new HashMap<>();
+    private final Map<UUID, UserStatus> data = new ConcurrentHashMap<>();
 
     @Override
     public UserStatus save(UserStatus userStatus) {

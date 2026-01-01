@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.user.UserCreateRequest;
+import com.sprint.mission.discodeit.dto.user.UserDto;
 import com.sprint.mission.discodeit.dto.user.UserResponse;
 import com.sprint.mission.discodeit.dto.user.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
@@ -109,6 +110,31 @@ public class BasicUserService implements UserService {
     }
 
     @Override
+    public List<UserDto> findAllUserDtos() {
+        List<User> users = userRepository.findAll();
+        List<UserStatus> userStatuses = userStatusRepository.findAll();
+
+        var statusMap = userStatuses.stream()
+                .collect(Collectors.toMap(
+                        UserStatus::getUserId,
+                        s -> s,
+                        (a, b) -> a
+                ));
+
+        Instant now = Instant.now();
+
+        return users.stream()
+                .map(user -> {
+                    UserStatus status = statusMap.get(user.getId());
+                    if (status == null) {
+                        throw new IllegalStateException("유저 상태가 존재하지 않습니다. userId=" + user.getId());
+                    }
+                    return toUserDto(user, status.isOnline(now));
+                })
+                .toList();
+    }
+
+    @Override
     public UserResponse update(UserUpdateRequest request) {
         validateUpdateRequest(request);
 
@@ -204,6 +230,18 @@ public class BasicUserService implements UserService {
         );
     }
 
+    private UserDto toUserDto(User user, boolean isOnline) {
+        return new UserDto(
+                user.getId(),
+                user.getCreatedAt(),
+                user.getUpdatedAt(),
+                user.getNickname(),
+                user.getEmail(),
+                user.getProfileId(),
+                isOnline
+        );
+    }
+
     private void validateCreateRequest(UserCreateRequest request) {
         if (request == null) {
             throw new IllegalArgumentException("요청이 null입니다.");
@@ -246,51 +284,3 @@ public class BasicUserService implements UserService {
         }
     }
 }
-
-
-    /*
-    Spring Boot 이전 버전 코드
-    @Override
-    public User save(User user) {
-        if (user.getName() == null || user.getName().isEmpty()) {
-            System.out.println("이름이 비어있습니다.");
-            return null;
-        }
-        return userRepository.save(user);
-    }
-
-    @Override
-    public User saveUser(String name, String nickname, String phoneNumber, String password, String email) {
-        User user = new User(name, nickname, phoneNumber, password, email);
-        return userRepository.save(user);
-    }
-
-    @Override
-    public User updateUser(User user) {
-        User checkExisted = userRepository.findById(user.getId())
-                        .orElseThrow(() -> new IllegalArgumentException("해당 유저가 존재하지 않습니다."));
-        checkExisted.updateName(user.getName());
-        checkExisted.updateNickname(user.getNickname());
-        checkExisted.updatePhoneNumber(user.getPhoneNumber());
-        checkExisted.updateEmail(user.getEmail());
-        checkExisted.updateProfileId(user.getProfileId());
-        checkExisted.updatePassword(user.getPassword());
-
-        return userRepository.updateUser(checkExisted);
-    }
-
-    @Override
-    public void deleteById(UUID userid) {
-        userRepository.deleteById(userid);
-    }
-
-    @Override
-    public User findById(UUID userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
-    }
-
-    @Override
-    public List<User> findAll() {
-        return userRepository.findAll();
-    }*/

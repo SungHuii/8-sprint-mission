@@ -23,21 +23,5 @@ public interface MessageService {
 
     // delete
     void deleteById(UUID messageId);
-
-    /*
-    Spring 이전 버전 코드
-    @Deprecated
-    Message save(Message message);
-    @Deprecated
-    Message saveMessage(UUID authorId, UUID channelId, String messageContent, List<UUID> attachmentIds);
-    @Deprecated
-    Message updateMessage(Message message);
-    @Deprecated
-    boolean deleteMessage(UUID messageId);
-    @Deprecated
-    Message findById(UUID messageId);
-    @Deprecated
-    List<Message> findAll();
-    */
 }
 
