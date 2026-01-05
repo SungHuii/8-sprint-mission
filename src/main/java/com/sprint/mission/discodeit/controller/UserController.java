@@ -45,12 +45,11 @@ public class UserController {
   ) throws IOException {
     BinaryContentCreateRequest binaryRequest = toBinaryContentRequest(profile);
 
+    // 프론트엔드 스펙에 맞춰 email, username, password만 받도록 변경
     UserCreateRequest newRequest = new UserCreateRequest(
-        request.name(),
-        request.nickname(),
-        request.phoneNumber(),
-        request.password(),
         request.email(),
+        request.username(),
+        request.password(),
         binaryRequest
     );
 

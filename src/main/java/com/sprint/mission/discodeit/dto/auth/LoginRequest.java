@@ -1,9 +1,8 @@
 package com.sprint.mission.discodeit.dto.auth;
 
 public record LoginRequest(
-    String nickname,
+    String username,
     String password
 ) {
 
 }
-
