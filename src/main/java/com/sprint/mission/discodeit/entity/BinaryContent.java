@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
 import java.io.Serial;
@@ -24,7 +25,10 @@ public class BinaryContent implements Serializable {
   private static final long serialVersionUID = 1L;
   private final UUID id;
   private final Instant createdAt;
+
+  @JsonProperty("bytes") // JSON으로 변환될 때 필드 이름을 "bytes"로 지정
   private final byte[] data;
+  
   private final String contentType;
   private final String originalName;
   private final long size;
@@ -39,6 +43,4 @@ public class BinaryContent implements Serializable {
         ? data.length
         : 0;
   }
-
-
 }
