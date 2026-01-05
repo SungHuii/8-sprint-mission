@@ -2,12 +2,14 @@ package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.readstatus.ReadStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.readstatus.ReadStatusResponse;
+import com.sprint.mission.discodeit.dto.readstatus.ReadStatusUpdatePayload;
 import com.sprint.mission.discodeit.dto.readstatus.ReadStatusUpdateRequest;
 import com.sprint.mission.discodeit.service.ReadStatusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,10 +32,14 @@ public class ReadStatusController {
 
   @PatchMapping("/{readStatusId}")
   public ResponseEntity<ReadStatusResponse> update(@PathVariable UUID readStatusId,
-      @RequestBody ReadStatusUpdateRequest request) {
+      @RequestBody ReadStatusUpdatePayload payload) {
+    Instant lastReadAt = payload.newLastReadAt() != null 
+        ? Instant.parse(payload.newLastReadAt()) 
+        : Instant.now();
+        
     ReadStatusUpdateRequest newRequest = new ReadStatusUpdateRequest(
         readStatusId,
-        request.lastReadAt()
+        lastReadAt
     );
     return ResponseEntity.ok(readStatusService.update(newRequest));
   }
