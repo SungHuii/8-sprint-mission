@@ -31,9 +31,9 @@ public class BasicReadStatusService implements ReadStatusService {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "해당 유저가 존재하지 않습니다. userId=" + request.userId()));
 
-        if (channelRepository.findById(request.channelId()) == null) {
-            throw new IllegalArgumentException("해당 채널이 존재하지 않습니다. channelId=" + request.channelId());
-        }
+        channelRepository.findById(request.channelId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "해당 채널이 존재하지 않습니다. channelId=" + request.channelId()));
 
         readStatusRepository.findByUserIdAndChannelId(request.userId(), request.channelId())
                 .ifPresent(status -> {

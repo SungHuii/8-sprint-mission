@@ -23,7 +23,7 @@ public class Channel implements Serializable {
     private final List<UUID> participantIds;
 
     // PUBLIC 채널 생성
-    public Channel(String chName, String chDescription) {
+    private Channel(String chName, String chDescription) {
         this.id = UUID.randomUUID();
         this.createdAt = Instant.now();
         this.updatedAt = this.createdAt;
@@ -34,7 +34,7 @@ public class Channel implements Serializable {
     }
 
     // PRIVATE 채널 생성
-    public Channel(List<UUID> participantIds) {
+    private Channel(List<UUID> participantIds) {
         this.id = UUID.randomUUID();
         this.createdAt = Instant.now();
         this.updatedAt = this.createdAt;
@@ -42,6 +42,14 @@ public class Channel implements Serializable {
         this.chName = null;
         this.chDescription = null;
         this.participantIds = validateParticipants(participantIds);
+    }
+
+    public static Channel ofPublic(String chName, String chDescription) {
+        return new Channel(chName, chDescription);
+    }
+
+    public static Channel ofPrivate(List<UUID> participantIds) {
+        return new Channel(participantIds);
     }
 
     public void updateChName(String chName) {

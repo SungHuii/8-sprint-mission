@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
 @ConditionalOnProperty(
@@ -17,7 +18,7 @@ import java.util.*;
 )
 public class JCFUserRepository implements UserRepository {
 
-    private final Map<UUID, User> data = new HashMap<>();
+    private final Map<UUID, User> data = new ConcurrentHashMap<>();
 
     @Override
     public User save(User user) {

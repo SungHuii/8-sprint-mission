@@ -6,7 +6,7 @@ import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -22,7 +22,7 @@ import java.util.UUID;
 )
 public class JCFReadStatusRepository implements ReadStatusRepository {
 
-    private final Map<UUID, ReadStatus> data = new HashMap<>();
+    private final Map<UUID, ReadStatus> data = new ConcurrentHashMap<>();
 
     @Override
     public ReadStatus save(ReadStatus readStatus) {

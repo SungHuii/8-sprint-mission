@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.io.*;
 import java.util.*;
-
+import java.util.concurrent.ConcurrentHashMap;
 @Repository
 @ConditionalOnProperty(
         prefix = RepoProps.PREFIX,
@@ -22,7 +22,7 @@ public class FileMessageRepository implements MessageRepository {
     private Map<UUID, Message> data;
 
     public FileMessageRepository(@Value(RepoProps.FILE_DIRECTORY_PLACEHOLDER) String baseDir) {
-        this.data = new HashMap<>();
+        this.data = new ConcurrentHashMap<>();
         this.filePath = new File(baseDir, "messageRepo.ser").getPath();
         loadFile();
     }
@@ -73,13 +73,8 @@ public class FileMessageRepository implements MessageRepository {
     }
 
     @Override
-    public Message findById(UUID messageId) {
-        Message message = data.get(messageId);
-        if (message == null) {
-            System.out.println("해당 메시지를 찾을 수 없습니다.");
-            return null;
-        }
-        return message;
+    public Optional<Message> findById(UUID messageId) {
+        return Optional.ofNullable(data.get(messageId));
     }
 
     @Override

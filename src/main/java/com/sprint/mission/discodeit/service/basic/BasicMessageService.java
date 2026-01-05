@@ -35,9 +35,9 @@ public class BasicMessageService implements MessageService {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "해당 유저가 존재하지 않습니다. userId=" + request.authorId()));
 
-        if (channelRepository.findById(request.channelId()) == null) {
-            throw new IllegalArgumentException("해당 채널이 존재하지 않습니다. channelId=" + request.channelId());
-        }
+        channelRepository.findById(request.channelId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "해당 채널이 존재하지 않습니다. channelId=" + request.channelId()));
 
         List<UUID> attachmentIds = new ArrayList<>();
         if (request.attachments() != null) {
@@ -76,9 +76,9 @@ public class BasicMessageService implements MessageService {
             throw new IllegalArgumentException("channelId는 필수입니다.");
         }
 
-        if (channelRepository.findById(channelId) == null) {
-            throw new IllegalArgumentException("해당 채널이 존재하지 않습니다. channelId=" + channelId);
-        }
+        channelRepository.findById(channelId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "해당 채널이 존재하지 않습니다. channelId=" + channelId));
 
         return messageRepository.findAllByChannelId(channelId).stream()
                 .map(this::toMessageResponse)
@@ -89,10 +89,9 @@ public class BasicMessageService implements MessageService {
     public MessageResponse update(MessageUpdateRequest request) {
         validateUpdateRequest(request);
 
-        Message message = messageRepository.findById(request.messageId());
-        if (message == null) {
-            throw new IllegalArgumentException("해당 메시지가 존재하지 않습니다. messageId=" + request.messageId());
-        }
+        Message message = messageRepository.findById(request.messageId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "해당 메시지가 존재하지 않습니다. messageId=" + request.messageId()));
 
         message.updateMessage(request.content());
         Message updated = messageRepository.updateMessage(message);
@@ -109,10 +108,9 @@ public class BasicMessageService implements MessageService {
             throw new IllegalArgumentException("messageId는 필수입니다.");
         }
 
-        Message message = messageRepository.findById(messageId);
-        if (message == null) {
-            throw new IllegalArgumentException("해당 메시지가 존재하지 않습니다. messageId=" + messageId);
-        }
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "해당 메시지가 존재하지 않습니다. messageId=" + messageId));
 
         List<UUID> attachmentIds = message.getAttachmentIds();
         if (attachmentIds != null) {
@@ -126,68 +124,6 @@ public class BasicMessageService implements MessageService {
             throw new IllegalArgumentException("메시지 삭제 실패(존재하지 않을 수 있음). messageId=" + messageId);
         }
     }
-
-    /*@Deprecated
-    @Override
-    public Message save(Message message) {
-        if (message == null) {
-            throw new IllegalArgumentException("요청이 null입니다.");
-        }
-
-        userRepository.findById(message.getAuthorId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "해당 유저가 존재하지 않습니다. userId=" + message.getAuthorId()));
-
-        if (channelRepository.findById(message.getChannelId()) == null) {
-            throw new IllegalArgumentException("해당 채널이 존재하지 않습니다. channelId=" + message.getChannelId());
-        }
-
-        if (message.getMessageContent() == null || message.getMessageContent().isBlank()) {
-            throw new IllegalArgumentException("messageContent는 필수입니다.");
-        }
-
-        return messageRepository.save(message);
-    }
-
-    @Deprecated
-    @Override
-    public Message saveMessage(UUID authorId, UUID channelId, String content, List<UUID> attachmentIds) {
-        return new Message(authorId, channelId, content, attachmentIds);
-    }
-
-    @Deprecated
-    @Override
-    public Message updateMessage(Message message) {
-        if (message == null) {
-            throw new IllegalArgumentException("요청이 null입니다.");
-        }
-
-        Message existing = messageRepository.findById(message.getId());
-        if (existing == null) {
-            throw new IllegalArgumentException("해당 메시지가 존재하지 않습니다. messageId=" + message.getId());
-        }
-
-        existing.updateMessage(message.getMessageContent());
-        return messageRepository.updateMessage(existing);
-    }
-
-    @Deprecated
-    @Override
-    public boolean deleteMessage(UUID messageId) {
-        return messageRepository.deleteMessage(messageId);
-    }
-
-    @Deprecated
-    @Override
-    public Message findById(UUID messageId) {
-        return messageRepository.findById(messageId);
-    }
-
-    @Deprecated
-    @Override
-    public List<Message> findAll() {
-        return messageRepository.findAll();
-    }*/
 
     private MessageResponse toMessageResponse(Message message) {
         return new MessageResponse(

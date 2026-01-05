@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
 @ConditionalOnProperty(
@@ -22,7 +23,7 @@ public class FileChannelRepository implements ChannelRepository {
     private Map<UUID, Channel> data;
 
     public FileChannelRepository(@Value(RepoProps.FILE_DIRECTORY_PLACEHOLDER) String baseDir) {
-        this.data = new HashMap<>();
+        this.data = new ConcurrentHashMap<>();
         this.filePath = new File(baseDir, "channelRepo.ser").getPath();
         loadFile();
     }
@@ -66,13 +67,8 @@ public class FileChannelRepository implements ChannelRepository {
     }
 
     @Override
-    public Channel findById(UUID channelId) {
-        Channel channel = data.get(channelId);
-        if (channel == null) {
-            System.out.println("해당 채널을 찾을 수 없습니다.");
-            return null;
-        }
-        return channel;
+    public Optional<Channel> findById(UUID channelId) {
+        return Optional.ofNullable(data.get(channelId));
     }
 
     @Override
