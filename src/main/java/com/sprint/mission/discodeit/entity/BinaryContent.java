@@ -30,6 +30,7 @@ public class BinaryContent implements Serializable {
   private final byte[] data;
   
   private final String contentType;
+  @JsonProperty("fileName") // JSON으로 변환될 때 필드 이름을 "fileName"으로 지정
   private final String originalName;
   private final long size;
 
