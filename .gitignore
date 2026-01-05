@@ -38,3 +38,6 @@ out/
 
 # Local agent context
 agents.md
+
+# Serialized objects
+*.ser
