@@ -1,19 +1,18 @@
 package com.sprint.mission.discodeit.controller;
 
+import com.sprint.mission.discodeit.dto.binary.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.message.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.message.MessageResponse;
 import com.sprint.mission.discodeit.dto.message.MessageUpdateRequest;
-import com.sprint.mission.discodeit.dto.binary.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.service.MessageService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,75 +21,64 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class MessageController {
 
+  private static final String PART_MESSAGE_CREATE = "messageCreateRequest";
+  private static final String PART_ATTACHMENTS = "attachments";
+
   private final MessageService messageService;
 
-  @RequestMapping(value = "/create", method = RequestMethod.GET)
-  public MessageResponse create(@RequestParam UUID authorId,
-      @RequestParam UUID channelId,
-      @RequestParam String content,
-      @RequestParam(required = false) List<String> attachmentData,
-      @RequestParam(required = false) List<String> attachmentContentType,
-      @RequestParam(required = false) List<String> attachmentOriginalName) {
-    List<BinaryContentCreateRequest> attachments = toAttachmentRequests(
-        attachmentData,
-        attachmentContentType,
-        attachmentOriginalName
+  @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  public ResponseEntity<MessageResponse> create(
+      @RequestPart(PART_MESSAGE_CREATE) MessageCreateRequest request,
+      @RequestPart(value = PART_ATTACHMENTS, required = false) List<MultipartFile> attachments
+  ) throws IOException {
+    List<BinaryContentCreateRequest> attachmentRequests = toAttachmentRequests(attachments);
+
+    MessageCreateRequest newRequest = new MessageCreateRequest(
+        request.authorId(),
+        request.channelId(),
+        request.content(),
+        attachmentRequests
     );
-    MessageCreateRequest request = new MessageCreateRequest(
-        authorId,
-        channelId,
-        content,
-        attachments
-    );
-    return messageService.create(request);
+
+    return ResponseEntity.ok(messageService.create(newRequest));
   }
 
-  @RequestMapping(method = RequestMethod.GET)
-  public List<MessageResponse> findAllByChannelId(@RequestParam UUID channelId) {
-    return messageService.findAllByChannelId(channelId);
+  @GetMapping
+  public ResponseEntity<List<MessageResponse>> findAllByChannelId(@RequestParam UUID channelId) {
+    return ResponseEntity.ok(messageService.findAllByChannelId(channelId));
   }
 
-  @RequestMapping(value = "/{messageId}/update", method = RequestMethod.GET)
-  public MessageResponse update(@PathVariable UUID messageId,
-      @RequestParam String content) {
-    MessageUpdateRequest boundRequest = new MessageUpdateRequest(
+  @PatchMapping("/{messageId}")
+  public ResponseEntity<MessageResponse> update(@PathVariable UUID messageId,
+      @RequestBody MessageUpdateRequest request) {
+    MessageUpdateRequest newRequest = new MessageUpdateRequest(
         messageId,
-        content
+        request.content()
     );
-    return messageService.update(boundRequest);
+    return ResponseEntity.ok(messageService.update(newRequest));
   }
 
-  @RequestMapping(value = "/{messageId}/delete", method = RequestMethod.GET)
-  public void delete(@PathVariable UUID messageId) {
+  @DeleteMapping("/{messageId}")
+  public ResponseEntity<Void> delete(@PathVariable UUID messageId) {
     messageService.deleteById(messageId);
+    return ResponseEntity.ok().build();
   }
 
-  private List<BinaryContentCreateRequest> toAttachmentRequests(List<String> dataList,
-      List<String> contentTypeList,
-      List<String> originalNameList) {
-    if (dataList == null || dataList.isEmpty()) {
+  private List<BinaryContentCreateRequest> toAttachmentRequests(List<MultipartFile> files)
+      throws IOException {
+    if (files == null || files.isEmpty()) {
       return null;
     }
-    if (contentTypeList == null || originalNameList == null) {
-      throw new IllegalArgumentException("attachment metadata는 필수입니다.");
-    }
-    if (dataList.size() != contentTypeList.size() || dataList.size() != originalNameList.size()) {
-      throw new IllegalArgumentException("attachment 파라미터 개수가 일치해야 합니다.");
-    }
-
-    List<BinaryContentCreateRequest> attachments = new ArrayList<>(dataList.size());
-    for (int i = 0; i < dataList.size(); i++) {
-      String data = dataList.get(i);
-      if (data == null || data.isBlank()) {
-        throw new IllegalArgumentException("attachment data는 필수입니다.");
+    List<BinaryContentCreateRequest> requests = new ArrayList<>(files.size());
+    for (MultipartFile file : files) {
+      if (!file.isEmpty()) {
+        requests.add(new BinaryContentCreateRequest(
+            file.getBytes(),
+            file.getContentType(),
+            file.getOriginalFilename()
+        ));
       }
-      byte[] decoded = Base64.getDecoder().decode(data);
-      attachments.add(new BinaryContentCreateRequest(
-          decoded,
-          contentTypeList.get(i),
-          originalNameList.get(i)
-      ));
     }
-    return attachments;
+    return requests;
   }
 }

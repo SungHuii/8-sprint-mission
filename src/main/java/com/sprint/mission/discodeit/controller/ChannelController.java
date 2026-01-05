@@ -6,11 +6,8 @@ import com.sprint.mission.discodeit.dto.channel.PrivateChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.channel.PublicChannelCreateRequest;
 import com.sprint.mission.discodeit.service.ChannelService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -22,46 +19,39 @@ public class ChannelController {
 
   private final ChannelService channelService;
 
-  @RequestMapping(value = "/public", method = RequestMethod.GET)
-  public ChannelResponse createPublic(@RequestParam String name,
-      @RequestParam(required = false) String description) {
-    return channelService.createPublic(new PublicChannelCreateRequest(name, description));
+  @PostMapping("/public")
+  public ResponseEntity<ChannelResponse> createPublic(
+      @RequestBody PublicChannelCreateRequest request) {
+    return ResponseEntity.ok(channelService.createPublic(request));
   }
 
-  @RequestMapping(value = "/private", method = RequestMethod.GET)
-  public ChannelResponse createPrivate(@RequestParam List<UUID> participantIds) {
-    return channelService.createPrivate(new PrivateChannelCreateRequest(participantIds));
+  @PostMapping("/private")
+  public ResponseEntity<ChannelResponse> createPrivate(
+      @RequestBody PrivateChannelCreateRequest request) {
+    return ResponseEntity.ok(channelService.createPrivate(request));
   }
 
-  @RequestMapping(method = RequestMethod.GET)
-  public List<ChannelResponse> findAllByUserId(@RequestParam UUID userId) {
-    return channelService.findAllByUserId(userId);
+  @GetMapping
+  public ResponseEntity<List<ChannelResponse>> findAllByUserId(@RequestParam UUID userId) {
+    return ResponseEntity.ok(channelService.findAllByUserId(userId));
   }
 
-  @RequestMapping(value = "/all", method = RequestMethod.GET)
-  public List<ChannelResponse> findAll() {
-    return channelService.findAll();
-  }
-
-  @RequestMapping(value = "/{channelId}", method = RequestMethod.GET)
-  public ChannelResponse findById(@PathVariable UUID channelId) {
-    return channelService.findById(channelId);
-  }
-
-  @RequestMapping(value = "/{channelId}/update", method = RequestMethod.GET)
-  public ChannelResponse update(@PathVariable UUID channelId,
-      @RequestParam(required = false) String name,
-      @RequestParam(required = false) String description) {
-    ChannelUpdateRequest boundRequest = new ChannelUpdateRequest(
+  @PatchMapping("/{channelId}")
+  public ResponseEntity<ChannelResponse> update(@PathVariable UUID channelId,
+      @RequestBody ChannelUpdateRequest request) {
+    // ChannelUpdateRequest에 channelId가 있지만, RESTful 스타일상 PathVariable을 사용하는 것이 더 나음.
+    // PATCH /api/channels/123 id 값을 url 경로에 포함시키는 것이 관례
+    ChannelUpdateRequest newRequest = new ChannelUpdateRequest(
         channelId,
-        name,
-        description
+        request.name(),
+        request.description()
     );
-    return channelService.update(boundRequest);
+    return ResponseEntity.ok(channelService.update(newRequest));
   }
 
-  @RequestMapping(value = "/{channelId}/delete", method = RequestMethod.GET)
-  public void delete(@PathVariable UUID channelId) {
+  @DeleteMapping("/{channelId}")
+  public ResponseEntity<Void> delete(@PathVariable UUID channelId) {
     channelService.deleteById(channelId);
+    return ResponseEntity.ok().build();
   }
 }
