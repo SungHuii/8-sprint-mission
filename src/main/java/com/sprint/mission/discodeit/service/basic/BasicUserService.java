@@ -32,7 +32,7 @@ public class BasicUserService implements UserService {
   public UserResponse create(UserCreateRequest request) {
     validateCreateRequest(request);
 
-    if (userRepository.findByNickname(request.nickname()).isPresent()) {
+    if (userRepository.findByNickname(request.username()).isPresent()) {
       throw new IllegalArgumentException("이미 존재하는 닉네임입니다.");
     }
     if (userRepository.findByEmail(request.email()).isPresent()) {
@@ -40,9 +40,9 @@ public class BasicUserService implements UserService {
     }
 
     User user = new User(
-        request.name(),
-        request.nickname(),
-        request.phoneNumber(),
+        request.username(), // name
+        request.username(), // nickname
+        "", // phoneNumber
         request.password(),
         request.email()
     );
@@ -246,14 +246,8 @@ public class BasicUserService implements UserService {
     if (request == null) {
       throw new IllegalArgumentException("요청이 null입니다.");
     }
-    if (request.name() == null || request.name().isBlank()) {
-      throw new IllegalArgumentException("이름은 필수입니다.");
-    }
-    if (request.nickname() == null || request.nickname().isBlank()) {
-      throw new IllegalArgumentException("닉네임은 필수입니다.");
-    }
-    if (request.phoneNumber() == null || request.phoneNumber().isBlank()) {
-      throw new IllegalArgumentException("전화번호는 필수입니다.");
+    if (request.username() == null || request.username().isBlank()) {
+      throw new IllegalArgumentException("사용자명은 필수입니다.");
     }
     if (request.password() == null || request.password().isBlank()) {
       throw new IllegalArgumentException("비밀번호는 필수입니다.");
