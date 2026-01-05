@@ -7,9 +7,10 @@ import com.sprint.mission.discodeit.dto.user.UserResponse;
 import com.sprint.mission.discodeit.dto.user.UserUpdateRequest;
 import com.sprint.mission.discodeit.dto.userstatus.UserStatusResponse;
 import com.sprint.mission.discodeit.dto.userstatus.UserStatusUpdateByUserIdRequest;
-import com.sprint.mission.discodeit.dto.userstatus.UserStatusUpdateRequest;
+import com.sprint.mission.discodeit.dto.userstatus.UserStatusUpdatePayload;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
+import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -91,15 +92,15 @@ public class UserController {
   @PatchMapping("/{userId}/userStatus")
   public ResponseEntity<UserStatusResponse> updateStatus(
       @PathVariable UUID userId,
-      @RequestBody UserStatusUpdateRequest payload
+      @RequestBody UserStatusUpdatePayload payload
   ) {
     String lastActiveAtStr = payload.newLastActiveAt();
 
     UserStatusUpdateByUserIdRequest request = new UserStatusUpdateByUserIdRequest(
         userId,
         lastActiveAtStr != null
-            ? java.time.Instant.parse(lastActiveAtStr)
-            : java.time.Instant.now()
+            ? Instant.parse(lastActiveAtStr)
+            : Instant.now()
     );
 
     return ResponseEntity.ok(userStatusService.updateByUserId(request));

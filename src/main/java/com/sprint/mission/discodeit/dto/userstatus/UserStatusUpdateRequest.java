@@ -1,7 +1,10 @@
 package com.sprint.mission.discodeit.dto.userstatus;
 
-public record UserStatusUpdateRequest(
-    String newLastActiveAt
-) {
+import java.time.Instant;
+import java.util.UUID;
 
+public record UserStatusUpdateRequest(
+    UUID userStatusId,
+    Instant lastActiveAt
+) {
 }
