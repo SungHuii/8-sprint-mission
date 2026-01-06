@@ -1,8 +1,8 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.user.UserCreateRequest;
-import com.sprint.mission.discodeit.dto.user.UserDto;
 import com.sprint.mission.discodeit.dto.user.UserResponse;
+import com.sprint.mission.discodeit.dto.user.UserSummaryResponse;
 import com.sprint.mission.discodeit.dto.user.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
@@ -84,7 +84,6 @@ public class BasicUserService implements UserService {
     return toUserResponse(user, isOnline);
   }
 
-  // 상세 정보 조회용
   @Override
   public List<UserResponse> findAll() {
     List<User> users = userRepository.findAll();
@@ -110,9 +109,8 @@ public class BasicUserService implements UserService {
         .toList();
   }
 
-  // 목록 요약 정보용
   @Override
-  public List<UserDto> findAllUserDtos() {
+  public List<UserSummaryResponse> findAllUserSummaries() {
     List<User> users = userRepository.findAll();
     List<UserStatus> userStatuses = userStatusRepository.findAll();
 
@@ -131,7 +129,7 @@ public class BasicUserService implements UserService {
           if (status == null) {
             throw new IllegalStateException("유저 상태가 존재하지 않습니다. userId=" + user.getId());
           }
-          return toUserDto(user, status.isOnline(now));
+          return toUserSummaryResponse(user, status.isOnline(now));
         })
         .toList();
   }
@@ -232,8 +230,8 @@ public class BasicUserService implements UserService {
     );
   }
 
-  private UserDto toUserDto(User user, boolean isOnline) {
-    return new UserDto(
+  private UserSummaryResponse toUserSummaryResponse(User user, boolean isOnline) {
+    return new UserSummaryResponse(
         user.getId(),
         user.getCreatedAt(),
         user.getUpdatedAt(),
