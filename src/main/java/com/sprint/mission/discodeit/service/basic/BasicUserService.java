@@ -84,6 +84,7 @@ public class BasicUserService implements UserService {
     return toUserResponse(user, isOnline);
   }
 
+  // 상세 정보 조회용
   @Override
   public List<UserResponse> findAll() {
     List<User> users = userRepository.findAll();
@@ -109,6 +110,7 @@ public class BasicUserService implements UserService {
         .toList();
   }
 
+  // 목록 요약 정보용
   @Override
   public List<UserDto> findAllUserDtos() {
     List<User> users = userRepository.findAll();
