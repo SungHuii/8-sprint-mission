@@ -42,3 +42,6 @@ agents.md
 # Serialized objects
 *.ser
 .discodeit/
+
+# Rules
+RULES.md
