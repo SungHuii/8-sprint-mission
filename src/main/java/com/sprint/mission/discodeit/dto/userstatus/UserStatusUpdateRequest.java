@@ -4,8 +4,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 public record UserStatusUpdateRequest(
-        UUID userStatusId,
-        Instant lastActiveAt
+    UUID userStatusId,
+    Instant lastActiveAt
 ) {
 }
-

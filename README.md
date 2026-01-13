@@ -1,82 +1,84 @@
-# [SB] 스프린트 미션 3
+# [SB] 스프린트 미션 5 - Discodeit (디스코드잇)
 
-Spring Boot 기반 디스코드잇(Discodeit) 프로젝트입니다.  
-JCF/File 저장소, DTO 기반 서비스, 신규 도메인(ReadStatus/UserStatus/BinaryContent)을 포함합니다.
+Spring Boot 기반의 실시간 채팅 애플리케이션 **Discodeit** 프로젝트입니다.  
+RESTful API 설계, Swagger 문서화, 그리고 React 기반 프론트엔드와의 연동을 포함합니다.
 
-## 목표
-- Spring Boot + IoC/DI 기반으로 서비스/레포지토리 구성하기
-- DTO를 활용한 서비스 계층 고도화
-- 신규 도메인과 연관 로직 구현
-- JCF/File Repository 구현체를 설정값으로 선택
+## 주요 기능
 
-## 핵심 기능
-- User/Channel/Message CRUD + DTO 응답
-- Auth 로그인 기능
-- ReadStatus/UserStatus 관리
-- BinaryContent 저장/조회
-- 시간 타입: `Instant` 통일
+- **사용자 관리**: 회원가입, 로그인, 정보 수정, 상태 관리 (온라인/오프라인)
+- **채널 관리**: 공개/비공개 채널 생성 및 관리
+- **메시지 기능**: 실시간 메시지 전송, 파일 첨부 (이미지 등)
+- **읽음 상태**: 채널별 메시지 읽음 상태 관리
+- **API 문서화**: Swagger (OpenAPI 3.0) 기반의 자동화된 API 명세 제공
 
-## 실행
-- IDE에서 `DiscodeitApplication` 실행
-- 또는 `./gradlew bootRun`
+## 기술 스택
 
-## 설정
-`src/main/resources/application.yaml`
+- **Backend**: Java 17, Spring Boot 3.x
+- **Frontend**: React (Single Page Application)
+- **Database**:
+    - `JCF` (In-Memory) 또는 `File` (Serialized Object) 저장소 선택 가능
+- **API Documentation**: springdoc-openapi (Swagger UI)
+
+## 실행 방법
+
+### 1. 백엔드 실행
+
+프로젝트 루트에서 다음 명령어를 실행합니다.
+
+```bash
+./gradlew bootRun
 ```
-# Repository 구현체 선택 및 파일 저장 경로
-# type: jcf | file
 
+서버는 기본적으로 `8080` 포트에서 실행됩니다.
+
+### 2. 애플리케이션 접속
+
+브라우저에서 다음 주소로 접속하여 애플리케이션을 사용할 수 있습니다.
+
+- **메인 화면**: [http://localhost:8080](http://localhost:8080)
+
+### 3. API 문서 확인 (Swagger UI)
+
+API 명세 및 테스트를 위해 Swagger UI를 제공합니다.
+
+- **Swagger UI
+  **: [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+
+## 설정 (`application.yaml`)
+
+`src/main/resources/application.yaml` 파일에서 저장소 타입을 설정할 수 있습니다.
+
+```yaml
 discodeit:
   repository:
-    type: jcf
-    file-directory: .discodeit
+    # type: jcf (메모리) | file (파일 시스템)
+    type: file
+    file-directory: .discodeit # 파일 저장 경로
 ```
 
 ## 프로젝트 구조
+
 ```
 src
 └─ main
    ├─ java
    │  └─ com.sprint.mission.discodeit
-   │     ├─ DiscodeitApplication.java
-   │     ├─ config
-   │     │  └─ RepoProps.java
-   │     ├─ dto
-   │     │  ├─ auth
-   │     │  ├─ binary
-   │     │  ├─ channel
-   │     │  ├─ message
-   │     │  ├─ readstatus
-   │     │  ├─ user
-   │     │  └─ userstatus
-   │     ├─ entity
-   │     │  ├─ BinaryContent.java
-   │     │  ├─ Channel.java
-   │     │  ├─ Message.java
-   │     │  ├─ ReadStatus.java
-   │     │  ├─ User.java
-   │     │  └─ UserStatus.java
-   │     ├─ repository
-   │     │  ├─ BinaryContentRepository.java
-   │     │  ├─ ChannelRepository.java
-   │     │  ├─ MessageRepository.java
-   │     │  ├─ ReadStatusRepository.java
-   │     │  ├─ UserRepository.java
-   │     │  ├─ UserStatusRepository.java
-   │     │  ├─ file
-   │     │  └─ jcf
-   │     ├─ service
-   │     │  ├─ AuthService.java
-   │     │  ├─ BinaryContentService.java
-   │     │  ├─ ChannelService.java
-   │     │  ├─ MessageService.java
-   │     │  ├─ ReadStatusService.java
-   │     │  ├─ UserService.java
-   │     │  ├─ UserStatusService.java
-   │     │  └─ basic
-   │     └─ run
-   │        ├─ JavaApplicationBasic.java
-   │        └─ JavaApplicationLegacy.java
+   │     ├─ controller      # REST API 컨트롤러
+   │     ├─ service         # 비즈니스 로직
+   │     ├─ repository      # 데이터 저장소 (JCF/File)
+   │     ├─ entity          # 도메인 엔티티
+   │     ├─ dto             # 데이터 전송 객체 (Request/Response)
+   │     └─ config          # 설정 클래스
    └─ resources
-      └─ application.yaml
+      ├─ static             # React 프론트엔드 빌드 파일
+      └─ application.yaml   # 애플리케이션 설정
 ```
+
+## API 리팩토링 내역
+
+- **RESTful API 적용**: 자원 중심의 URL 설계 및 적절한 HTTP 메서드(GET, POST, PATCH, DELETE) 사용
+- **Multipart 지원**: 프로필 이미지 및 파일 첨부 기능을 위한 `multipart/form-data` 처리 구현
+- **DTO 개선**: 프론트엔드 스펙에 맞춘 요청/응답 DTO 구조 최적화
+- **Swagger 적용**: `@Operation`, `@ApiResponse` 등을 활용한 상세한 API 문서화
+
+---

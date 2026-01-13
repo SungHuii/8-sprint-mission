@@ -10,25 +10,27 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ChannelService {
-    /* Channel entity CRUD service
-    * */
+  /* Channel entity CRUD service
+   * */
 
-    // create
-    ChannelResponse createPublic(PublicChannelCreateRequest request);
-    ChannelResponse createPrivate(PrivateChannelCreateRequest request);
+  // create
+  ChannelResponse createPublic(PublicChannelCreateRequest request);
 
-    // find
-    ChannelResponse findById(UUID channelId);
+  ChannelResponse createPrivate(PrivateChannelCreateRequest request);
 
-    // findAll -> findAllByUserId
-    List<ChannelResponse> findAllByUserId(UUID userId);
-    List<ChannelResponse> findAll();
+  // find
+  ChannelResponse findById(UUID channelId);
 
-    // update
-    ChannelResponse update(ChannelUpdateRequest request);
+  // findAll -> findAllByUserId
+  List<ChannelResponse> findAllByUserId(UUID userId);
 
-    // delete
-    void deleteById(UUID channelId);
+  List<ChannelResponse> findAll();
+
+  // update
+  ChannelResponse update(ChannelUpdateRequest request);
+
+  // delete
+  void deleteById(UUID channelId);
 }
 
 
