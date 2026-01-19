@@ -23,7 +23,7 @@ public interface UserService {
   List<UserSummaryResponse> findAllUserSummaries();
 
   // update
-  UserResponse update(UserUpdateRequest request);
+  UserResponse update(UUID userId, UserUpdateRequest request);
 
   // delete
   void deleteById(UUID userId);

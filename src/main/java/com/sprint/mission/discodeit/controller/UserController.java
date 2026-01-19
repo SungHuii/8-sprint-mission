@@ -55,7 +55,6 @@ public class UserController implements UserApi {
   ) throws IOException {
     BinaryContentCreateRequest binaryRequest = toBinaryContentRequest(profile);
 
-    // 프론트엔드 스펙에 맞춰 email, username, password만 받도록 변경
     UserCreateRequest newRequest = new UserCreateRequest(
         request.email(),
         request.username(),
@@ -82,16 +81,13 @@ public class UserController implements UserApi {
     BinaryContentCreateRequest binaryRequest = toBinaryContentRequest(profile);
 
     UserUpdateRequest newRequest = new UserUpdateRequest(
-        userId,
-        request != null ? request.name() : null,
-        request != null ? request.nickname() : null,
-        request != null ? request.phoneNumber() : null,
-        request != null ? request.password() : null,
-        request != null ? request.email() : null,
+        request != null ? request.newUsername() : null,
+        request != null ? request.newEmail() : null,
+        request != null ? request.newPassword() : null,
         binaryRequest
     );
 
-    return ResponseEntity.ok(userService.update(newRequest));
+    return ResponseEntity.ok(userService.update(userId, newRequest));
   }
 
   @Override
