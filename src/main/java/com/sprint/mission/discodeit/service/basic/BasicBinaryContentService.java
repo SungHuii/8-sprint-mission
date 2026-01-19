@@ -6,17 +6,20 @@ import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class BasicBinaryContentService implements BinaryContentService {
 
   private final BinaryContentRepository binaryContentRepository;
 
   @Override
+  @Transactional
   public BinaryContent create(BinaryContentCreateRequest request) {
     validateCreateRequest(request);
 
@@ -50,6 +53,7 @@ public class BasicBinaryContentService implements BinaryContentService {
   }
 
   @Override
+  @Transactional
   public void deleteById(UUID binaryContentId) {
     if (binaryContentId == null) {
       throw new IllegalArgumentException("binaryContentId는 필수입니다.");

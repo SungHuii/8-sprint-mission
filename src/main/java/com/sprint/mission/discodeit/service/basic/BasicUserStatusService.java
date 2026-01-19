@@ -15,9 +15,11 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class BasicUserStatusService implements UserStatusService {
 
   private final UserStatusRepository userStatusRepository;
@@ -25,6 +27,7 @@ public class BasicUserStatusService implements UserStatusService {
   private final UserStatusMapper userStatusMapper;
 
   @Override
+  @Transactional
   public UserStatusResponse create(UserStatusCreateRequest request) {
     validateCreateRequest(request);
 
@@ -65,6 +68,7 @@ public class BasicUserStatusService implements UserStatusService {
   }
 
   @Override
+  @Transactional
   public UserStatusResponse update(UUID userStatusId, UserStatusUpdateRequest request) {
     validateUpdateRequest(userStatusId, request);
 
@@ -73,12 +77,13 @@ public class BasicUserStatusService implements UserStatusService {
             "해당 유저 상태가 존재하지 않습니다. userStatusId=" + userStatusId));
 
     status.updateLastActiveAt(request.lastActiveAt());
-    UserStatus updated = userStatusRepository.save(status);
+    // JPA 변경 감지(Dirty Checking)로 인해 별도의 save 호출 불필요
 
-    return userStatusMapper.toUserStatusResponse(updated);
+    return userStatusMapper.toUserStatusResponse(status);
   }
 
   @Override
+  @Transactional
   public UserStatusResponse updateByUserId(UserStatusUpdateByUserIdRequest request) {
     validateUpdateByUserIdRequest(request);
 
@@ -87,12 +92,13 @@ public class BasicUserStatusService implements UserStatusService {
             "해당 유저 상태가 존재하지 않습니다. userId=" + request.userId()));
 
     status.updateLastActiveAt(request.lastActiveAt());
-    UserStatus updated = userStatusRepository.save(status);
+    // JPA 변경 감지(Dirty Checking)로 인해 별도의 save 호출 불필요
 
-    return userStatusMapper.toUserStatusResponse(updated);
+    return userStatusMapper.toUserStatusResponse(status);
   }
 
   @Override
+  @Transactional
   public void deleteById(UUID userStatusId) {
     if (userStatusId == null) {
       throw new IllegalArgumentException("userStatusId는 필수입니다.");

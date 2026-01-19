@@ -16,9 +16,11 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class BasicReadStatusService implements ReadStatusService {
 
   private final ReadStatusRepository readStatusRepository;
@@ -27,6 +29,7 @@ public class BasicReadStatusService implements ReadStatusService {
   private final ReadStatusMapper readStatusMapper;
 
   @Override
+  @Transactional
   public ReadStatusResponse create(ReadStatusCreateRequest request) {
     validateCreateRequest(request);
 
@@ -79,6 +82,7 @@ public class BasicReadStatusService implements ReadStatusService {
   }
 
   @Override
+  @Transactional
   public ReadStatusResponse update(UUID readStatusId, ReadStatusUpdateRequest request) {
     validateUpdateRequest(readStatusId, request);
 
@@ -87,12 +91,13 @@ public class BasicReadStatusService implements ReadStatusService {
             "해당 읽음 상태가 존재하지 않습니다. readStatusId=" + readStatusId));
 
     status.updateLastReadAt(request.newLastReadAt());
-    ReadStatus updated = readStatusRepository.save(status);
+    // JPA 변경 감지(Dirty Checking)로 인해 별도의 save 호출 불필요
 
-    return readStatusMapper.toReadStatusResponse(updated);
+    return readStatusMapper.toReadStatusResponse(status);
   }
 
   @Override
+  @Transactional
   public void deleteById(UUID readStatusId) {
     if (readStatusId == null) {
       throw new IllegalArgumentException("readStatusId는 필수입니다.");

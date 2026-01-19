@@ -12,15 +12,18 @@ import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class BasicUserService implements UserService {
 
   private final UserRepository userRepository;
@@ -29,6 +32,7 @@ public class BasicUserService implements UserService {
   private final UserMapper userMapper;
 
   @Override
+  @Transactional
   public UserResponse create(UserCreateRequest request) {
     validateCreateRequest(request);
 
@@ -53,9 +57,7 @@ public class BasicUserService implements UserService {
           profileReq.contentType(),
           profileReq.originalName()
       );
-
-      BinaryContent savedProfile = binaryContentRepository.save(profile);
-      user.updateProfile(savedProfile);
+      user.updateProfile(profile);
     }
 
     User savedUser = userRepository.save(user);
@@ -133,6 +135,7 @@ public class BasicUserService implements UserService {
   }
 
   @Override
+  @Transactional
   public UserResponse update(UUID userId, UserUpdateRequest request) {
     validateUpdateRequest(userId, request);
 
@@ -161,23 +164,16 @@ public class BasicUserService implements UserService {
     }
 
     if (request.newProfile() != null) {
-      BinaryContent oldProfile = user.getProfile();
-      if (oldProfile != null) {
-        binaryContentRepository.deleteById(oldProfile.getId());
-      }
-
       var profileReq = request.newProfile();
       BinaryContent newProfile = new BinaryContent(
           profileReq.data(),
           profileReq.contentType(),
           profileReq.originalName()
       );
-      BinaryContent saved = binaryContentRepository.save(newProfile);
-
-      user.updateProfile(saved);
+      user.updateProfile(newProfile);
     }
 
-    User updated = userRepository.updateUser(user);
+    User updated = userRepository.save(user);
 
     UserStatus status = userStatusRepository.findByUserId(updated.getId())
         .orElseThrow(() -> new IllegalStateException(
@@ -188,24 +184,11 @@ public class BasicUserService implements UserService {
   }
 
   @Override
+  @Transactional
   public void deleteById(UUID userId) {
     if (userId == null) {
       throw new IllegalArgumentException("userId는 필수입니다.");
     }
-
-    User user = userRepository.findById(userId)
-        .orElseThrow(() -> new IllegalArgumentException(
-            "해당 유저가 존재하지 않습니다. userId=" + userId));
-
-    BinaryContent profile = user.getProfile();
-    if (profile != null) {
-      binaryContentRepository.deleteById(profile.getId());
-    }
-
-    userStatusRepository.findByUserId(userId)
-        .orElseThrow(() -> new IllegalStateException(
-            "유저 상태가 존재하지 않습니다. userId=" + userId));
-    userStatusRepository.deleteByUserId(userId);
 
     userRepository.deleteById(userId);
   }

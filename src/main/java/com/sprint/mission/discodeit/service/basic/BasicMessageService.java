@@ -14,14 +14,17 @@ import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class BasicMessageService implements MessageService {
 
   private final MessageRepository messageRepository;
@@ -31,6 +34,7 @@ public class BasicMessageService implements MessageService {
   private final MessageMapper messageMapper;
 
   @Override
+  @Transactional
   public MessageResponse create(MessageCreateRequest request) {
     validateCreateRequest(request);
 
@@ -54,6 +58,7 @@ public class BasicMessageService implements MessageService {
             attachmentRequest.contentType(),
             attachmentRequest.originalName()
         );
+
         BinaryContent saved = binaryContentRepository.save(attachment);
         attachments.add(saved);
       }
@@ -86,6 +91,7 @@ public class BasicMessageService implements MessageService {
   }
 
   @Override
+  @Transactional
   public MessageResponse update(UUID messageId, MessageUpdateRequest request) {
     validateUpdateRequest(messageId, request);
 
@@ -94,26 +100,15 @@ public class BasicMessageService implements MessageService {
             "해당 메시지가 존재하지 않습니다. messageId=" + messageId));
 
     message.updateContent(request.content());
-    Message updated = messageRepository.updateMessage(message);
 
-    return messageMapper.toMessageResponse(updated);
+    return messageMapper.toMessageResponse(message);
   }
 
   @Override
+  @Transactional
   public void deleteById(UUID messageId) {
     if (messageId == null) {
       throw new IllegalArgumentException("messageId는 필수입니다.");
-    }
-
-    Message message = messageRepository.findById(messageId)
-        .orElseThrow(() -> new IllegalArgumentException(
-            "해당 메시지가 존재하지 않습니다. messageId=" + messageId));
-
-    List<BinaryContent> attachments = message.getAttachments();
-    if (attachments != null) {
-      for (BinaryContent attachment : attachments) {
-        binaryContentRepository.deleteById(attachment.getId());
-      }
     }
 
     messageRepository.deleteById(messageId);

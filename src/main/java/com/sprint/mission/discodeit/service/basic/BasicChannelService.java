@@ -19,16 +19,19 @@ import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class BasicChannelService implements ChannelService {
 
   private final ChannelRepository channelRepository;
@@ -40,6 +43,7 @@ public class BasicChannelService implements ChannelService {
   private final UserMapper userMapper;
 
   @Override
+  @Transactional
   public ChannelResponse createPublic(PublicChannelCreateRequest request) {
     validatePublicCreateRequest(request);
 
@@ -50,6 +54,7 @@ public class BasicChannelService implements ChannelService {
   }
 
   @Override
+  @Transactional
   public ChannelResponse createPrivate(PrivateChannelCreateRequest request) {
     validatePrivateCreateRequest(request);
 
@@ -61,7 +66,6 @@ public class BasicChannelService implements ChannelService {
       User user = userRepository.findById(userId)
           .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다. userId=" + userId));
 
-      // 요구사항: 초기 lastReadAt은 채널 생성 시간으로 설정
       readStatusRepository.save(new ReadStatus(user, saved, saved.getCreatedAt()));
     }
 
@@ -118,6 +122,7 @@ public class BasicChannelService implements ChannelService {
   }
 
   @Override
+  @Transactional
   public ChannelResponse update(UUID channelId, ChannelUpdateRequest request) {
     validateUpdateRequest(channelId, request);
 
@@ -136,11 +141,12 @@ public class BasicChannelService implements ChannelService {
       channel.updateDescription(request.newDescription());
     }
 
-    Channel updated = channelRepository.updateChannel(channel);
-    return toChannelResponse(updated);
+    // JPA 변경 감지(Dirty Checking)로 인해 별도의 save 호출 불필요
+    return toChannelResponse(channel);
   }
 
   @Override
+  @Transactional
   public void deleteById(UUID channelId) {
     if (channelId == null) {
       throw new IllegalArgumentException("channelId는 필수입니다.");
@@ -174,8 +180,6 @@ public class BasicChannelService implements ChannelService {
     return readStatuses.stream()
         .map(ReadStatus::getUser)
         .map(user -> {
-          // UserStatus 조회 (Online 여부 확인용)
-          // 성능 최적화를 위해 findAll로 한 번에 가져오는 게 좋지만, 일단 간단하게 구현
           UserStatus status = userStatusRepository.findByUserId(user.getId()).orElse(null);
           boolean isOnline = status != null && status.isOnline(now);
           return userMapper.toUserSummaryResponse(user, isOnline);
