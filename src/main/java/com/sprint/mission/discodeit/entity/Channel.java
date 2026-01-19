@@ -2,16 +2,29 @@ package com.sprint.mission.discodeit.entity;
 
 import com.sprint.mission.discodeit.entity.base.BaseUpdatableEntity;
 import com.sprint.mission.discodeit.entity.enums.ChannelType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Entity
+@Table(name = "channels")
 public class Channel extends BaseUpdatableEntity {
 
+  @Column
   private String name;
+
+  @Column
   private String description;
+
+  @Column(nullable = false)
+  @Enumerated(EnumType.STRING)
   private ChannelType type;
 
   // PUBLIC 채널 생성

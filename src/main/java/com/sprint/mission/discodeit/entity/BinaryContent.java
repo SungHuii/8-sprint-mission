@@ -1,32 +1,29 @@
 package com.sprint.mission.discodeit.entity;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sprint.mission.discodeit.entity.base.BaseEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA만 접근할 수 있도록 함
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Entity
+@Table(name = "binary_contents")
 public class BinaryContent extends BaseEntity {
 
-  /*
-   * 고유아이디 (상속)
-   * 생성시간 (상속)
-   * byte[] 데이터
-   * 타입 (이미지, 파일 등)
-   * 원본 파일명
-   * 파일 크기
-   * */
-
-  @JsonProperty("bytes") // JSON으로 변환될 때 필드 이름을 "bytes"로 지정
+  @Column(name = "bytes", nullable = false)
   private byte[] data;
 
+  @Column(name = "content_type", nullable = false)
   private String contentType;
 
-  @JsonProperty("fileName") // JSON으로 변환될 때 필드 이름을 "fileName"으로 지정
+  @Column(name = "file_name", nullable = false)
   private String originalName;
 
+  @Column(nullable = false)
   private long size;
 
   public BinaryContent(byte[] data, String contentType, String originalName) {
