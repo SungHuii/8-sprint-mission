@@ -19,16 +19,13 @@ import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -63,7 +60,7 @@ public class BasicChannelService implements ChannelService {
     for (UUID userId : request.participantIds()) {
       User user = userRepository.findById(userId)
           .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다. userId=" + userId));
-      
+
       // 요구사항: 초기 lastReadAt은 채널 생성 시간으로 설정
       readStatusRepository.save(new ReadStatus(user, saved, saved.getCreatedAt()));
     }
@@ -100,7 +97,7 @@ public class BasicChannelService implements ChannelService {
     List<UUID> privateChannelIds = readStatuses.stream()
         .map(rs -> rs.getChannel().getId())
         .toList();
-    
+
     List<Channel> privateChannels = channelRepository.findAllById(privateChannelIds);
 
     // 3. 합치기 (중복 제거)
@@ -158,7 +155,7 @@ public class BasicChannelService implements ChannelService {
   private ChannelResponse toChannelResponse(Channel channel) {
     Instant lastMessageAt = findLastMessageAt(channel.getId());
     List<UserSummaryResponse> participants = findParticipants(channel.getId());
-    
+
     return channelMapper.toChannelResponse(channel, participants, lastMessageAt);
   }
 
@@ -173,7 +170,7 @@ public class BasicChannelService implements ChannelService {
   private List<UserSummaryResponse> findParticipants(UUID channelId) {
     List<ReadStatus> readStatuses = readStatusRepository.findAllByChannelId(channelId);
     Instant now = Instant.now();
-    
+
     return readStatuses.stream()
         .map(ReadStatus::getUser)
         .map(user -> {
