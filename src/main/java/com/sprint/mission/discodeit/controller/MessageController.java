@@ -56,10 +56,9 @@ public class MessageController implements MessageApi {
   public ResponseEntity<MessageResponse> update(@PathVariable UUID messageId,
       @RequestBody MessageUpdateRequest request) {
     MessageUpdateRequest newRequest = new MessageUpdateRequest(
-        messageId,
         request.content()
     );
-    return ResponseEntity.ok(messageService.update(newRequest));
+    return ResponseEntity.ok(messageService.update(messageId, newRequest));
   }
 
   @Override
