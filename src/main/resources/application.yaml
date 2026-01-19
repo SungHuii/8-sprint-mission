@@ -15,7 +15,7 @@ spring:
     show-sql: true
   sql:
     init:
-      schema-locations: classpath:sql/schema.sql
+      schema-locations: classpath:schema.sql
       mode: always
 
 discodeit:
