@@ -4,7 +4,9 @@ import com.sprint.mission.discodeit.dto.userstatus.UserStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.userstatus.UserStatusResponse;
 import com.sprint.mission.discodeit.dto.userstatus.UserStatusUpdateByUserIdRequest;
 import com.sprint.mission.discodeit.dto.userstatus.UserStatusUpdateRequest;
+import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.mapper.UserStatusMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserStatusService;
@@ -20,12 +22,13 @@ public class BasicUserStatusService implements UserStatusService {
 
   private final UserStatusRepository userStatusRepository;
   private final UserRepository userRepository;
+  private final UserStatusMapper userStatusMapper;
 
   @Override
   public UserStatusResponse create(UserStatusCreateRequest request) {
     validateCreateRequest(request);
 
-    userRepository.findById(request.userId())
+    User user = userRepository.findById(request.userId())
         .orElseThrow(() -> new IllegalArgumentException(
             "해당 유저가 존재하지 않습니다. userId=" + request.userId()));
 
@@ -36,9 +39,9 @@ public class BasicUserStatusService implements UserStatusService {
         });
 
     Instant lastActiveAt = request.lastActiveAt() != null ? request.lastActiveAt() : Instant.now();
-    UserStatus saved = userStatusRepository.save(new UserStatus(request.userId(), lastActiveAt));
+    UserStatus saved = userStatusRepository.save(new UserStatus(user, lastActiveAt));
 
-    return toUserStatusResponse(saved);
+    return userStatusMapper.toUserStatusResponse(saved);
   }
 
   @Override
@@ -51,28 +54,28 @@ public class BasicUserStatusService implements UserStatusService {
         .orElseThrow(() -> new IllegalArgumentException(
             "해당 유저 상태가 존재하지 않습니다. userStatusId=" + userStatusId));
 
-    return toUserStatusResponse(status);
+    return userStatusMapper.toUserStatusResponse(status);
   }
 
   @Override
   public List<UserStatusResponse> findAll() {
     return userStatusRepository.findAll().stream()
-        .map(this::toUserStatusResponse)
+        .map(userStatusMapper::toUserStatusResponse)
         .toList();
   }
 
   @Override
-  public UserStatusResponse update(UserStatusUpdateRequest request) {
-    validateUpdateRequest(request);
+  public UserStatusResponse update(UUID userStatusId, UserStatusUpdateRequest request) {
+    validateUpdateRequest(userStatusId, request);
 
-    UserStatus status = userStatusRepository.findById(request.userStatusId())
+    UserStatus status = userStatusRepository.findById(userStatusId)
         .orElseThrow(() -> new IllegalArgumentException(
-            "해당 유저 상태가 존재하지 않습니다. userStatusId=" + request.userStatusId()));
+            "해당 유저 상태가 존재하지 않습니다. userStatusId=" + userStatusId));
 
     status.updateLastActiveAt(request.lastActiveAt());
     UserStatus updated = userStatusRepository.save(status);
 
-    return toUserStatusResponse(updated);
+    return userStatusMapper.toUserStatusResponse(updated);
   }
 
   @Override
@@ -86,7 +89,7 @@ public class BasicUserStatusService implements UserStatusService {
     status.updateLastActiveAt(request.lastActiveAt());
     UserStatus updated = userStatusRepository.save(status);
 
-    return toUserStatusResponse(updated);
+    return userStatusMapper.toUserStatusResponse(updated);
   }
 
   @Override
@@ -102,16 +105,6 @@ public class BasicUserStatusService implements UserStatusService {
     userStatusRepository.deleteById(userStatusId);
   }
 
-  private UserStatusResponse toUserStatusResponse(UserStatus status) {
-    return new UserStatusResponse(
-        status.getId(),
-        status.getUserId(),
-        status.getLastActiveAt(),
-        status.getCreatedAt(),
-        status.getUpdatedAt()
-    );
-  }
-
   private void validateCreateRequest(UserStatusCreateRequest request) {
     if (request == null) {
       throw new IllegalArgumentException("요청이 null입니다.");
@@ -121,11 +114,11 @@ public class BasicUserStatusService implements UserStatusService {
     }
   }
 
-  private void validateUpdateRequest(UserStatusUpdateRequest request) {
+  private void validateUpdateRequest(UUID userStatusId, UserStatusUpdateRequest request) {
     if (request == null) {
       throw new IllegalArgumentException("요청이 null입니다.");
     }
-    if (request.userStatusId() == null) {
+    if (userStatusId == null) {
       throw new IllegalArgumentException("userStatusId는 필수입니다.");
     }
     if (request.lastActiveAt() == null) {
@@ -145,4 +138,3 @@ public class BasicUserStatusService implements UserStatusService {
     }
   }
 }
-

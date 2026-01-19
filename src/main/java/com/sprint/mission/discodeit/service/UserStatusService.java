@@ -18,11 +18,10 @@ public interface UserStatusService {
   List<UserStatusResponse> findAll();
 
   // update
-  UserStatusResponse update(UserStatusUpdateRequest request);
+  UserStatusResponse update(UUID userStatusId, UserStatusUpdateRequest request);
 
   UserStatusResponse updateByUserId(UserStatusUpdateByUserIdRequest request);
 
   // delete
   void deleteById(UUID userStatusId);
 }
-
