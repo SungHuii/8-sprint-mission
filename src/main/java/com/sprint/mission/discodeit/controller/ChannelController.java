@@ -45,11 +45,10 @@ public class ChannelController implements ChannelApi {
   public ResponseEntity<ChannelResponse> update(@PathVariable UUID channelId,
       @RequestBody ChannelUpdateRequest request) {
     ChannelUpdateRequest newRequest = new ChannelUpdateRequest(
-        channelId,
-        request.name(),
-        request.description()
+        request.newName(),
+        request.newDescription()
     );
-    return ResponseEntity.ok(channelService.update(newRequest));
+    return ResponseEntity.ok(channelService.update(channelId, newRequest));
   }
 
   @Override

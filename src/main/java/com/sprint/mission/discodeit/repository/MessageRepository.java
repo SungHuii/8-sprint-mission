@@ -12,7 +12,7 @@ public interface MessageRepository {
 
   Message updateMessage(Message message);
 
-  boolean deleteMessage(UUID messageId);
+  void deleteById(UUID messageId);
 
   Optional<Message> findById(UUID messageId);
 

@@ -12,9 +12,11 @@ public interface ChannelRepository {
 
   Channel updateChannel(Channel channel);
 
-  boolean deleteChannel(UUID channelId);
+  void deleteById(UUID channelId);
 
   Optional<Channel> findById(UUID channelId);
 
   List<Channel> findAll();
+
+  List<Channel> findAllById(Iterable<UUID> ids);
 }
