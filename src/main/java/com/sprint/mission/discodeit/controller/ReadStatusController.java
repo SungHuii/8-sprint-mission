@@ -42,9 +42,8 @@ public class ReadStatusController implements ReadStatusApi {
         : Instant.now();
 
     ReadStatusUpdateRequest newRequest = new ReadStatusUpdateRequest(
-        readStatusId,
         lastReadAt
     );
-    return ResponseEntity.ok(readStatusService.update(newRequest));
+    return ResponseEntity.ok(readStatusService.update(readStatusId, newRequest));
   }
 }

@@ -3,7 +3,10 @@ package com.sprint.mission.discodeit.service.basic;
 import com.sprint.mission.discodeit.dto.readstatus.ReadStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.readstatus.ReadStatusResponse;
 import com.sprint.mission.discodeit.dto.readstatus.ReadStatusUpdateRequest;
+import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ReadStatus;
+import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.mapper.ReadStatusMapper;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
@@ -21,16 +24,17 @@ public class BasicReadStatusService implements ReadStatusService {
   private final ReadStatusRepository readStatusRepository;
   private final UserRepository userRepository;
   private final ChannelRepository channelRepository;
+  private final ReadStatusMapper readStatusMapper;
 
   @Override
   public ReadStatusResponse create(ReadStatusCreateRequest request) {
     validateCreateRequest(request);
 
-    userRepository.findById(request.userId())
+    User user = userRepository.findById(request.userId())
         .orElseThrow(() -> new IllegalArgumentException(
             "해당 유저가 존재하지 않습니다. userId=" + request.userId()));
 
-    channelRepository.findById(request.channelId())
+    Channel channel = channelRepository.findById(request.channelId())
         .orElseThrow(() -> new IllegalArgumentException(
             "해당 채널이 존재하지 않습니다. channelId=" + request.channelId()));
 
@@ -45,9 +49,9 @@ public class BasicReadStatusService implements ReadStatusService {
         : Instant.now();
 
     ReadStatus saved = readStatusRepository.save(
-        new ReadStatus(request.userId(), request.channelId(), lastReadAt));
+        new ReadStatus(user, channel, lastReadAt));
 
-    return toReadStatusResponse(saved);
+    return readStatusMapper.toReadStatusResponse(saved);
   }
 
   @Override
@@ -60,7 +64,7 @@ public class BasicReadStatusService implements ReadStatusService {
         .orElseThrow(() -> new IllegalArgumentException(
             "해당 읽음 상태가 존재하지 않습니다. readStatusId=" + readStatusId));
 
-    return toReadStatusResponse(status);
+    return readStatusMapper.toReadStatusResponse(status);
   }
 
   @Override
@@ -70,22 +74,22 @@ public class BasicReadStatusService implements ReadStatusService {
     }
 
     return readStatusRepository.findAllByUserId(userId).stream()
-        .map(this::toReadStatusResponse)
+        .map(readStatusMapper::toReadStatusResponse)
         .toList();
   }
 
   @Override
-  public ReadStatusResponse update(ReadStatusUpdateRequest request) {
-    validateUpdateRequest(request);
+  public ReadStatusResponse update(UUID readStatusId, ReadStatusUpdateRequest request) {
+    validateUpdateRequest(readStatusId, request);
 
-    ReadStatus status = readStatusRepository.findById(request.readStatusId())
+    ReadStatus status = readStatusRepository.findById(readStatusId)
         .orElseThrow(() -> new IllegalArgumentException(
-            "해당 읽음 상태가 존재하지 않습니다. readStatusId=" + request.readStatusId()));
+            "해당 읽음 상태가 존재하지 않습니다. readStatusId=" + readStatusId));
 
-    status.updateLastReadAt(request.lastReadAt());
+    status.updateLastReadAt(request.newLastReadAt());
     ReadStatus updated = readStatusRepository.save(status);
 
-    return toReadStatusResponse(updated);
+    return readStatusMapper.toReadStatusResponse(updated);
   }
 
   @Override
@@ -101,17 +105,6 @@ public class BasicReadStatusService implements ReadStatusService {
     readStatusRepository.deleteById(readStatusId);
   }
 
-  private ReadStatusResponse toReadStatusResponse(ReadStatus status) {
-    return new ReadStatusResponse(
-        status.getId(),
-        status.getUserId(),
-        status.getChannelId(),
-        status.getLastReadAt(),
-        status.getCreatedAt(),
-        status.getUpdatedAt()
-    );
-  }
-
   private void validateCreateRequest(ReadStatusCreateRequest request) {
     if (request == null) {
       throw new IllegalArgumentException("요청이 null입니다.");
@@ -124,16 +117,15 @@ public class BasicReadStatusService implements ReadStatusService {
     }
   }
 
-  private void validateUpdateRequest(ReadStatusUpdateRequest request) {
+  private void validateUpdateRequest(UUID readStatusId, ReadStatusUpdateRequest request) {
     if (request == null) {
       throw new IllegalArgumentException("요청이 null입니다.");
     }
-    if (request.readStatusId() == null) {
+    if (readStatusId == null) {
       throw new IllegalArgumentException("readStatusId는 필수입니다.");
     }
-    if (request.lastReadAt() == null) {
-      throw new IllegalArgumentException("lastReadAt은 필수입니다.");
+    if (request.newLastReadAt() == null) {
+      throw new IllegalArgumentException("newLastReadAt은 필수입니다.");
     }
   }
 }
-
