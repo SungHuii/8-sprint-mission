@@ -4,6 +4,7 @@ import com.sprint.mission.discodeit.dto.binary.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
+import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,19 +18,25 @@ import java.util.UUID;
 public class BasicBinaryContentService implements BinaryContentService {
 
   private final BinaryContentRepository binaryContentRepository;
+  private final BinaryContentStorage binaryContentStorage;
 
   @Override
   @Transactional
   public BinaryContent create(BinaryContentCreateRequest request) {
     validateCreateRequest(request);
 
+    // 1. 메타 데이터 저장용 엔티티 생성
     BinaryContent content = new BinaryContent(
-        request.data(),
         request.contentType(),
-        request.originalName()
+        request.originalName(),
+        request.data().length
     );
+    BinaryContent saved = binaryContentRepository.save(content);
 
-    return binaryContentRepository.save(content);
+    // 2. 실제 파일 저장 (Storage)
+    binaryContentStorage.put(saved.getId(), request.data());
+
+    return saved;
   }
 
   @Override

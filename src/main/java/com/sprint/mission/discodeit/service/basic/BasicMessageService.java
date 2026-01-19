@@ -9,10 +9,10 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.mapper.MessageMapper;
-import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,7 +30,7 @@ public class BasicMessageService implements MessageService {
   private final MessageRepository messageRepository;
   private final UserRepository userRepository;
   private final ChannelRepository channelRepository;
-  private final BinaryContentRepository binaryContentRepository;
+  private final BinaryContentService binaryContentService; // Repository 대신 Service 사용
   private final MessageMapper messageMapper;
 
   @Override
@@ -53,13 +53,7 @@ public class BasicMessageService implements MessageService {
           throw new IllegalArgumentException("attachment 요청이 null입니다.");
         }
 
-        BinaryContent attachment = new BinaryContent(
-            attachmentRequest.data(),
-            attachmentRequest.contentType(),
-            attachmentRequest.originalName()
-        );
-
-        BinaryContent saved = binaryContentRepository.save(attachment);
+        BinaryContent saved = binaryContentService.create(attachmentRequest);
         attachments.add(saved);
       }
     }

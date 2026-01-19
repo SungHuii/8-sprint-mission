@@ -22,3 +22,7 @@ discodeit:
   repository:
     type: file # RepoProps.TYPE_JCF | RepoProps.TYPE_FILE
     file-directory: .discodeit # RepoProps.FILE_DIRECTORY_DEFAULT
+  storage:
+    type: local
+    local:
+      root-path: .discodeit-files

@@ -8,18 +8,17 @@ import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.mapper.UserMapper;
-import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
+import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.service.UserService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -27,8 +26,8 @@ import java.util.stream.Collectors;
 public class BasicUserService implements UserService {
 
   private final UserRepository userRepository;
-  private final BinaryContentRepository binaryContentRepository;
   private final UserStatusRepository userStatusRepository;
+  private final BinaryContentService binaryContentService; // Repository 대신 Service 사용. 순환참조 조심!
   private final UserMapper userMapper;
 
   @Override
@@ -50,13 +49,7 @@ public class BasicUserService implements UserService {
     );
 
     if (request.profile() != null) {
-      var profileReq = request.profile();
-
-      BinaryContent profile = new BinaryContent(
-          profileReq.data(),
-          profileReq.contentType(),
-          profileReq.originalName()
-      );
+      BinaryContent profile = binaryContentService.create(request.profile());
       user.updateProfile(profile);
     }
 
@@ -164,12 +157,7 @@ public class BasicUserService implements UserService {
     }
 
     if (request.newProfile() != null) {
-      var profileReq = request.newProfile();
-      BinaryContent newProfile = new BinaryContent(
-          profileReq.data(),
-          profileReq.contentType(),
-          profileReq.originalName()
-      );
+      BinaryContent newProfile = binaryContentService.create(request.newProfile());
       user.updateProfile(newProfile);
     }
 

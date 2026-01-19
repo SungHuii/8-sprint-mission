@@ -14,9 +14,6 @@ import lombok.NoArgsConstructor;
 @Table(name = "binary_contents")
 public class BinaryContent extends BaseEntity {
 
-  @Column(name = "bytes", nullable = false)
-  private byte[] data;
-
   @Column(name = "content_type", nullable = false)
   private String contentType;
 
@@ -26,12 +23,9 @@ public class BinaryContent extends BaseEntity {
   @Column(nullable = false)
   private long size;
 
-  public BinaryContent(byte[] data, String contentType, String originalName) {
-    this.data = data;
+  public BinaryContent(String contentType, String originalName, long size) {
     this.contentType = contentType;
     this.originalName = originalName;
-    this.size = data != null
-        ? data.length
-        : 0;
+    this.size = size;
   }
 }
