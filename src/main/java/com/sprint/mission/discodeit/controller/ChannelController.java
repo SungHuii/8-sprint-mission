@@ -7,6 +7,7 @@ import com.sprint.mission.discodeit.dto.channel.PrivateChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.channel.PublicChannelCreateRequest;
 import com.sprint.mission.discodeit.service.ChannelService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,19 +25,20 @@ public class ChannelController implements ChannelApi {
   @PostMapping("/public")
   public ResponseEntity<ChannelResponse> createPublic(
       @RequestBody PublicChannelCreateRequest request) {
-    return ResponseEntity.ok(channelService.createPublic(request));
+    return ResponseEntity.status(HttpStatus.CREATED).body(channelService.createPublic(request));
   }
 
   @Override
   @PostMapping("/private")
   public ResponseEntity<ChannelResponse> createPrivate(
       @RequestBody PrivateChannelCreateRequest request) {
-    return ResponseEntity.ok(channelService.createPrivate(request));
+    return ResponseEntity.status(HttpStatus.CREATED).body(channelService.createPrivate(request));
   }
 
   @Override
   @GetMapping
-  public ResponseEntity<List<ChannelResponse>> findAllByUserId(@RequestParam UUID userId) {
+  public ResponseEntity<List<ChannelResponse>> findAll(@RequestParam UUID userId) {
+    // userId 필수
     return ResponseEntity.ok(channelService.findAllByUserId(userId));
   }
 
@@ -44,17 +46,13 @@ public class ChannelController implements ChannelApi {
   @PatchMapping("/{channelId}")
   public ResponseEntity<ChannelResponse> update(@PathVariable UUID channelId,
       @RequestBody ChannelUpdateRequest request) {
-    ChannelUpdateRequest newRequest = new ChannelUpdateRequest(
-        request.newName(),
-        request.newDescription()
-    );
-    return ResponseEntity.ok(channelService.update(channelId, newRequest));
+    return ResponseEntity.ok(channelService.update(channelId, request));
   }
 
   @Override
   @DeleteMapping("/{channelId}")
   public ResponseEntity<Void> delete(@PathVariable UUID channelId) {
     channelService.deleteById(channelId);
-    return ResponseEntity.ok().build();
+    return ResponseEntity.noContent().build();
   }
 }

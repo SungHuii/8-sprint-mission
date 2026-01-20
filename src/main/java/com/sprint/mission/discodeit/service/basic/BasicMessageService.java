@@ -21,6 +21,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -73,7 +74,7 @@ public class BasicMessageService implements MessageService {
   }
 
   @Override
-  public PageResponse<MessageResponse> findAllByChannelId(UUID channelId, UUID cursor, Pageable pageable) {
+  public PageResponse<MessageResponse> findAllByChannelId(UUID channelId, Instant cursor, Pageable pageable) {
     if (channelId == null) {
       throw new IllegalArgumentException("channelId는 필수입니다.");
     }
@@ -86,10 +87,8 @@ public class BasicMessageService implements MessageService {
     if (cursor == null) {
       messageSlice = messageRepository.findAllByChannelIdOrderByCreatedAtDesc(channelId, pageable);
     } else {
-      Message cursorMessage = messageRepository.findById(cursor)
-          .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 커서입니다. cursor=" + cursor));
       messageSlice = messageRepository.findAllByChannelIdAndCreatedAtBeforeOrderByCreatedAtDesc(
-          channelId, cursorMessage.getCreatedAt(), pageable);
+          channelId, cursor, pageable);
     }
 
     List<MessageResponse> content = messageSlice.stream()
@@ -98,7 +97,8 @@ public class BasicMessageService implements MessageService {
 
     Object nextCursor = null;
     if (messageSlice.hasNext() && !content.isEmpty()) {
-      nextCursor = content.get(content.size() - 1).id();
+      // 마지막 메시지의 createdAt을 다음 커서로 사용
+      nextCursor = content.get(content.size() - 1).createdAt();
     }
 
     return new PageResponse<>(

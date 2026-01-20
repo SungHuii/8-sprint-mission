@@ -11,12 +11,13 @@ import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.ReadStatusService;
-import java.time.Instant;
-import java.util.List;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -41,33 +42,19 @@ public class BasicReadStatusService implements ReadStatusService {
         .orElseThrow(() -> new IllegalArgumentException(
             "해당 채널이 존재하지 않습니다. channelId=" + request.channelId()));
 
-    readStatusRepository.findByUserIdAndChannelId(request.userId(), request.channelId())
-        .ifPresent(status -> {
-          throw new IllegalArgumentException("이미 읽음 상태가 존재합니다. userId="
-              + request.userId() + ", channelId=" + request.channelId());
-        });
-
-    Instant lastReadAt = request.lastReadAt() != null
-        ? request.lastReadAt()
-        : Instant.now();
-
-    ReadStatus saved = readStatusRepository.save(
-        new ReadStatus(user, channel, lastReadAt));
-
-    return readStatusMapper.toReadStatusResponse(saved);
-  }
-
-  @Override
-  public ReadStatusResponse findById(UUID readStatusId) {
-    if (readStatusId == null) {
-      throw new IllegalArgumentException("readStatusId는 필수입니다.");
+    if (readStatusRepository.findByUserIdAndChannelId(request.userId(), request.channelId())
+        .isPresent()) {
+      throw new IllegalArgumentException("이미 존재하는 읽음 상태입니다.");
     }
 
-    ReadStatus status = readStatusRepository.findById(readStatusId)
-        .orElseThrow(() -> new IllegalArgumentException(
-            "해당 읽음 상태가 존재하지 않습니다. readStatusId=" + readStatusId));
+    ReadStatus readStatus = new ReadStatus(
+        user,
+        channel,
+        request.lastReadAt() != null ? request.lastReadAt() : Instant.now()
+    );
+    ReadStatus saved = readStatusRepository.save(readStatus);
 
-    return readStatusMapper.toReadStatusResponse(status);
+    return readStatusMapper.toReadStatusResponse(saved);
   }
 
   @Override
@@ -86,28 +73,13 @@ public class BasicReadStatusService implements ReadStatusService {
   public ReadStatusResponse update(UUID readStatusId, ReadStatusUpdateRequest request) {
     validateUpdateRequest(readStatusId, request);
 
-    ReadStatus status = readStatusRepository.findById(readStatusId)
+    ReadStatus readStatus = readStatusRepository.findById(readStatusId)
         .orElseThrow(() -> new IllegalArgumentException(
             "해당 읽음 상태가 존재하지 않습니다. readStatusId=" + readStatusId));
 
-    status.updateLastReadAt(request.newLastReadAt());
-    // JPA 변경 감지(Dirty Checking)로 인해 별도의 save 호출 불필요
+    readStatus.updateLastReadAt(request.newLastReadAt());
 
-    return readStatusMapper.toReadStatusResponse(status);
-  }
-
-  @Override
-  @Transactional
-  public void deleteById(UUID readStatusId) {
-    if (readStatusId == null) {
-      throw new IllegalArgumentException("readStatusId는 필수입니다.");
-    }
-
-    readStatusRepository.findById(readStatusId)
-        .orElseThrow(() -> new IllegalArgumentException(
-            "해당 읽음 상태가 존재하지 않습니다. readStatusId=" + readStatusId));
-
-    readStatusRepository.deleteById(readStatusId);
+    return readStatusMapper.toReadStatusResponse(readStatus);
   }
 
   private void validateCreateRequest(ReadStatusCreateRequest request) {

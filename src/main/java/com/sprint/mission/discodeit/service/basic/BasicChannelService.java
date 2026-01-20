@@ -73,19 +73,6 @@ public class BasicChannelService implements ChannelService {
   }
 
   @Override
-  public ChannelResponse findById(UUID channelId) {
-    if (channelId == null) {
-      throw new IllegalArgumentException("channelId는 필수입니다.");
-    }
-
-    Channel channel = channelRepository.findById(channelId)
-        .orElseThrow(() -> new IllegalArgumentException(
-            "해당 채널이 존재하지 않습니다. channelId=" + channelId));
-
-    return toChannelResponse(channel);
-  }
-
-  @Override
   public List<ChannelResponse> findAllByUserId(UUID userId) {
     if (userId == null) {
       throw new IllegalArgumentException("userId는 필수입니다.");

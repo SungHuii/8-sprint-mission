@@ -27,7 +27,7 @@ public class BasicUserService implements UserService {
 
   private final UserRepository userRepository;
   private final UserStatusRepository userStatusRepository;
-  private final BinaryContentService binaryContentService; // Repository 대신 Service 사용. 순환참조 조심!
+  private final BinaryContentService binaryContentService;
   private final UserMapper userMapper;
 
   @Override
@@ -59,22 +59,6 @@ public class BasicUserService implements UserService {
     userStatusRepository.save(new UserStatus(savedUser, now));
 
     return userMapper.toUserResponse(savedUser, true);
-  }
-
-  @Override
-  public UserResponse findById(UUID userId) {
-    if (userId == null) {
-      throw new IllegalArgumentException("userId는 필수입니다.");
-    }
-
-    User user = userRepository.findById(userId)
-        .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
-
-    UserStatus status = userStatusRepository.findByUserId(userId)
-        .orElseThrow(() -> new IllegalStateException("유저 상태가 존재하지 않습니다. userId=" + userId));
-
-    boolean isOnline = status.isOnline(Instant.now());
-    return userMapper.toUserResponse(user, isOnline);
   }
 
   @Override

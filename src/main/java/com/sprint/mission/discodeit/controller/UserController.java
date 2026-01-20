@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -62,13 +63,7 @@ public class UserController implements UserApi {
         binaryRequest
     );
 
-    return ResponseEntity.ok(userService.create(newRequest));
-  }
-
-  @Override
-  @GetMapping("/{userId}")
-  public ResponseEntity<UserResponse> findById(@PathVariable UUID userId) {
-    return ResponseEntity.ok(userService.findById(userId));
+    return ResponseEntity.status(HttpStatus.CREATED).body(userService.create(newRequest));
   }
 
   @Override
@@ -94,7 +89,7 @@ public class UserController implements UserApi {
   @DeleteMapping("/{userId}")
   public ResponseEntity<Void> delete(@PathVariable UUID userId) {
     userService.deleteById(userId);
-    return ResponseEntity.ok().build();
+    return ResponseEntity.noContent().build();
   }
 
   @Override
