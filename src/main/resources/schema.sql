@@ -1,3 +1,12 @@
+-- 기존 테이블 삭제 (순서 중요: FK 참조 관계 역순)
+DROP TABLE IF EXISTS message_attachments;
+DROP TABLE IF EXISTS messages;
+DROP TABLE IF EXISTS read_statuses;
+DROP TABLE IF EXISTS user_statuses;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS channels;
+DROP TABLE IF EXISTS binary_contents;
+
 -- 1. 독립적인 테이블(참조가 없는) 먼저 생성
 CREATE TABLE IF NOT EXISTS binary_contents
 (
@@ -5,8 +14,7 @@ CREATE TABLE IF NOT EXISTS binary_contents
     created_at   timestamptz  NOT NULL,
     file_name    VARCHAR(255) NOT NULL,
     size         BIGINT       NOT NULL,
-    content_type VARCHAR(100) NOT NULL,
-    bytes        bytea        NOT NULL
+    content_type VARCHAR(100) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS channels

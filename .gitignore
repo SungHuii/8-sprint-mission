@@ -36,12 +36,10 @@ out/
 ### VS Code ###
 .vscode/
 
-# Local agent context
-agents.md
-
 # Serialized objects
 *.ser
 .discodeit/
+.discodeit-files/
 
 # Rules
 RULES.md
