@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.mapper;
 
+import com.sprint.mission.discodeit.dto.auth.AuthResponse;
 import com.sprint.mission.discodeit.dto.binary.BinaryContentResponse;
 import com.sprint.mission.discodeit.dto.user.UserResponse;
 import com.sprint.mission.discodeit.dto.user.UserSummaryResponse;
@@ -16,6 +17,9 @@ public interface UserMapper {
 
     @Mapping(target = "online", source = "isOnline")
     UserSummaryResponse toUserSummaryResponse(User user, boolean isOnline);
+
+    @Mapping(target = "online", source = "isOnline")
+    AuthResponse toAuthResponse(User user, boolean isOnline);
 
     BinaryContentResponse toBinaryContentResponse(BinaryContent binaryContent);
 }
