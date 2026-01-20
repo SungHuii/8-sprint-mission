@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -46,16 +47,17 @@ public class MessageController implements MessageApi {
         attachmentRequests
     );
 
-    return ResponseEntity.ok(messageService.create(newRequest));
+    return ResponseEntity.status(HttpStatus.CREATED).body(messageService.create(newRequest));
   }
 
   @Override
   @GetMapping
   public ResponseEntity<PageResponse<MessageResponse>> findAllByChannelId(
       @RequestParam UUID channelId,
+      @RequestParam(required = false) UUID cursor,
       @PageableDefault(size = 50, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
   ) {
-    return ResponseEntity.ok(messageService.findAllByChannelId(channelId, pageable));
+    return ResponseEntity.ok(messageService.findAllByChannelId(channelId, cursor, pageable));
   }
 
   @Override
@@ -63,7 +65,7 @@ public class MessageController implements MessageApi {
   public ResponseEntity<MessageResponse> update(@PathVariable UUID messageId,
       @RequestBody MessageUpdateRequest request) {
     MessageUpdateRequest newRequest = new MessageUpdateRequest(
-        request.content()
+        request.newContent()
     );
     return ResponseEntity.ok(messageService.update(messageId, newRequest));
   }
@@ -72,7 +74,7 @@ public class MessageController implements MessageApi {
   @DeleteMapping("/{messageId}")
   public ResponseEntity<Void> delete(@PathVariable UUID messageId) {
     messageService.deleteById(messageId);
-    return ResponseEntity.ok().build();
+    return ResponseEntity.noContent().build();
   }
 
   private List<BinaryContentCreateRequest> toAttachmentRequests(List<MultipartFile> files)

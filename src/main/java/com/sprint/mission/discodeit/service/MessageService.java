@@ -13,8 +13,8 @@ public interface MessageService {
   // create
   MessageResponse create(MessageCreateRequest request);
 
-  // find
-  PageResponse<MessageResponse> findAllByChannelId(UUID channelId, Pageable pageable);
+  // find (커서 페이지네이션)
+  PageResponse<MessageResponse> findAllByChannelId(UUID channelId, UUID cursor, Pageable pageable);
 
   // update
   MessageResponse update(UUID messageId, MessageUpdateRequest request);

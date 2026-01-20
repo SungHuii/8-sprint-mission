@@ -10,7 +10,6 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.mapper.MessageMapper;
-import com.sprint.mission.discodeit.mapper.PageResponseMapper;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
@@ -36,7 +35,6 @@ public class BasicMessageService implements MessageService {
   private final ChannelRepository channelRepository;
   private final BinaryContentService binaryContentService;
   private final MessageMapper messageMapper;
-  private final PageResponseMapper pageResponseMapper;
 
   @Override
   @Transactional
@@ -75,7 +73,7 @@ public class BasicMessageService implements MessageService {
   }
 
   @Override
-  public PageResponse<MessageResponse> findAllByChannelId(UUID channelId, Pageable pageable) {
+  public PageResponse<MessageResponse> findAllByChannelId(UUID channelId, UUID cursor, Pageable pageable) {
     if (channelId == null) {
       throw new IllegalArgumentException("channelId는 필수입니다.");
     }
@@ -84,10 +82,32 @@ public class BasicMessageService implements MessageService {
         .orElseThrow(() -> new IllegalArgumentException(
             "해당 채널이 존재하지 않습니다. channelId=" + channelId));
 
-    Slice<Message> messageSlice = messageRepository.findAllByChannelId(channelId, pageable);
-    Slice<MessageResponse> responseSlice = messageSlice.map(messageMapper::toMessageResponse);
+    Slice<Message> messageSlice;
+    if (cursor == null) {
+      messageSlice = messageRepository.findAllByChannelIdOrderByCreatedAtDesc(channelId, pageable);
+    } else {
+      Message cursorMessage = messageRepository.findById(cursor)
+          .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 커서입니다. cursor=" + cursor));
+      messageSlice = messageRepository.findAllByChannelIdAndCreatedAtBeforeOrderByCreatedAtDesc(
+          channelId, cursorMessage.getCreatedAt(), pageable);
+    }
 
-    return pageResponseMapper.toPageResponse(responseSlice);
+    List<MessageResponse> content = messageSlice.stream()
+        .map(messageMapper::toMessageResponse)
+        .toList();
+
+    Object nextCursor = null;
+    if (messageSlice.hasNext() && !content.isEmpty()) {
+      nextCursor = content.get(content.size() - 1).id();
+    }
+
+    return new PageResponse<>(
+        content,
+        nextCursor,
+        messageSlice.getSize(),
+        messageSlice.hasNext(),
+        null
+    );
   }
 
   @Override
@@ -99,7 +119,7 @@ public class BasicMessageService implements MessageService {
         .orElseThrow(() -> new IllegalArgumentException(
             "해당 메시지가 존재하지 않습니다. messageId=" + messageId));
 
-    message.updateContent(request.content());
+    message.updateContent(request.newContent());
 
     return messageMapper.toMessageResponse(message);
   }
@@ -136,8 +156,8 @@ public class BasicMessageService implements MessageService {
     if (messageId == null) {
       throw new IllegalArgumentException("messageId는 필수입니다.");
     }
-    if (request.content() == null || request.content().isBlank()) {
-      throw new IllegalArgumentException("content는 필수입니다.");
+    if (request.newContent() == null || request.newContent().isBlank()) {
+      throw new IllegalArgumentException("newContent는 필수입니다.");
     }
   }
 }
