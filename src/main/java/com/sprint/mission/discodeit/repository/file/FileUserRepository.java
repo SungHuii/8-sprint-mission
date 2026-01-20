@@ -13,111 +13,117 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
 @ConditionalOnProperty(
-        prefix = RepoProps.PREFIX,
-        name = RepoProps.TYPE_NAME,
-        havingValue = RepoProps.TYPE_FILE
+    prefix = RepoProps.PREFIX,
+    name = RepoProps.TYPE_NAME,
+    havingValue = RepoProps.TYPE_FILE
 )
 public class FileUserRepository implements UserRepository {
 
-    private final String filePath;
-    private Map<UUID, User> data;
+  private final String filePath;
+  private Map<UUID, User> data;
 
-    public FileUserRepository(@Value(RepoProps.FILE_DIRECTORY_PLACEHOLDER) String baseDir) {
-        this.data = new ConcurrentHashMap<>();
-        this.filePath = new File(baseDir, "userRepo.ser").getPath();
-        loadFile();
+  public FileUserRepository(@Value(RepoProps.FILE_DIRECTORY_PLACEHOLDER) String baseDir) {
+    this.data = new ConcurrentHashMap<>();
+    this.filePath = new File(baseDir, "userRepo.ser").getPath();
+    loadFile();
+  }
+
+  @Override
+  public User save(User user) {
+    if (data.containsKey(user.getId())) {
+      throw new IllegalStateException("이미 존재하는 유저입니다. id=" + user.getId());
+    }
+    data.put(user.getId(), user);
+    saveFile();
+    return user;
+  }
+
+  @Override
+  public User updateUser(User user) {
+    if (!data.containsKey(user.getId())) {
+      throw new NoSuchElementException("해당 유저를 찾을 수 없습니다. id=" + user.getId());
+    }
+    data.put(user.getId(), user);
+    saveFile();
+    return user;
+  }
+
+  @Override
+  public void deleteById(UUID userId) {
+    User userRemoved = data.remove(userId);
+    if (userRemoved == null) {
+      System.out.println("해당 유저를 찾을 수 없습니다.");
+
+    }
+    saveFile();
+  }
+
+  @Override
+  public Optional<User> findById(UUID userId) {
+    return Optional.ofNullable(data.get(userId));
+  }
+
+  @Override
+  public Optional<User> findByEmail(String email) {
+    if (email == null) {
+      return Optional.empty();
     }
 
-    @Override
-    public User save(User user) {
-        if (data.containsKey(user.getId())) {
-            throw new IllegalStateException("이미 존재하는 유저입니다. id=" + user.getId());
-        }
-        data.put(user.getId(), user);
-        saveFile();
-        return user;
+    return data.values().stream()
+        .filter(user -> email.equals(user.getEmail()))
+        .findFirst();
+  }
+
+  @Override
+  public Optional<User> findByNickname(String nickname) {
+    if (nickname == null) {
+      return Optional.empty();
     }
 
-    @Override
-    public User updateUser(User user) {
-        if (!data.containsKey(user.getId())) {
-            throw new NoSuchElementException("해당 유저를 찾을 수 없습니다. id=" + user.getId());
-        }
-        data.put(user.getId(), user);
-        saveFile();
-        return user;
+    return data.values().stream()
+        .filter(user -> nickname.equals(user.getNickname()))
+        .findFirst();
+  }
+
+  @Override
+  public List<User> findAll() {
+    return new ArrayList<>(data.values());
+  }
+
+  private void saveFile() {
+    ensureParentDir();
+    try (ObjectOutputStream oos =
+        new ObjectOutputStream(new FileOutputStream(filePath))) {
+      oos.writeObject(data);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void loadFile() {
+    File file = new File(filePath);
+    if (!file.exists()) {
+      return;
     }
 
-    @Override
-    public void deleteById(UUID userId) {
-        User userRemoved = data.remove(userId);
-        if (userRemoved == null) {
-            System.out.println("해당 유저를 찾을 수 없습니다.");
+    try (ObjectInputStream ois =
+        new ObjectInputStream(new FileInputStream(filePath))) {
 
-        }
-        saveFile();
+      Object obj = ois.readObject();
+      if (obj instanceof Map) {
+        data = (Map<UUID, User>) obj;
+      }
+    } catch (IOException | ClassNotFoundException e) {
+      e.printStackTrace();
     }
+  }
 
-    @Override
-    public Optional<User> findById(UUID userId) {
-        return Optional.ofNullable(data.get(userId));
+  private void ensureParentDir() {
+    /* 상위 파일 디렉토리가 있는지 확인. 없으면 생성 */
+    File file = new File(filePath);
+    File parent = file.getParentFile();
+    if (parent != null && !parent.exists()) {
+      parent.mkdirs();
     }
-
-    @Override
-    public Optional<User> findByEmail(String email) {
-        if (email == null) return Optional.empty();
-
-        return data.values().stream()
-                .filter(user -> email.equals(user.getEmail()))
-                .findFirst();
-    }
-
-    @Override
-    public Optional<User> findByNickname(String nickname) {
-        if (nickname == null) return Optional.empty();
-
-        return data.values().stream()
-                .filter(user -> nickname.equals(user.getNickname()))
-                .findFirst();
-    }
-
-    @Override
-    public List<User> findAll() {
-        return new ArrayList<>(data.values());
-    }
-
-    private void saveFile() {
-        ensureParentDir();
-        try (ObjectOutputStream oos =
-                     new ObjectOutputStream(new FileOutputStream(filePath))) {
-            oos.writeObject(data);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void loadFile() {
-        File file = new File(filePath);
-        if (!file.exists()) return;
-
-        try (ObjectInputStream ois =
-                     new ObjectInputStream(new FileInputStream(filePath))) {
-
-            Object obj = ois.readObject();
-            if (obj instanceof Map) {
-                data = (Map<UUID, User>) obj;
-            }
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void ensureParentDir() {
-        /* 상위 파일 디렉토리가 있는지 확인. 없으면 생성 */
-        File file = new File(filePath);
-        File parent = file.getParentFile();
-        if (parent != null && !parent.exists()) {
-            parent.mkdirs();
-        }
-    }
+  }
 }

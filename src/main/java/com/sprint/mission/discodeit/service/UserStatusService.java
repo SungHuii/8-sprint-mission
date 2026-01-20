@@ -10,18 +10,20 @@ import java.util.UUID;
 
 public interface UserStatusService {
 
-    // create
-    UserStatusResponse create(UserStatusCreateRequest request);
+  // create
+  UserStatusResponse create(UserStatusCreateRequest request);
 
-    // find
-    UserStatusResponse findById(UUID userStatusId);
-    List<UserStatusResponse> findAll();
+  // find
+  UserStatusResponse findById(UUID userStatusId);
 
-    // update
-    UserStatusResponse update(UserStatusUpdateRequest request);
-    UserStatusResponse updateByUserId(UserStatusUpdateByUserIdRequest request);
+  List<UserStatusResponse> findAll();
 
-    // delete
-    void deleteById(UUID userStatusId);
+  // update
+  UserStatusResponse update(UserStatusUpdateRequest request);
+
+  UserStatusResponse updateByUserId(UserStatusUpdateByUserIdRequest request);
+
+  // delete
+  void deleteById(UUID userStatusId);
 }
 
