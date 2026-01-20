@@ -6,10 +6,15 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -26,6 +31,10 @@ public class Channel extends BaseUpdatableEntity {
   @Column(nullable = false)
   @Enumerated(EnumType.STRING)
   private ChannelType type;
+
+  @OneToMany(mappedBy = "channel")
+  @BatchSize(size = 100)
+  private List<ReadStatus> readStatuses = new ArrayList<>();
 
   // PUBLIC 채널 생성
   private Channel(String name, String description) {

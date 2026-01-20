@@ -141,7 +141,6 @@ public class BasicChannelService implements ChannelService {
       channel.updateDescription(request.newDescription());
     }
 
-    // JPA 변경 감지(Dirty Checking)로 인해 별도의 save 호출 불필요
     return toChannelResponse(channel);
   }
 
@@ -160,7 +159,7 @@ public class BasicChannelService implements ChannelService {
 
   private ChannelResponse toChannelResponse(Channel channel) {
     Instant lastMessageAt = findLastMessageAt(channel.getId());
-    List<UserSummaryResponse> participants = findParticipants(channel.getId());
+    List<UserSummaryResponse> participants = findParticipants(channel);
 
     return channelMapper.toChannelResponse(channel, participants, lastMessageAt);
   }
@@ -171,8 +170,8 @@ public class BasicChannelService implements ChannelService {
         .orElse(null);
   }
 
-  private List<UserSummaryResponse> findParticipants(UUID channelId) {
-    List<ReadStatus> readStatuses = readStatusRepository.findAllByChannelId(channelId);
+  private List<UserSummaryResponse> findParticipants(Channel channel) {
+    List<ReadStatus> readStatuses = channel.getReadStatuses();
     Instant now = Instant.now();
 
     return readStatuses.stream()
