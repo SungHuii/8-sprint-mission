@@ -4,17 +4,21 @@ import com.sprint.mission.discodeit.dto.binary.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.message.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.message.MessageResponse;
 import com.sprint.mission.discodeit.dto.message.MessageUpdateRequest;
+import com.sprint.mission.discodeit.dto.response.PageResponse;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.mapper.MessageMapper;
+import com.sprint.mission.discodeit.mapper.PageResponseMapper;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.service.MessageService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,8 +34,9 @@ public class BasicMessageService implements MessageService {
   private final MessageRepository messageRepository;
   private final UserRepository userRepository;
   private final ChannelRepository channelRepository;
-  private final BinaryContentService binaryContentService; // Repository 대신 Service 사용
+  private final BinaryContentService binaryContentService;
   private final MessageMapper messageMapper;
+  private final PageResponseMapper pageResponseMapper;
 
   @Override
   @Transactional
@@ -70,7 +75,7 @@ public class BasicMessageService implements MessageService {
   }
 
   @Override
-  public List<MessageResponse> findAllByChannelId(UUID channelId) {
+  public PageResponse<MessageResponse> findAllByChannelId(UUID channelId, Pageable pageable) {
     if (channelId == null) {
       throw new IllegalArgumentException("channelId는 필수입니다.");
     }
@@ -79,9 +84,10 @@ public class BasicMessageService implements MessageService {
         .orElseThrow(() -> new IllegalArgumentException(
             "해당 채널이 존재하지 않습니다. channelId=" + channelId));
 
-    return messageRepository.findAllByChannelId(channelId).stream()
-        .map(messageMapper::toMessageResponse)
-        .toList();
+    Slice<Message> messageSlice = messageRepository.findAllByChannelId(channelId, pageable);
+    Slice<MessageResponse> responseSlice = messageSlice.map(messageMapper::toMessageResponse);
+
+    return pageResponseMapper.toPageResponse(responseSlice);
   }
 
   @Override
