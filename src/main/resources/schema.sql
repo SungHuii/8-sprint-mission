@@ -85,6 +85,11 @@ CREATE TABLE IF NOT EXISTS message_attachments
     CONSTRAINT fk_message_attachments_attachment_id FOREIGN KEY (attachment_id) REFERENCES binary_contents (id) ON DELETE CASCADE
 );
 
+-- 인덱스 추가
+CREATE INDEX idx_messages_channel_created_at ON messages (channel_id, created_at DESC);
+CREATE INDEX idx_read_statuses_user_id ON read_statuses (user_id);
+CREATE INDEX idx_read_statuses_channel_id ON read_statuses (channel_id);
+
 /*
 users(profile_id) 1(only) : 1 or 0 binary_contents(id)
 users(id) 1(only) : 1 user_statuses(user_id)
