@@ -63,7 +63,7 @@ public class BasicUserService implements UserService {
 
   @Override
   public List<UserResponse> findAll() {
-    List<User> users = userRepository.findAll();
+    List<User> users = userRepository.findAllWithProfile();
     List<UserStatus> userStatuses = userStatusRepository.findAll();
 
     var statusMap = userStatuses.stream()
@@ -88,7 +88,7 @@ public class BasicUserService implements UserService {
 
   @Override
   public List<UserSummaryResponse> findAllUserSummaries() {
-    List<User> users = userRepository.findAll();
+    List<User> users = userRepository.findAllWithProfile();
     List<UserStatus> userStatuses = userStatusRepository.findAll();
 
     var statusMap = userStatuses.stream()
