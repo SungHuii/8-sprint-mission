@@ -1,81 +1,58 @@
 package com.sprint.mission.discodeit.entity;
 
+import com.sprint.mission.discodeit.entity.base.BaseUpdatableEntity;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.Getter;
-
-import java.io.Serial;
-import java.io.Serializable;
-import java.time.Instant;
-import java.util.UUID;
+import lombok.NoArgsConstructor;
 
 @Getter
-public class User implements Serializable {
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Entity
+@Table(name = "users")
+public class User extends BaseUpdatableEntity {
 
-  /*
-   * 직렬화UID
-   * 고유아이디
-   * 생성시간
-   * 수정시간
-   * 별명(닉네임)
-   * 전화번호
-   * 패스워드
-   * 이메일정보
-   * 프로필 사진 고유아이디
-   * */
-  @Serial
-  private static final long serialVersionUID = 1L;
-  private final UUID id;
-  private final Instant createdAt;
-  private Instant updatedAt;
-  private String name;
-  private String nickname;
-  private String phoneNumber;
-  private transient String password;
+  @Column(nullable = false, unique = true)
+  private String username;
+
+  @Column(nullable = false, unique = true)
   private String email;
-  private UUID profileId;
 
-  public User(String name, String nickname, String phoneNumber, String password, String email) {
-    this.id = UUID.randomUUID();
-    this.createdAt = Instant.now();
-    this.updatedAt = this.createdAt;
-    this.name = name;
-    this.nickname = nickname;
-    this.phoneNumber = phoneNumber;
-    this.password = password;
+  @Column(nullable = false)
+  private String password;
+
+  @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "profile_id")
+  private BinaryContent profile;
+
+  @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+  private UserStatus userStatus;
+
+  public User(String username, String email, String password) {
+    this.username = username;
     this.email = email;
-    this.profileId = null;
-  }
-
-  public void updateName(String name) {
-    this.name = name;
-    renewUpdatedAt();
-  }
-
-  public void updateNickname(String nickname) {
-    this.nickname = nickname;
-    renewUpdatedAt();
-  }
-
-  public void updatePhoneNumber(String phoneNumber) {
-    this.phoneNumber = phoneNumber;
-    renewUpdatedAt();
-  }
-
-  public void updatePassword(String password) {
     this.password = password;
-    renewUpdatedAt();
+  }
+
+  public void updateUsername(String username) {
+    this.username = username;
   }
 
   public void updateEmail(String email) {
     this.email = email;
-    renewUpdatedAt();
   }
 
-  public void updateProfileId(UUID profileId) {
-    this.profileId = profileId;
-    renewUpdatedAt();
+  public void updatePassword(String password) {
+    this.password = password;
   }
 
-  private void renewUpdatedAt() {
-    this.updatedAt = Instant.now();
+  public void updateProfile(BinaryContent profile) {
+    this.profile = profile;
   }
 }

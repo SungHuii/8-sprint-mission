@@ -4,74 +4,77 @@ import com.sprint.mission.discodeit.dto.binary.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.message.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.message.MessageResponse;
 import com.sprint.mission.discodeit.dto.message.MessageUpdateRequest;
+import com.sprint.mission.discodeit.dto.response.PageResponse;
 import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
-import com.sprint.mission.discodeit.repository.BinaryContentRepository;
+import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.mapper.MessageMapper;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.service.MessageService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class BasicMessageService implements MessageService {
 
   private final MessageRepository messageRepository;
   private final UserRepository userRepository;
   private final ChannelRepository channelRepository;
-  private final BinaryContentRepository binaryContentRepository;
+  private final BinaryContentService binaryContentService;
+  private final MessageMapper messageMapper;
 
   @Override
+  @Transactional
   public MessageResponse create(MessageCreateRequest request) {
     validateCreateRequest(request);
 
-    userRepository.findById(request.authorId())
+    User author = userRepository.findById(request.authorId())
         .orElseThrow(() -> new IllegalArgumentException(
             "해당 유저가 존재하지 않습니다. userId=" + request.authorId()));
 
-    channelRepository.findById(request.channelId())
+    Channel channel = channelRepository.findById(request.channelId())
         .orElseThrow(() -> new IllegalArgumentException(
             "해당 채널이 존재하지 않습니다. channelId=" + request.channelId()));
 
-    List<UUID> attachmentIds = new ArrayList<>();
+    List<BinaryContent> attachments = new ArrayList<>();
     if (request.attachments() != null) {
       for (BinaryContentCreateRequest attachmentRequest : request.attachments()) {
         if (attachmentRequest == null) {
           throw new IllegalArgumentException("attachment 요청이 null입니다.");
         }
 
-        BinaryContent attachment = new BinaryContent(
-            attachmentRequest.data(),
-            attachmentRequest.contentType(),
-            attachmentRequest.originalName()
-        );
-        BinaryContent saved = binaryContentRepository.save(attachment);
-        attachmentIds.add(saved.getId());
+        BinaryContent saved = binaryContentService.create(attachmentRequest);
+        attachments.add(saved);
       }
     }
 
     Message message = new Message(
-        request.authorId(),
-        request.channelId(),
+        author,
+        channel,
         request.content(),
-        attachmentIds
+        attachments
     );
     Message saved = messageRepository.save(message);
-    if (saved == null) {
-      throw new IllegalStateException("메시지 저장에 실패했습니다.");
-    }
 
-    return toMessageResponse(saved);
+    return messageMapper.toMessageResponse(saved);
   }
 
   @Override
-  public List<MessageResponse> findAllByChannelId(UUID channelId) {
+  public PageResponse<MessageResponse> findAllByChannelId(UUID channelId, Instant cursor, Pageable pageable) {
     if (channelId == null) {
       throw new IllegalArgumentException("channelId는 필수입니다.");
     }
@@ -80,61 +83,55 @@ public class BasicMessageService implements MessageService {
         .orElseThrow(() -> new IllegalArgumentException(
             "해당 채널이 존재하지 않습니다. channelId=" + channelId));
 
-    return messageRepository.findAllByChannelId(channelId).stream()
-        .map(this::toMessageResponse)
+    Slice<Message> messageSlice;
+    if (cursor == null) {
+      messageSlice = messageRepository.findAllByChannelIdOrderByCreatedAtDesc(channelId, pageable);
+    } else {
+      messageSlice = messageRepository.findAllByChannelIdAndCreatedAtBeforeOrderByCreatedAtDesc(
+          channelId, cursor, pageable);
+    }
+
+    List<MessageResponse> content = messageSlice.stream()
+        .map(messageMapper::toMessageResponse)
         .toList();
+
+    Object nextCursor = null;
+    if (messageSlice.hasNext() && !content.isEmpty()) {
+      // 마지막 메시지의 createdAt을 다음 커서로 사용
+      nextCursor = content.get(content.size() - 1).createdAt();
+    }
+
+    return new PageResponse<>(
+        content,
+        nextCursor,
+        messageSlice.getSize(),
+        messageSlice.hasNext(),
+        null
+    );
   }
 
   @Override
-  public MessageResponse update(MessageUpdateRequest request) {
-    validateUpdateRequest(request);
-
-    Message message = messageRepository.findById(request.messageId())
-        .orElseThrow(() -> new IllegalArgumentException(
-            "해당 메시지가 존재하지 않습니다. messageId=" + request.messageId()));
-
-    message.updateMessage(request.content());
-    Message updated = messageRepository.updateMessage(message);
-    if (updated == null) {
-      throw new IllegalStateException("메시지 수정에 실패했습니다. messageId=" + request.messageId());
-    }
-
-    return toMessageResponse(updated);
-  }
-
-  @Override
-  public void deleteById(UUID messageId) {
-    if (messageId == null) {
-      throw new IllegalArgumentException("messageId는 필수입니다.");
-    }
+  @Transactional
+  public MessageResponse update(UUID messageId, MessageUpdateRequest request) {
+    validateUpdateRequest(messageId, request);
 
     Message message = messageRepository.findById(messageId)
         .orElseThrow(() -> new IllegalArgumentException(
             "해당 메시지가 존재하지 않습니다. messageId=" + messageId));
 
-    List<UUID> attachmentIds = message.getAttachmentIds();
-    if (attachmentIds != null) {
-      for (UUID attachmentId : attachmentIds) {
-        binaryContentRepository.deleteById(attachmentId);
-      }
-    }
+    message.updateContent(request.newContent());
 
-    boolean deleted = messageRepository.deleteMessage(messageId);
-    if (!deleted) {
-      throw new IllegalArgumentException("메시지 삭제 실패(존재하지 않을 수 있음). messageId=" + messageId);
-    }
+    return messageMapper.toMessageResponse(message);
   }
 
-  private MessageResponse toMessageResponse(Message message) {
-    return new MessageResponse(
-        message.getId(),
-        message.getChannelId(),
-        message.getAuthorId(),
-        message.getMessageContent(),
-        message.getAttachmentIds(),
-        message.getCreatedAt(),
-        message.getUpdatedAt()
-    );
+  @Override
+  @Transactional
+  public void deleteById(UUID messageId) {
+    if (messageId == null) {
+      throw new IllegalArgumentException("messageId는 필수입니다.");
+    }
+
+    messageRepository.deleteById(messageId);
   }
 
   private void validateCreateRequest(MessageCreateRequest request) {
@@ -152,16 +149,15 @@ public class BasicMessageService implements MessageService {
     }
   }
 
-  private void validateUpdateRequest(MessageUpdateRequest request) {
+  private void validateUpdateRequest(UUID messageId, MessageUpdateRequest request) {
     if (request == null) {
       throw new IllegalArgumentException("요청이 null입니다.");
     }
-    if (request.messageId() == null) {
+    if (messageId == null) {
       throw new IllegalArgumentException("messageId는 필수입니다.");
     }
-    if (request.content() == null || request.content().isBlank()) {
-      throw new IllegalArgumentException("content는 필수입니다.");
+    if (request.newContent() == null || request.newContent().isBlank()) {
+      throw new IllegalArgumentException("newContent는 필수입니다.");
     }
   }
 }
-

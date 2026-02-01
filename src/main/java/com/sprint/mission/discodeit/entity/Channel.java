@@ -1,81 +1,77 @@
 package com.sprint.mission.discodeit.entity;
 
+import com.sprint.mission.discodeit.entity.base.BaseUpdatableEntity;
 import com.sprint.mission.discodeit.entity.enums.ChannelType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 
-import java.io.Serial;
-import java.io.Serializable;
-import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Getter
-public class Channel implements Serializable {
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Entity
+@Table(name = "channels")
+public class Channel extends BaseUpdatableEntity {
 
-  @Serial
-  private static final long serialVersionUID = 1L;
-  private final UUID id;
-  private final Instant createdAt;
-  private Instant updatedAt;
-  private String chName;
-  private String chDescription;
-  private final ChannelType chType;
-  private final List<UUID> participantIds;
+  @Column
+  private String name;
+
+  @Column
+  private String description;
+
+  @Column(nullable = false)
+  @Enumerated(EnumType.STRING)
+  private ChannelType type;
+
+  @OneToMany(mappedBy = "channel")
+  @BatchSize(size = 100)
+  private List<ReadStatus> readStatuses = new ArrayList<>();
 
   // PUBLIC 채널 생성
-  private Channel(String chName, String chDescription) {
-    this.id = UUID.randomUUID();
-    this.createdAt = Instant.now();
-    this.updatedAt = this.createdAt;
-    this.chType = ChannelType.PUBLIC;
-    this.chName = chName;
-    this.chDescription = chDescription;
-    this.participantIds = List.of();
+  private Channel(String name, String description) {
+    this.type = ChannelType.PUBLIC;
+    this.name = name;
+    this.description = description;
   }
 
   // PRIVATE 채널 생성
-  private Channel(List<UUID> participantIds) {
-    this.id = UUID.randomUUID();
-    this.createdAt = Instant.now();
-    this.updatedAt = this.createdAt;
-    this.chType = ChannelType.PRIVATE;
-    this.chName = null;
-    this.chDescription = null;
-    this.participantIds = validateParticipants(participantIds);
-  }
-
-  public static Channel ofPublic(String chName, String chDescription) {
-    return new Channel(chName, chDescription);
-  }
-
-  public static Channel ofPrivate(List<UUID> participantIds) {
-    return new Channel(participantIds);
-  }
-
-  public void updateChName(String chName) {
-    validateChannelType();
-    this.chName = chName;
-    renewUpdatedAt();
-  }
-
-  public void updateChDescription(String chDescription) {
-    this.chDescription = chDescription;
-    renewUpdatedAt();
-  }
-
-  private void renewUpdatedAt() {
-    this.updatedAt = Instant.now();
-  }
-
-  private static List<UUID> validateParticipants(List<UUID> ids) {
-    if (ids == null || ids.isEmpty()) {
-      throw new IllegalArgumentException("비공개 채널은 참가자 목록이 필요합니다.");
+  private Channel(ChannelType type) {
+    if (type != ChannelType.PRIVATE) {
+      throw new IllegalArgumentException("이 생성자는 PRIVATE 채널 전용입니다.");
     }
-    return List.copyOf(ids);
+    this.type = ChannelType.PRIVATE;
+    this.name = null;
+    this.description = null;
+  }
+
+  public static Channel ofPublic(String name, String description) {
+    return new Channel(name, description);
+  }
+
+  public static Channel ofPrivate() {
+    return new Channel(ChannelType.PRIVATE);
+  }
+
+  public void updateName(String name) {
+    validateChannelType();
+    this.name = name;
+  }
+
+  public void updateDescription(String description) {
+    this.description = description;
   }
 
   private void validateChannelType() {
-    if (this.chType == ChannelType.PRIVATE) {
+    if (this.type == ChannelType.PRIVATE) {
       throw new IllegalStateException("비공개 채널은 수정할 수 없습니다.");
     }
   }

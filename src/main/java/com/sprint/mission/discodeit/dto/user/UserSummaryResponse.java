@@ -1,15 +1,13 @@
 package com.sprint.mission.discodeit.dto.user;
 
-import java.time.Instant;
+import com.sprint.mission.discodeit.dto.binary.BinaryContentResponse;
 import java.util.UUID;
 
 public record UserSummaryResponse(
     UUID id,
-    Instant createdAt,
-    Instant updatedAt,
     String username,
     String email,
-    UUID profileId,
+    BinaryContentResponse profile,
     Boolean online
 ) {
 

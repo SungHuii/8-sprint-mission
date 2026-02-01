@@ -1,40 +1,38 @@
 package com.sprint.mission.discodeit.entity;
 
+import com.sprint.mission.discodeit.entity.base.BaseUpdatableEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-import java.io.Serial;
-import java.io.Serializable;
 import java.time.Instant;
-import java.util.UUID;
 
 @Getter
-public class ReadStatus implements Serializable {
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Entity
+@Table(name = "read_statuses")
+public class ReadStatus extends BaseUpdatableEntity {
 
-  /*
-   * 직렬화 UID
-   * 고유아이디
-   * 생성시간
-   * 수정시간
-   * 유저 참조
-   * 채널 참조
-   * 마지막으로 읽은 시간
-   * */
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "user_id", nullable = false)
+  private User user;
 
-  @Serial
-  private static final long serialVersionUID = 1L;
-  private final UUID id;
-  private final Instant createdAt;
-  private Instant updatedAt;
-  private final UUID userId;
-  private final UUID channelId;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "channel_id", nullable = false)
+  private Channel channel;
+
+  @Column(name = "last_read_at", nullable = false)
   private Instant lastReadAt;
 
-  public ReadStatus(UUID userId, UUID channelId, Instant lastReadAt) {
-    this.id = UUID.randomUUID();
-    this.createdAt = Instant.now();
-    this.updatedAt = this.createdAt;
-    this.userId = userId;
-    this.channelId = channelId;
+  public ReadStatus(User user, Channel channel, Instant lastReadAt) {
+    this.user = user;
+    this.channel = channel;
     this.lastReadAt = lastReadAt != null
         ? lastReadAt
         : Instant.now();
@@ -42,10 +40,5 @@ public class ReadStatus implements Serializable {
 
   public void updateLastReadAt(Instant lastReadAt) {
     this.lastReadAt = lastReadAt;
-    renewUpdatedAt();
-  }
-
-  private void renewUpdatedAt() {
-    this.updatedAt = Instant.now();
   }
 }
