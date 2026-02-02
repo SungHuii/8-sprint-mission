@@ -48,8 +48,7 @@ RESTful API 설계, Swagger 문서화, 그리고 React 기반 프론트엔드와
 
 API 명세 및 테스트를 위해 Swagger UI를 제공합니다.
 
-- **Swagger UI
-  **: [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+- **Swagger UI**: [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
 
 ## 설정 (`application.yaml`)
 
