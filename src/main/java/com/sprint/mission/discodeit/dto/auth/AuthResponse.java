@@ -1,15 +1,14 @@
 package com.sprint.mission.discodeit.dto.auth;
 
+import com.sprint.mission.discodeit.dto.binary.BinaryContentResponse;
 import java.util.UUID;
 
 public record AuthResponse(
     UUID id,
-    String name,
-    String nickname,
-    String phoneNumber,
+    String username,
     String email,
-    UUID profileId
+    BinaryContentResponse profile,
+    Boolean online
 ) {
 
 }
-

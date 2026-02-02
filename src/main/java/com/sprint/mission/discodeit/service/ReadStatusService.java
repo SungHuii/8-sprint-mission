@@ -13,14 +13,8 @@ public interface ReadStatusService {
   ReadStatusResponse create(ReadStatusCreateRequest request);
 
   // find
-  ReadStatusResponse findById(UUID readStatusId);
-
   List<ReadStatusResponse> findAllByUserId(UUID userId);
 
   // update
-  ReadStatusResponse update(ReadStatusUpdateRequest request);
-
-  // delete
-  void deleteById(UUID readStatusId);
+  ReadStatusResponse update(UUID readStatusId, ReadStatusUpdateRequest request);
 }
-

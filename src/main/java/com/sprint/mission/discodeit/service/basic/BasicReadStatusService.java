@@ -3,13 +3,17 @@ package com.sprint.mission.discodeit.service.basic;
 import com.sprint.mission.discodeit.dto.readstatus.ReadStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.readstatus.ReadStatusResponse;
 import com.sprint.mission.discodeit.dto.readstatus.ReadStatusUpdateRequest;
+import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ReadStatus;
+import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.mapper.ReadStatusMapper;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.ReadStatusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
@@ -17,51 +21,40 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class BasicReadStatusService implements ReadStatusService {
 
   private final ReadStatusRepository readStatusRepository;
   private final UserRepository userRepository;
   private final ChannelRepository channelRepository;
+  private final ReadStatusMapper readStatusMapper;
 
   @Override
+  @Transactional
   public ReadStatusResponse create(ReadStatusCreateRequest request) {
     validateCreateRequest(request);
 
-    userRepository.findById(request.userId())
+    User user = userRepository.findById(request.userId())
         .orElseThrow(() -> new IllegalArgumentException(
             "해당 유저가 존재하지 않습니다. userId=" + request.userId()));
 
-    channelRepository.findById(request.channelId())
+    Channel channel = channelRepository.findById(request.channelId())
         .orElseThrow(() -> new IllegalArgumentException(
             "해당 채널이 존재하지 않습니다. channelId=" + request.channelId()));
 
-    readStatusRepository.findByUserIdAndChannelId(request.userId(), request.channelId())
-        .ifPresent(status -> {
-          throw new IllegalArgumentException("이미 읽음 상태가 존재합니다. userId="
-              + request.userId() + ", channelId=" + request.channelId());
-        });
-
-    Instant lastReadAt = request.lastReadAt() != null
-        ? request.lastReadAt()
-        : Instant.now();
-
-    ReadStatus saved = readStatusRepository.save(
-        new ReadStatus(request.userId(), request.channelId(), lastReadAt));
-
-    return toReadStatusResponse(saved);
-  }
-
-  @Override
-  public ReadStatusResponse findById(UUID readStatusId) {
-    if (readStatusId == null) {
-      throw new IllegalArgumentException("readStatusId는 필수입니다.");
+    if (readStatusRepository.findByUserIdAndChannelId(request.userId(), request.channelId())
+        .isPresent()) {
+      throw new IllegalArgumentException("이미 존재하는 읽음 상태입니다.");
     }
 
-    ReadStatus status = readStatusRepository.findById(readStatusId)
-        .orElseThrow(() -> new IllegalArgumentException(
-            "해당 읽음 상태가 존재하지 않습니다. readStatusId=" + readStatusId));
+    ReadStatus readStatus = new ReadStatus(
+        user,
+        channel,
+        request.lastReadAt() != null ? request.lastReadAt() : Instant.now()
+    );
+    ReadStatus saved = readStatusRepository.save(readStatus);
 
-    return toReadStatusResponse(status);
+    return readStatusMapper.toReadStatusResponse(saved);
   }
 
   @Override
@@ -71,46 +64,22 @@ public class BasicReadStatusService implements ReadStatusService {
     }
 
     return readStatusRepository.findAllByUserId(userId).stream()
-        .map(this::toReadStatusResponse)
+        .map(readStatusMapper::toReadStatusResponse)
         .toList();
   }
 
   @Override
-  public ReadStatusResponse update(ReadStatusUpdateRequest request) {
-    validateUpdateRequest(request);
+  @Transactional
+  public ReadStatusResponse update(UUID readStatusId, ReadStatusUpdateRequest request) {
+    validateUpdateRequest(readStatusId, request);
 
-    ReadStatus status = readStatusRepository.findById(request.readStatusId())
-        .orElseThrow(() -> new IllegalArgumentException(
-            "해당 읽음 상태가 존재하지 않습니다. readStatusId=" + request.readStatusId()));
-
-    status.updateLastReadAt(request.lastReadAt());
-    ReadStatus updated = readStatusRepository.save(status);
-
-    return toReadStatusResponse(updated);
-  }
-
-  @Override
-  public void deleteById(UUID readStatusId) {
-    if (readStatusId == null) {
-      throw new IllegalArgumentException("readStatusId는 필수입니다.");
-    }
-
-    readStatusRepository.findById(readStatusId)
+    ReadStatus readStatus = readStatusRepository.findById(readStatusId)
         .orElseThrow(() -> new IllegalArgumentException(
             "해당 읽음 상태가 존재하지 않습니다. readStatusId=" + readStatusId));
 
-    readStatusRepository.deleteById(readStatusId);
-  }
+    readStatus.updateLastReadAt(request.newLastReadAt());
 
-  private ReadStatusResponse toReadStatusResponse(ReadStatus status) {
-    return new ReadStatusResponse(
-        status.getId(),
-        status.getUserId(),
-        status.getChannelId(),
-        status.getLastReadAt(),
-        status.getCreatedAt(),
-        status.getUpdatedAt()
-    );
+    return readStatusMapper.toReadStatusResponse(readStatus);
   }
 
   private void validateCreateRequest(ReadStatusCreateRequest request) {
@@ -125,16 +94,15 @@ public class BasicReadStatusService implements ReadStatusService {
     }
   }
 
-  private void validateUpdateRequest(ReadStatusUpdateRequest request) {
+  private void validateUpdateRequest(UUID readStatusId, ReadStatusUpdateRequest request) {
     if (request == null) {
       throw new IllegalArgumentException("요청이 null입니다.");
     }
-    if (request.readStatusId() == null) {
+    if (readStatusId == null) {
       throw new IllegalArgumentException("readStatusId는 필수입니다.");
     }
-    if (request.lastReadAt() == null) {
-      throw new IllegalArgumentException("lastReadAt은 필수입니다.");
+    if (request.newLastReadAt() == null) {
+      throw new IllegalArgumentException("newLastReadAt은 필수입니다.");
     }
   }
 }
-

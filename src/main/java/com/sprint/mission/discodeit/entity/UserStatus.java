@@ -1,39 +1,36 @@
 package com.sprint.mission.discodeit.entity;
 
-import lombok.Getter;
-
-import java.io.Serial;
-import java.io.Serializable;
+import com.sprint.mission.discodeit.entity.base.BaseUpdatableEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import java.time.Instant;
-import java.util.UUID;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
-public class UserStatus implements Serializable {
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Entity
+@Table(name = "user_statuses")
+public class UserStatus extends BaseUpdatableEntity {
 
-  /*
-   * 직렬화 UID
-   * 5분 상수 표기
-   * 고유아이디
-   * 생성시간
-   * 수정시간
-   * 유저 참조
-   * 마지막으로 활동한 시간
-   * */
-
-  @Serial
-  private static final long serialVersionUID = 1L;
+  @Transient // DB 컬럼 아님
   private static final long ONLINE_THRESHOLD_SECONDS = 300;
-  private final UUID id;
-  private final Instant createdAt;
-  private Instant updatedAt;
-  private final UUID userId;
+
+  @OneToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "user_id", nullable = false, unique = true)
+  private User user;
+
+  @Column(name = "last_active_at", nullable = false)
   private Instant lastActiveAt;
 
-  public UserStatus(UUID userId, Instant lastActiveAt) {
-    this.id = UUID.randomUUID();
-    this.createdAt = Instant.now();
-    this.updatedAt = this.createdAt;
-    this.userId = userId;
+  public UserStatus(User user, Instant lastActiveAt) {
+    this.user = user;
     this.lastActiveAt = lastActiveAt != null
         ? lastActiveAt
         : Instant.now();
@@ -41,14 +38,9 @@ public class UserStatus implements Serializable {
 
   public void updateLastActiveAt(Instant lastActiveAt) {
     this.lastActiveAt = lastActiveAt;
-    renewUpdatedAt();
   }
 
   public boolean isOnline(Instant now) {
     return !lastActiveAt.isBefore(now.minusSeconds(ONLINE_THRESHOLD_SECONDS));
-  }
-
-  private void renewUpdatedAt() {
-    this.updatedAt = Instant.now();
   }
 }
