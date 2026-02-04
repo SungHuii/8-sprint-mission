@@ -38,7 +38,7 @@
   <springProfile name="dev">
     <root level="INFO">
       <appender-ref ref="CONSOLE"/>
-      <appender-ref ref="FILE"/>"
+      <appender-ref ref="FILE"/>
     </root>
     <!-- 패키지 DEBUG 레벨로 자세히 보기 -->
     <logger name="com.sprint.mission.discodeit" level="DEBUG"/>
