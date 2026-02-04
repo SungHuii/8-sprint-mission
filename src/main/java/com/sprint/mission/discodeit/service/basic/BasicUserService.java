@@ -17,9 +17,11 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -34,6 +36,7 @@ public class BasicUserService implements UserService {
   @Transactional
   public UserResponse create(UserCreateRequest request) {
     validateCreateRequest(request);
+    log.info("회원가입 요청: username={}, email={}", request.username(), request.email());
 
     if (userRepository.findByUsername(request.username()).isPresent()) {
       throw new IllegalArgumentException("이미 존재하는 사용자명입니다.");
@@ -57,6 +60,7 @@ public class BasicUserService implements UserService {
 
     Instant now = Instant.now();
     userStatusRepository.save(new UserStatus(savedUser, now));
+    log.info("회원가입 완료: userId={}", savedUser.getId());
 
     return userMapper.toUserResponse(savedUser, true);
   }
@@ -65,6 +69,7 @@ public class BasicUserService implements UserService {
   public List<UserResponse> findAll() {
     List<User> users = userRepository.findAllWithProfile();
     List<UserStatus> userStatuses = userStatusRepository.findAll();
+    log.debug("전체 유저 조회 요청");
 
     var statusMap = userStatuses.stream()
         .collect(Collectors.toMap(
@@ -90,6 +95,7 @@ public class BasicUserService implements UserService {
   public List<UserSummaryResponse> findAllUserSummaries() {
     List<User> users = userRepository.findAllWithProfile();
     List<UserStatus> userStatuses = userStatusRepository.findAll();
+    log.debug("전체 유저 요약 조회 요청");
 
     var statusMap = userStatuses.stream()
         .collect(Collectors.toMap(
@@ -115,6 +121,7 @@ public class BasicUserService implements UserService {
   @Transactional
   public UserResponse update(UUID userId, UserUpdateRequest request) {
     validateUpdateRequest(userId, request);
+    log.info("유저 정보 수정 요청 : userId={}", userId);
 
     User user = userRepository.findById(userId)
         .orElseThrow(() -> new IllegalArgumentException(
@@ -152,6 +159,8 @@ public class BasicUserService implements UserService {
             "유저 상태가 존재하지 않습니다. userId=" + updated.getId()));
 
     boolean online = status.isOnline(Instant.now());
+
+    log.info("유저 정보 수정 완료 : userId={}", updated.getId());
     return userMapper.toUserResponse(updated, online);
   }
 
@@ -161,6 +170,7 @@ public class BasicUserService implements UserService {
     if (userId == null) {
       throw new IllegalArgumentException("userId는 필수입니다.");
     }
+    log.info("유저 삭제 요청 : userId={}", userId);
 
     userRepository.deleteById(userId);
   }

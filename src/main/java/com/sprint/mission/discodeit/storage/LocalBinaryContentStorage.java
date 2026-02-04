@@ -44,6 +44,7 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
         log.info("존재하는 로컬 저장소 디렉토리: {}", rootPath.toAbsolutePath());
       }
     } catch (IOException e) {
+      log.error("로컬 저장소 초기화 실패", e.getMessage());
       throw new RuntimeException("로컬 저장소 초기화 실패", e);
     }
   }
@@ -53,8 +54,10 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
     Path filePath = resolvePath(id);
     try (FileOutputStream fos = new FileOutputStream(filePath.toFile())) {
       fos.write(bytes);
+      log.debug("파일 저장 : id={}", id);
       return id;
     } catch (IOException e) {
+      log.error("파일 저장 실패 : id={}", id, e);
       throw new RuntimeException("파일 저장 실패: " + id, e);
     }
   }
@@ -63,8 +66,10 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
   public InputStream get(UUID id) {
     Path filePath = resolvePath(id);
     try {
+      log.debug("파일 로드 : id={}", id);
       return new FileInputStream(filePath.toFile());
     } catch (FileNotFoundException e) {
+      log.error("파일을 찾을 수 없음 : id={}", id, e);
       throw new RuntimeException("파일을 찾을 수 없음: " + id, e);
     }
   }
@@ -77,11 +82,13 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
 
       String contentDisposition = "attachment; filename=\"" + binaryContent.fileName() + "\"";
 
+      log.info("파일 다운로드 응답 : id={}", binaryContent.id());
       return ResponseEntity.ok()
           .contentType(MediaType.parseMediaType(binaryContent.contentType()))
           .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition)
           .body(resource);
     } catch (Exception e) {
+      log.error("파일 다운로드 실패 : id={}", binaryContent.id(), e);
       return ResponseEntity.notFound().build();
     }
   }

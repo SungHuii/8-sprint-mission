@@ -16,6 +16,7 @@ import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.service.MessageService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -41,6 +43,7 @@ public class BasicMessageService implements MessageService {
   @Transactional
   public MessageResponse create(MessageCreateRequest request) {
     validateCreateRequest(request);
+    log.info("메시지 생성 요청: channelId={}, authorId={}", request.channelId(), request.authorId());
 
     User author = userRepository.findById(request.authorId())
         .orElseThrow(() -> new IllegalArgumentException(
@@ -70,6 +73,7 @@ public class BasicMessageService implements MessageService {
     );
     Message saved = messageRepository.save(message);
 
+    log.info("메시지 생성 완료: messageId={}", saved.getId());
     return messageMapper.toMessageResponse(saved);
   }
 
@@ -78,6 +82,7 @@ public class BasicMessageService implements MessageService {
     if (channelId == null) {
       throw new IllegalArgumentException("channelId는 필수입니다.");
     }
+    log.debug("메시지 목록 조회 요청: channelId={}, cursor={}", channelId, cursor);
 
     channelRepository.findById(channelId)
         .orElseThrow(() -> new IllegalArgumentException(
@@ -97,7 +102,6 @@ public class BasicMessageService implements MessageService {
 
     Object nextCursor = null;
     if (messageSlice.hasNext() && !content.isEmpty()) {
-      // 마지막 메시지의 createdAt을 다음 커서로 사용
       nextCursor = content.get(content.size() - 1).createdAt();
     }
 
@@ -114,6 +118,7 @@ public class BasicMessageService implements MessageService {
   @Transactional
   public MessageResponse update(UUID messageId, MessageUpdateRequest request) {
     validateUpdateRequest(messageId, request);
+    log.info("메시지 수정 요청: messageId={}", messageId);
 
     Message message = messageRepository.findById(messageId)
         .orElseThrow(() -> new IllegalArgumentException(
@@ -121,6 +126,7 @@ public class BasicMessageService implements MessageService {
 
     message.updateContent(request.newContent());
 
+    log.info("메시지 수정 완료: messageId={}", messageId);
     return messageMapper.toMessageResponse(message);
   }
 
@@ -130,6 +136,7 @@ public class BasicMessageService implements MessageService {
     if (messageId == null) {
       throw new IllegalArgumentException("messageId는 필수입니다.");
     }
+    log.info("메시지 삭제 요청: messageId={}", messageId);
 
     messageRepository.deleteById(messageId);
   }

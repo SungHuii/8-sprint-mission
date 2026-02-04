@@ -20,6 +20,7 @@ import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +30,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -46,10 +48,13 @@ public class BasicChannelService implements ChannelService {
   @Transactional
   public ChannelResponse createPublic(PublicChannelCreateRequest request) {
     validatePublicCreateRequest(request);
+    log.info("PUBLIC 채널 생성 요청: name={}, description={}", request.name(), request.description());
 
     Channel channel = Channel.ofPublic(request.name(), request.description());
     Channel saved = channelRepository.save(channel);
 
+    log.info("PUBLIC 채널 생성 완료: channelId={}, name={}, description={}", saved.getId(),
+        saved.getName(), saved.getDescription());
     return toChannelResponse(saved);
   }
 
@@ -57,6 +62,7 @@ public class BasicChannelService implements ChannelService {
   @Transactional
   public ChannelResponse createPrivate(PrivateChannelCreateRequest request) {
     validatePrivateCreateRequest(request);
+    log.info("PRIVATE(DM) 채널 생성 요청: participants={}", request.participantIds());
 
     Channel channel = Channel.ofPrivate();
     Channel saved = channelRepository.save(channel);
@@ -68,7 +74,7 @@ public class BasicChannelService implements ChannelService {
 
       readStatusRepository.save(new ReadStatus(user, saved, saved.getCreatedAt()));
     }
-
+    log.info("PRIVATE(DM) 채널 생성 완료: channelId={}", saved.getId());
     return toChannelResponse(saved);
   }
 
@@ -77,6 +83,7 @@ public class BasicChannelService implements ChannelService {
     if (userId == null) {
       throw new IllegalArgumentException("userId는 필수입니다.");
     }
+    log.debug("채널 목록 조회 요청 : userId={}", userId);
 
     // 1. PUBLIC 채널 조회
     List<Channel> publicChannels = channelRepository.findAll().stream()
@@ -103,6 +110,7 @@ public class BasicChannelService implements ChannelService {
 
   @Override
   public List<ChannelResponse> findAll() {
+    log.debug("채널 목록 조회 요청");
     return channelRepository.findAll().stream()
         .map(this::toChannelResponse)
         .toList();
@@ -112,6 +120,7 @@ public class BasicChannelService implements ChannelService {
   @Transactional
   public ChannelResponse update(UUID channelId, ChannelUpdateRequest request) {
     validateUpdateRequest(channelId, request);
+    log.info("채널 수정 요청 : channelId={}", channelId);
 
     Channel channel = channelRepository.findById(channelId)
         .orElseThrow(() -> new IllegalArgumentException(
@@ -127,6 +136,7 @@ public class BasicChannelService implements ChannelService {
     if (request.newDescription() != null) {
       channel.updateDescription(request.newDescription());
     }
+    log.info("채널 수정 완료 : channelId={}", channel.getId());
 
     return toChannelResponse(channel);
   }
@@ -140,8 +150,8 @@ public class BasicChannelService implements ChannelService {
 
     messageRepository.deleteAllByChannelId(channelId);
     readStatusRepository.deleteAllByChannelId(channelId);
-
     channelRepository.deleteById(channelId);
+    log.info("채널 삭제 완료 : channelId={}", channelId);
   }
 
   private ChannelResponse toChannelResponse(Channel channel) {
