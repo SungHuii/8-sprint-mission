@@ -4,6 +4,7 @@ import com.sprint.mission.discodeit.controller.docs.AuthApi;
 import com.sprint.mission.discodeit.dto.auth.AuthResponse;
 import com.sprint.mission.discodeit.dto.auth.LoginRequest;
 import com.sprint.mission.discodeit.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,7 +20,7 @@ public class AuthController implements AuthApi {
 
   @Override
   @PostMapping("/login")
-  public AuthResponse login(@RequestBody LoginRequest request) {
+  public AuthResponse login(@Valid @RequestBody LoginRequest request) {
     return authService.login(request);
   }
 }

@@ -7,6 +7,7 @@ import com.sprint.mission.discodeit.dto.message.MessageResponse;
 import com.sprint.mission.discodeit.dto.message.MessageUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.PageResponse;
 import com.sprint.mission.discodeit.service.MessageService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -37,15 +38,15 @@ public class MessageController implements MessageApi {
   @Override
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<MessageResponse> create(
-      @RequestPart(PART_MESSAGE_CREATE) MessageCreateRequest request,
+      @Valid @RequestPart(PART_MESSAGE_CREATE) MessageCreateRequest request,
       @RequestPart(value = PART_ATTACHMENTS, required = false) List<MultipartFile> attachments
   ) throws IOException {
     List<BinaryContentCreateRequest> attachmentRequests = toAttachmentRequests(attachments);
 
     MessageCreateRequest newRequest = new MessageCreateRequest(
-        request.authorId(),
-        request.channelId(),
         request.content(),
+        request.channelId(),
+        request.authorId(),
         attachmentRequests
     );
 
@@ -65,7 +66,7 @@ public class MessageController implements MessageApi {
   @Override
   @PatchMapping("/{messageId}")
   public ResponseEntity<MessageResponse> update(@PathVariable UUID messageId,
-      @RequestBody MessageUpdateRequest request) {
+      @Valid @RequestBody MessageUpdateRequest request) {
     MessageUpdateRequest newRequest = new MessageUpdateRequest(
         request.newContent()
     );
@@ -88,9 +89,10 @@ public class MessageController implements MessageApi {
     for (MultipartFile file : files) {
       if (!file.isEmpty()) {
         requests.add(new BinaryContentCreateRequest(
-            file.getBytes(),
+            file.getOriginalFilename(),
+            file.getSize(),
             file.getContentType(),
-            file.getOriginalFilename()
+            file.getBytes()
         ));
       }
     }
