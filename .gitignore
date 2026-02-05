@@ -41,5 +41,8 @@ out/
 .discodeit/
 .discodeit-files/
 
+# Logs
+.logs/
+
 # Rules
 RULES.md
