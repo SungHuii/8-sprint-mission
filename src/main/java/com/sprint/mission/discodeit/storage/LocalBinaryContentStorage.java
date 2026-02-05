@@ -1,16 +1,9 @@
 package com.sprint.mission.discodeit.storage;
 
 import com.sprint.mission.discodeit.dto.binary.BinaryContentResponse;
+import com.sprint.mission.discodeit.exception.binary.BinaryContentException;
+import com.sprint.mission.discodeit.exception.enums.BinaryContentErrorCode;
 import jakarta.annotation.PostConstruct;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +14,16 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -58,7 +61,7 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
       return id;
     } catch (IOException e) {
       log.error("파일 저장 실패 : id={}", id, e);
-      throw new RuntimeException("파일 저장 실패: " + id, e);
+      throw new BinaryContentException(BinaryContentErrorCode.FILE_UPLOAD_FAILED, e.getMessage());
     }
   }
 
@@ -70,7 +73,7 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
       return new FileInputStream(filePath.toFile());
     } catch (FileNotFoundException e) {
       log.error("파일을 찾을 수 없음 : id={}", id, e);
-      throw new RuntimeException("파일을 찾을 수 없음: " + id, e);
+      throw new BinaryContentException(BinaryContentErrorCode.FILE_NOT_FOUND, e.getMessage());
     }
   }
 
@@ -89,7 +92,7 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
           .body(resource);
     } catch (Exception e) {
       log.error("파일 다운로드 실패 : id={}", binaryContent.id(), e);
-      return ResponseEntity.notFound().build();
+      return ResponseEntity.internalServerError().build();
     }
   }
 
