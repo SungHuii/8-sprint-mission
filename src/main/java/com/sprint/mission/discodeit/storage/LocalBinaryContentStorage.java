@@ -90,9 +90,11 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
           .contentType(MediaType.parseMediaType(binaryContent.contentType()))
           .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition)
           .body(resource);
+    } catch (BinaryContentException e) {
+      throw e;
     } catch (Exception e) {
       log.error("파일 다운로드 실패 : id={}", binaryContent.id(), e);
-      return ResponseEntity.internalServerError().build();
+      throw new BinaryContentException(BinaryContentErrorCode.FILE_DOWNLOAD_FAILED, e.getMessage());
     }
   }
 
