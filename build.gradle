@@ -2,6 +2,20 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.4.0'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'jacoco'
+}
+
+test {
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport // 테스트가 끝나면 리포트 생성
+}
+
+jacocoTestReport {
+    dependsOn test // 리포트 생성 전 테스트 실행
+    reports {
+        xml.required = true
+        html.required = true
+    }
 }
 
 group = 'com.sprint.mission'
