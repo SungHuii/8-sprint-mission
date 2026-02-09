@@ -14,6 +14,10 @@ spring:
         format_sql: false
     hibernate:
       ddl-auto: validate
+  boot:
+    admin:
+      client:
+        url: ${SPRING_BOOT_ADMIN_CLIENT_URL}
 
 server:
   port: 80

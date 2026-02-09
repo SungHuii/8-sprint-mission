@@ -13,6 +13,11 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
+  boot:
+    admin:
+      client:
+        instance:
+          name: discodeit
 
 # Actuator 설정
 management:
