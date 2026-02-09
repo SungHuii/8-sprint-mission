@@ -16,8 +16,12 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(DiscodeitException.class)
   public ResponseEntity<ErrorResponse> handleDiscodeitException(DiscodeitException e) {
-    log.error("DiscodeitException : code={}, message={}, details={}",
-        e.getErrorCode().getCode(), e.getMessage(), e.getDetails());
+    // [DOMAIN] code=..., message=... 형식으로 로그 출력
+    log.error("[{}] DiscodeitException : code={}, message={}, details={}",
+        e.getErrorCode().getDomain(),
+        e.getErrorCode().getCode(),
+        e.getMessage(),
+        e.getDetails());
 
     ErrorResponse response = ErrorResponse.of(
         e.getErrorCode(),
@@ -33,7 +37,7 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(
       MethodArgumentNotValidException e) {
-    log.warn("Validation failed: {}", e.getMessage());
+    log.warn("[COMMON] Validation failed: {}", e.getMessage());
 
     Map<String, Object> details = new HashMap<>();
     e.getBindingResult().getFieldErrors().forEach(error -> {
@@ -54,7 +58,7 @@ public class GlobalExceptionHandler {
   // 그 외 위 예외에 걸리지 않는 모든 예외에 대해 500 에러 반환
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ErrorResponse> handleException(Exception e) {
-    log.error("Unexpected Exception", e);
+    log.error("[COMMON] Unexpected Exception", e);
     ErrorResponse response = ErrorResponse.of(
         CommonErrorCode.INTERNAL_SERVER_ERROR,
         e.getClass().getSimpleName(),
