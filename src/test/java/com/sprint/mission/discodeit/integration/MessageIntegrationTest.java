@@ -7,12 +7,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sprint.mission.discodeit.dto.message.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.message.MessageUpdateRequest;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.integration.support.IntegrationTestSupport;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
@@ -22,25 +22,10 @@ import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
-@Transactional
-class MessageIntegrationTest {
-
-  @Autowired
-  private MockMvc mockMvc;
-
-  @Autowired
-  private ObjectMapper objectMapper;
+class MessageIntegrationTest extends IntegrationTestSupport {
 
   @Autowired
   private MessageRepository messageRepository;
@@ -58,7 +43,8 @@ class MessageIntegrationTest {
     User author = userRepository.save(new User("author", "email", "pw"));
     Channel channel = channelRepository.save(Channel.ofPublic("ch", "desc"));
 
-    MessageCreateRequest request = new MessageCreateRequest("Hello", channel.getId(), author.getId(), null);
+    MessageCreateRequest request = new MessageCreateRequest("Hello", channel.getId(),
+        author.getId(), null);
     MockMultipartFile requestPart = new MockMultipartFile(
         "messageCreateRequest",
         "",
@@ -78,7 +64,8 @@ class MessageIntegrationTest {
   @DisplayName("메시지 생성 실패 - 내용 누락")
   void create_Fail_InvalidInput() throws Exception {
     // given
-    MessageCreateRequest request = new MessageCreateRequest("", UUID.randomUUID(), UUID.randomUUID(), null); // 빈 내용
+    MessageCreateRequest request = new MessageCreateRequest("", UUID.randomUUID(),
+        UUID.randomUUID(), null); // 빈 내용
     MockMultipartFile requestPart = new MockMultipartFile(
         "messageCreateRequest",
         "",
@@ -129,7 +116,8 @@ class MessageIntegrationTest {
     // given
     User author = userRepository.save(new User("author", "email", "pw"));
     Channel channel = channelRepository.save(Channel.ofPublic("ch", "desc"));
-    Message message = messageRepository.save(new Message(author, channel, "Old", Collections.emptyList()));
+    Message message = messageRepository.save(
+        new Message(author, channel, "Old", Collections.emptyList()));
 
     MessageUpdateRequest request = new MessageUpdateRequest("New");
 
@@ -162,7 +150,8 @@ class MessageIntegrationTest {
     // given
     User author = userRepository.save(new User("author", "email", "pw"));
     Channel channel = channelRepository.save(Channel.ofPublic("ch", "desc"));
-    Message message = messageRepository.save(new Message(author, channel, "Del", Collections.emptyList()));
+    Message message = messageRepository.save(
+        new Message(author, channel, "Del", Collections.emptyList()));
 
     // when & then
     mockMvc.perform(delete("/api/messages/{messageId}", message.getId()))

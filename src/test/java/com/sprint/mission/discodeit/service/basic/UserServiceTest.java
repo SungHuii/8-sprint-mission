@@ -17,7 +17,6 @@ import com.sprint.mission.discodeit.exception.user.UserException;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
-import com.sprint.mission.discodeit.service.BinaryContentService;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -40,8 +39,6 @@ class UserServiceTest {
   private UserRepository userRepository;
   @Mock
   private UserStatusRepository userStatusRepository;
-  @Mock
-  private BinaryContentService binaryContentService;
   @Mock
   private UserMapper userMapper;
 

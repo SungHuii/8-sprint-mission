@@ -2,25 +2,17 @@ package com.sprint.mission.discodeit.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.sprint.mission.discodeit.config.JpaConfig;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.repository.support.RepositoryTestSupport;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
 
-/* 슬라이스 테스트 */
-@DataJpaTest
-@ActiveProfiles("test")
-/* @EnableJpaAuditing 대신 사용. 중복 제거, 유지보수 관리 시점을 생각해서 사용*/
-@Import(JpaConfig.class) // Auditing 활성화
-public class UserRepositoryTest {
+public class UserRepositoryTest extends RepositoryTestSupport {
 
   @Autowired
   private UserRepository userRepository;

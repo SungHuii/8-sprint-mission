@@ -22,12 +22,10 @@ import com.sprint.mission.discodeit.exception.enums.CommonErrorCode;
 import com.sprint.mission.discodeit.exception.enums.UserErrorCode;
 import com.sprint.mission.discodeit.exception.user.UserException;
 import com.sprint.mission.discodeit.mapper.ChannelMapper;
-import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -54,11 +52,7 @@ class ChannelServiceTest {
   @Mock
   private UserRepository userRepository;
   @Mock
-  private UserStatusRepository userStatusRepository;
-  @Mock
   private ChannelMapper channelMapper;
-  @Mock
-  private UserMapper userMapper;
 
   @Test
   @DisplayName("공개 채널 생성 성공")

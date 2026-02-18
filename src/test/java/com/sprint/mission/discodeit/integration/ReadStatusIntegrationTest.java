@@ -6,12 +6,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sprint.mission.discodeit.dto.readstatus.ReadStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.readstatus.ReadStatusUpdateRequest;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.integration.support.IntegrationTestSupport;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
@@ -20,24 +20,9 @@ import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
-@Transactional
-class ReadStatusIntegrationTest {
-
-  @Autowired
-  private MockMvc mockMvc;
-
-  @Autowired
-  private ObjectMapper objectMapper;
+class ReadStatusIntegrationTest extends IntegrationTestSupport {
 
   @Autowired
   private ReadStatusRepository readStatusRepository;
@@ -55,7 +40,8 @@ class ReadStatusIntegrationTest {
     User user = userRepository.save(new User("user", "email", "pw"));
     Channel channel = channelRepository.save(Channel.ofPublic("ch", "desc"));
 
-    ReadStatusCreateRequest request = new ReadStatusCreateRequest(user.getId(), channel.getId(), null);
+    ReadStatusCreateRequest request = new ReadStatusCreateRequest(user.getId(), channel.getId(),
+        null);
 
     // when & then
     mockMvc.perform(post("/api/readStatuses")
@@ -73,7 +59,8 @@ class ReadStatusIntegrationTest {
     Channel channel = channelRepository.save(Channel.ofPublic("ch", "desc"));
     readStatusRepository.save(new ReadStatus(user, channel, Instant.now()));
 
-    ReadStatusCreateRequest request = new ReadStatusCreateRequest(user.getId(), channel.getId(), Instant.now());
+    ReadStatusCreateRequest request = new ReadStatusCreateRequest(user.getId(), channel.getId(),
+        Instant.now());
 
     // when & then
     mockMvc.perform(post("/api/readStatuses")

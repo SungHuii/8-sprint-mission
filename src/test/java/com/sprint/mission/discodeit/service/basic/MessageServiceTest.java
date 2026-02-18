@@ -24,7 +24,6 @@ import com.sprint.mission.discodeit.mapper.MessageMapper;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.service.BinaryContentService;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
@@ -52,8 +51,6 @@ class MessageServiceTest {
   private UserRepository userRepository;
   @Mock
   private ChannelRepository channelRepository;
-  @Mock
-  private BinaryContentService binaryContentService;
   @Mock
   private MessageMapper messageMapper;
 
@@ -115,18 +112,22 @@ class MessageServiceTest {
     UUID channelId = UUID.randomUUID();
     Channel channel = Channel.ofPublic("ch", "desc");
     Pageable pageable = Pageable.unpaged();
-    
-    Message message = new Message(new User("u", "e", "p"), channel, "content", Collections.emptyList());
+
+    Message message = new Message(new User("u", "e", "p"), channel, "content",
+        Collections.emptyList());
     Slice<Message> messageSlice = new SliceImpl<>(List.of(message));
-    MessageResponse messageResponse = new MessageResponse(UUID.randomUUID(), channelId, null, "content", Collections.emptyList(), Instant.now(), Instant.now());
+    MessageResponse messageResponse = new MessageResponse(UUID.randomUUID(), channelId, null,
+        "content", Collections.emptyList(), Instant.now(), Instant.now());
 
     given(channelRepository.findById(channelId)).willReturn(Optional.of(channel));
-    given(messageRepository.findAllByChannelIdOrderByCreatedAtDesc(eq(channelId), any(Pageable.class)))
+    given(messageRepository.findAllByChannelIdOrderByCreatedAtDesc(eq(channelId),
+        any(Pageable.class)))
         .willReturn(messageSlice);
     given(messageMapper.toMessageResponse(any(Message.class))).willReturn(messageResponse);
 
     // when
-    PageResponse<MessageResponse> response = messageService.findAllByChannelId(channelId, null, pageable);
+    PageResponse<MessageResponse> response = messageService.findAllByChannelId(channelId, null,
+        pageable);
 
     // then
     assertThat(response.content()).hasSize(1);
@@ -155,11 +156,11 @@ class MessageServiceTest {
     // given
     UUID messageId = UUID.randomUUID();
     MessageUpdateRequest request = new MessageUpdateRequest("Updated Content");
-    
+
     User author = new User("user", "email", "pw");
     Channel channel = Channel.ofPublic("ch", "desc");
     Message message = new Message(author, channel, "Old Content", Collections.emptyList());
-    
+
     MessageResponse expectedResponse = new MessageResponse(
         messageId,
         UUID.randomUUID(),
