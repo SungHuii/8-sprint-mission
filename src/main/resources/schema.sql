@@ -11,20 +11,20 @@ DROP TABLE IF EXISTS binary_contents;
 CREATE TABLE IF NOT EXISTS binary_contents
 (
     id           uuid PRIMARY KEY,
-    created_at   timestamptz  NOT NULL,
-    file_name    VARCHAR(255) NOT NULL,
-    size         BIGINT       NOT NULL,
-    content_type VARCHAR(100) NOT NULL
+    created_at   timestamp with time zone NOT NULL,
+    file_name    VARCHAR(255)             NOT NULL,
+    size         BIGINT                   NOT NULL,
+    content_type VARCHAR(100)             NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS channels
 (
     id          uuid PRIMARY KEY,
-    created_at  timestamptz NOT NULL,
-    updated_at  timestamptz,
+    created_at  timestamp with time zone NOT NULL,
+    updated_at  timestamp with time zone,
     name        VARCHAR(100),
     description VARCHAR(500),
-    type        VARCHAR(10) NOT NULL,
+    type        VARCHAR(10)              NOT NULL,
     CONSTRAINT check_channel_type CHECK (type IN ('PUBLIC', 'PRIVATE')) -- postgres에 enum이 없으므로 check 제약조건으로 추가
 );
 
@@ -32,11 +32,11 @@ CREATE TABLE IF NOT EXISTS channels
 CREATE TABLE IF NOT EXISTS users
 (
     id         uuid PRIMARY KEY,
-    created_at timestamptz  NOT NULL,
-    updated_at timestamptz,
-    username   VARCHAR(50)  NOT NULL UNIQUE,
-    email      VARCHAR(100) NOT NULL UNIQUE,
-    password   VARCHAR(60)  NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone,
+    username   VARCHAR(50)              NOT NULL UNIQUE,
+    email      VARCHAR(100)             NOT NULL UNIQUE,
+    password   VARCHAR(60)              NOT NULL,
     profile_id uuid UNIQUE,
     CONSTRAINT fk_users_profile FOREIGN KEY (profile_id) REFERENCES binary_contents (id) ON DELETE SET NULL
 );
@@ -44,21 +44,21 @@ CREATE TABLE IF NOT EXISTS users
 CREATE TABLE IF NOT EXISTS user_statuses
 (
     id             uuid PRIMARY KEY,
-    created_at     timestamptz NOT NULL,
-    updated_at     timestamptz,
-    user_id        uuid UNIQUE NOT NULL,
-    last_active_at timestamptz NOT NULL,
+    created_at     timestamp with time zone NOT NULL,
+    updated_at     timestamp with time zone,
+    user_id        uuid UNIQUE              NOT NULL,
+    last_active_at timestamp with time zone NOT NULL,
     CONSTRAINT fk_user_statuses_user_id FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS read_statuses
 (
     id           uuid PRIMARY KEY,
-    created_at   timestamptz NOT NULL,
-    updated_at   timestamptz,
-    user_id      uuid        NOT NULL,
-    channel_id   uuid        NOT NULL,
-    last_read_at timestamptz NOT NULL,
+    created_at   timestamp with time zone NOT NULL,
+    updated_at   timestamp with time zone,
+    user_id      uuid                     NOT NULL,
+    channel_id   uuid                     NOT NULL,
+    last_read_at timestamp with time zone NOT NULL,
     CONSTRAINT unique_user_channel UNIQUE (user_id, channel_id),
     CONSTRAINT fk_read_statuses_user_id FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
     CONSTRAINT fk_read_statuses_channel_id FOREIGN KEY (channel_id) REFERENCES channels (id) ON DELETE CASCADE
@@ -67,11 +67,11 @@ CREATE TABLE IF NOT EXISTS read_statuses
 CREATE TABLE IF NOT EXISTS messages
 (
     id         uuid PRIMARY KEY,
-    created_at timestamptz NOT NULL,
-    updated_at timestamptz,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone,
     content    text,
-    channel_id uuid        NOT NULL,
-    author_id  uuid        NOT NULL,
+    channel_id uuid                     NOT NULL,
+    author_id  uuid                     NOT NULL,
     CONSTRAINT fk_messages_channel_id FOREIGN KEY (channel_id) REFERENCES channels (id) ON DELETE CASCADE,
     CONSTRAINT fk_messages_author_id FOREIGN KEY (author_id) REFERENCES users (id) ON DELETE SET NULL
 );

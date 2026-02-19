@@ -1,44 +1,71 @@
 package com.sprint.mission.discodeit.exception;
 
-import com.sprint.mission.discodeit.dto.error.ErrorCode;
 import com.sprint.mission.discodeit.dto.error.ErrorResponse;
+import com.sprint.mission.discodeit.exception.enums.CommonErrorCode;
+import java.util.HashMap;
+import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.time.Instant;
-import java.util.NoSuchElementException;
-
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-  // 잘못된 요청 파라미터/값 때문에 발생했을 때 400 에러 반환
-  @ExceptionHandler(IllegalArgumentException.class)
-  public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException e) {
-    return build(ErrorCode.BAD_REQUEST, e.getMessage());
+  @ExceptionHandler(DiscodeitException.class)
+  public ResponseEntity<ErrorResponse> handleDiscodeitException(DiscodeitException e) {
+    // [DOMAIN] code=..., message=... 형식으로 로그 출력
+    log.error("[{}] DiscodeitException : code={}, message={}, details={}",
+        e.getErrorCode().getDomain(),
+        e.getErrorCode().getCode(),
+        e.getMessage(),
+        e.getDetails());
+
+    ErrorResponse response = ErrorResponse.of(
+        e.getErrorCode(),
+        e.getClass().getSimpleName(),
+        e.getDetails()
+    );
+
+    return ResponseEntity.
+        status(e.getErrorCode().getHttpStatus())
+        .body(response);
   }
 
-  // 현재 상태에서 허용되지 않거나 처리 불가능할 때 409 에러 반환
-  @ExceptionHandler(IllegalStateException.class)
-  public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateException e) {
-    return build(ErrorCode.CONFLICT, e.getMessage());
-  }
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  public ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(
+      MethodArgumentNotValidException e) {
+    log.warn("[COMMON] Validation failed: {}", e.getMessage());
 
-  // 리소스를 찾을 수 없을 때 404 에러 반환
-  @ExceptionHandler(NoSuchElementException.class)
-  public ResponseEntity<ErrorResponse> handleNoSuchElement(NoSuchElementException e) {
-    return build(ErrorCode.NOT_FOUND, e.getMessage());
+    Map<String, Object> details = new HashMap<>();
+    e.getBindingResult().getFieldErrors().forEach(error -> {
+      String fieldName = error.getField();
+      String errorMessage = error.getDefaultMessage();
+      details.put(fieldName, errorMessage);
+    });
+
+    ErrorResponse response = ErrorResponse.of(
+        CommonErrorCode.INVALID_INPUT_VALUE,
+        e.getClass().getSimpleName(),
+        details
+    );
+
+    return ResponseEntity.status(response.status()).body(response);
   }
 
   // 그 외 위 예외에 걸리지 않는 모든 예외에 대해 500 에러 반환
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ErrorResponse> handleException(Exception e) {
-    return build(ErrorCode.INTERNAL_ERROR, "Unexpected error occurred.");
+    log.error("[COMMON] Unexpected Exception", e);
+    ErrorResponse response = ErrorResponse.of(
+        CommonErrorCode.INTERNAL_SERVER_ERROR,
+        e.getClass().getSimpleName(),
+        null
+    );
+
+    return ResponseEntity.status(response.status()).body(response);
   }
 
-  // ErrorCode 기준으로 HttpStatus와 표준 에러 바디 생성
-  private ResponseEntity<ErrorResponse> build(ErrorCode errorCode, String message) {
-    return ResponseEntity.status(errorCode.status())
-        .body(new ErrorResponse(errorCode.code(), message, Instant.now()));
-  }
 }

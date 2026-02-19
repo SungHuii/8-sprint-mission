@@ -9,5 +9,7 @@ import org.mapstruct.Mapping;
 public interface MessageMapper {
 
   @Mapping(target = "author", source = "author")
+  @Mapping(target = "channelId", source = "channel.id")
+  @Mapping(target = "updatedAt", source = "updatedAt")
   MessageResponse toMessageResponse(Message message);
 }

@@ -11,6 +11,12 @@ import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.entity.enums.ChannelType;
+import com.sprint.mission.discodeit.exception.DiscodeitException;
+import com.sprint.mission.discodeit.exception.channel.ChannelException;
+import com.sprint.mission.discodeit.exception.enums.ChannelErrorCode;
+import com.sprint.mission.discodeit.exception.enums.CommonErrorCode;
+import com.sprint.mission.discodeit.exception.enums.UserErrorCode;
+import com.sprint.mission.discodeit.exception.user.UserException;
 import com.sprint.mission.discodeit.mapper.ChannelMapper;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
@@ -20,6 +26,7 @@ import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +36,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -46,10 +54,13 @@ public class BasicChannelService implements ChannelService {
   @Transactional
   public ChannelResponse createPublic(PublicChannelCreateRequest request) {
     validatePublicCreateRequest(request);
+    log.info("PUBLIC 채널 생성 요청: name={}, description={}", request.name(), request.description());
 
     Channel channel = Channel.ofPublic(request.name(), request.description());
     Channel saved = channelRepository.save(channel);
 
+    log.info("PUBLIC 채널 생성 완료: channelId={}, name={}, description={}", saved.getId(),
+        saved.getName(), saved.getDescription());
     return toChannelResponse(saved);
   }
 
@@ -57,6 +68,7 @@ public class BasicChannelService implements ChannelService {
   @Transactional
   public ChannelResponse createPrivate(PrivateChannelCreateRequest request) {
     validatePrivateCreateRequest(request);
+    log.info("PRIVATE(DM) 채널 생성 요청: participants={}", request.participantIds());
 
     Channel channel = Channel.ofPrivate();
     Channel saved = channelRepository.save(channel);
@@ -64,19 +76,20 @@ public class BasicChannelService implements ChannelService {
     // 참여자별 ReadStatus 생성
     for (UUID userId : request.participantIds()) {
       User user = userRepository.findById(userId)
-          .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다. userId=" + userId));
+          .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
 
       readStatusRepository.save(new ReadStatus(user, saved, saved.getCreatedAt()));
     }
-
+    log.info("PRIVATE(DM) 채널 생성 완료: channelId={}", saved.getId());
     return toChannelResponse(saved);
   }
 
   @Override
   public List<ChannelResponse> findAllByUserId(UUID userId) {
     if (userId == null) {
-      throw new IllegalArgumentException("userId는 필수입니다.");
+      throw new DiscodeitException(CommonErrorCode.INVALID_INPUT_VALUE, "userId는 필수입니다.");
     }
+    log.debug("유저별 채널 목록 조회 요청: userId={}", userId);
 
     // 1. PUBLIC 채널 조회
     List<Channel> publicChannels = channelRepository.findAll().stream()
@@ -103,6 +116,7 @@ public class BasicChannelService implements ChannelService {
 
   @Override
   public List<ChannelResponse> findAll() {
+    log.debug("전체 채널 목록 조회 요청");
     return channelRepository.findAll().stream()
         .map(this::toChannelResponse)
         .toList();
@@ -112,13 +126,13 @@ public class BasicChannelService implements ChannelService {
   @Transactional
   public ChannelResponse update(UUID channelId, ChannelUpdateRequest request) {
     validateUpdateRequest(channelId, request);
+    log.info("채널 수정 요청: channelId={}", channelId);
 
     Channel channel = channelRepository.findById(channelId)
-        .orElseThrow(() -> new IllegalArgumentException(
-            "해당 채널이 존재하지 않습니다. channelId=" + channelId));
+        .orElseThrow(() -> new ChannelException(ChannelErrorCode.CHANNEL_NOT_FOUND));
 
     if (channel.getType() == ChannelType.PRIVATE) {
-      throw new IllegalStateException("비공개 채널은 수정할 수 없습니다.");
+      throw new ChannelException(ChannelErrorCode.PRIVATE_CHANNEL_UPDATE_NOT_ALLOWED);
     }
 
     if (request.newName() != null) {
@@ -128,6 +142,7 @@ public class BasicChannelService implements ChannelService {
       channel.updateDescription(request.newDescription());
     }
 
+    log.info("채널 수정 완료: channelId={}", channelId);
     return toChannelResponse(channel);
   }
 
@@ -135,8 +150,9 @@ public class BasicChannelService implements ChannelService {
   @Transactional
   public void deleteById(UUID channelId) {
     if (channelId == null) {
-      throw new IllegalArgumentException("channelId는 필수입니다.");
+      throw new DiscodeitException(CommonErrorCode.INVALID_INPUT_VALUE, "channelId는 필수입니다.");
     }
+    log.info("채널 삭제 요청: channelId={}", channelId);
 
     messageRepository.deleteAllByChannelId(channelId);
     readStatusRepository.deleteAllByChannelId(channelId);
@@ -173,31 +189,31 @@ public class BasicChannelService implements ChannelService {
 
   private void validatePublicCreateRequest(PublicChannelCreateRequest request) {
     if (request == null) {
-      throw new IllegalArgumentException("요청이 null입니다.");
+      throw new DiscodeitException(CommonErrorCode.INVALID_INPUT_VALUE, "요청이 null입니다.");
     }
     if (request.name() == null || request.name().isBlank()) {
-      throw new IllegalArgumentException("name은 필수입니다.");
+      throw new DiscodeitException(CommonErrorCode.INVALID_INPUT_VALUE, "name은 필수입니다.");
     }
   }
 
   private void validatePrivateCreateRequest(PrivateChannelCreateRequest request) {
     if (request == null) {
-      throw new IllegalArgumentException("요청이 null입니다.");
+      throw new DiscodeitException(CommonErrorCode.INVALID_INPUT_VALUE, "요청이 null입니다.");
     }
     if (request.participantIds() == null || request.participantIds().isEmpty()) {
-      throw new IllegalArgumentException("participantIds는 필수이며 비어 있을 수 없습니다.");
+      throw new DiscodeitException(CommonErrorCode.INVALID_INPUT_VALUE, "participantIds는 필수이며 비어 있을 수 없습니다.");
     }
   }
 
   private void validateUpdateRequest(UUID channelId, ChannelUpdateRequest request) {
     if (request == null) {
-      throw new IllegalArgumentException("요청이 null입니다.");
+      throw new DiscodeitException(CommonErrorCode.INVALID_INPUT_VALUE, "요청이 null입니다.");
     }
     if (channelId == null) {
-      throw new IllegalArgumentException("channelId는 필수입니다.");
+      throw new DiscodeitException(CommonErrorCode.INVALID_INPUT_VALUE, "channelId는 필수입니다.");
     }
     if (request.newName() == null && request.newDescription() == null) {
-      throw new IllegalArgumentException("수정할 값이 없습니다.");
+      throw new DiscodeitException(CommonErrorCode.INVALID_INPUT_VALUE, "수정할 값이 없습니다.");
     }
   }
 }

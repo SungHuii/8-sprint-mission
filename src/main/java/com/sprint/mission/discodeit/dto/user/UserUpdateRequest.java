@@ -1,12 +1,19 @@
 package com.sprint.mission.discodeit.dto.user;
 
 import com.sprint.mission.discodeit.dto.binary.BinaryContentCreateRequest;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Size;
 
 public record UserUpdateRequest(
+    @Size(min = 2, max = 20, message = "사용자명은 2자 이상 20자 이하이어야 합니다.")
     String newUsername,
-    String newEmail,
-    String newPassword,
-    BinaryContentCreateRequest newProfile // nullable
-) {
 
+    @Email(message = "올바른 이메일 형식이 아닙니다.")
+    String newEmail,
+
+    @Size(min = 4, message = "비밀번호는 최소 4자 이상이어야 합니다.")
+    String newPassword,
+
+    BinaryContentCreateRequest newProfile
+) {
 }

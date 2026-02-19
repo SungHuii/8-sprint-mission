@@ -1,0 +1,28 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: jdbc:postgresql://sprint-mission-sunghuii.up.railway.app:5432/discodeit
+    username: prod_user
+    password: prod_password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+    hibernate:
+      ddl-auto: validate
+  boot:
+    admin:
+      client:
+        url: ${SPRING_BOOT_ADMIN_CLIENT_URL}
+
+server:
+  port: 80
+
+logging:
+  level:
+    root: INFO
+    com.sprint.mission.discodeit: INFO
