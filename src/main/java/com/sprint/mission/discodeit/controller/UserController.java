@@ -11,6 +11,7 @@ import com.sprint.mission.discodeit.dto.userstatus.UserStatusUpdateByUserIdReque
 import com.sprint.mission.discodeit.dto.userstatus.UserStatusUpdatePayload;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
+import jakarta.validation.Valid;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
@@ -51,7 +52,7 @@ public class UserController implements UserApi {
   @Override
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<UserResponse> create(
-      @RequestPart(PART_USER_CREATE) UserCreateRequest request,
+      @Valid @RequestPart(PART_USER_CREATE) UserCreateRequest request,
       @RequestPart(value = PART_PROFILE, required = false) MultipartFile profile
   ) throws IOException {
     BinaryContentCreateRequest binaryRequest = toBinaryContentRequest(profile);
@@ -70,7 +71,7 @@ public class UserController implements UserApi {
   @PatchMapping(value = "/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<UserResponse> update(
       @PathVariable UUID userId,
-      @RequestPart(value = PART_USER_UPDATE, required = false) UserUpdateRequest request,
+      @Valid @RequestPart(value = PART_USER_UPDATE, required = false) UserUpdateRequest request,
       @RequestPart(value = PART_PROFILE, required = false) MultipartFile profile
   ) throws IOException {
     BinaryContentCreateRequest binaryRequest = toBinaryContentRequest(profile);
@@ -96,7 +97,7 @@ public class UserController implements UserApi {
   @PatchMapping("/{userId}/userStatus")
   public ResponseEntity<UserStatusResponse> updateStatus(
       @PathVariable UUID userId,
-      @RequestBody UserStatusUpdatePayload payload
+      @Valid @RequestBody UserStatusUpdatePayload payload
   ) {
     String lastActiveAtStr = payload.newLastActiveAt();
 
@@ -115,9 +116,10 @@ public class UserController implements UserApi {
       return null;
     }
     return new BinaryContentCreateRequest(
-        file.getBytes(),
+        file.getOriginalFilename(),
+        file.getSize(),
         file.getContentType(),
-        file.getOriginalFilename()
+        file.getBytes()
     );
   }
 }
