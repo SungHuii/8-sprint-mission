@@ -1,0 +1,33 @@
+### Build & Dependency ###
+.gradle
+build
+out
+.idea
+*.iml
+
+### Git ###
+.git
+.gitignore
+
+### Docker ###
+.dockerignore
+Dockerfile
+docker-compose.yml
+
+### Logs ###
+.logs
+
+### Local Storage ###
+.discodeit
+.discodeit-files
+
+### Documentation ###
+HELP.md
+README.md
+agents.md
+
+### Modules ###
+admin
+
+### Environment ###
+.env
