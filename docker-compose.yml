@@ -12,6 +12,12 @@ services:
     environment:
       # DB 접속 정보
       - SPRING_DATASOURCE_URL=${DOCKER_DATASOURCE_URL}
+      - # Storage 설정 (추가)
+      - STORAGE_TYPE=${STORAGE_TYPE}
+      - AWS_S3_ACCESS_KEY=${AWS_S3_ACCESS_KEY}
+      - AWS_S3_SECRET_KEY=${AWS_S3_SECRET_KEY}
+      - AWS_S3_REGION=${AWS_S3_REGION}
+      - AWS_S3_BUCKET=${AWS_S3_BUCKET}
     depends_on:
       - discodeit-db # DB 가장 먼저 실행
     volumes:
