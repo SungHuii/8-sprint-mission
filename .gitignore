@@ -1,4 +1,5 @@
 HELP.md
+.postgres-data
 .env
 .gradle
 build/
