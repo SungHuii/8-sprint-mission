@@ -1,6 +1,7 @@
 HELP.md
 .postgres-data
 .env
+discodeit.env
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
