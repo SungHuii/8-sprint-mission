@@ -82,7 +82,3 @@ dependencyManagement {
         mavenBom "de.codecentric:spring-boot-admin-dependencies:${springBootAdminVersion}"
     }
 }
-
-tasks.named('test') {
-    useJUnitPlatform()
-}
