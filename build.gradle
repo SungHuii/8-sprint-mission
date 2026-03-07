@@ -8,6 +8,17 @@ plugins {
 test {
     useJUnitPlatform()
     finalizedBy jacocoTestReport // 테스트가 끝나면 리포트 생성
+
+    // .env 파일에서 환경변수 로드
+    def envFile = file('.env')
+    if (envFile.exists()) {
+        envFile.readLines().each { line ->
+            if (line && !line.startsWith('#') && line.contains('=')) {
+                def (key, value) = line.split('=', 2)
+                environment key.trim(), value.trim()
+            }
+        }
+    }
 }
 
 jacocoTestReport {
@@ -19,7 +30,7 @@ jacocoTestReport {
 }
 
 group = 'com.sprint.mission'
-version = '0.0.1-SNAPSHOT'
+version = '1.2-M8'
 description = 'discodeit'
 
 java {
@@ -48,7 +59,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.0'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'de.codecentric:spring-boot-admin-starter-client'
 
     runtimeOnly 'org.postgresql:postgresql'
     runtimeOnly 'com.h2database:h2'
@@ -62,14 +72,13 @@ dependencies {
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // AWS
+    implementation 'software.amazon.awssdk:s3:2.31.7'
 }
 
 dependencyManagement {
     imports {
         mavenBom "de.codecentric:spring-boot-admin-dependencies:${springBootAdminVersion}"
     }
-}
-
-tasks.named('test') {
-    useJUnitPlatform()
 }
