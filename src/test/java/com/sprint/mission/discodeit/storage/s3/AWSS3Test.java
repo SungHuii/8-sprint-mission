@@ -24,165 +24,165 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class AWSS3Test {
 
-    private S3Client s3Client;
-    private S3Presigner s3Presigner;
-    private String bucketName;
-    private String accessKey;
-    private String secretKey;
-    private String region;
+  private S3Client s3Client;
+  private S3Presigner s3Presigner;
+  private String bucketName;
+  private String accessKey;
+  private String secretKey;
+  private String region;
 
-    @BeforeEach
-    void setUp() throws IOException {
-        // Properties 클래스를 활용해서 .env에 정의한 AWS 정보를 로드
-        Properties properties = new Properties();
-        try (InputStream input = getClass().getClassLoader().getResourceAsStream(".env")) {
-            if (input != null) {
-                properties.load(input);
-            }
-        }
-
-        // 환경변수에서 AWS 정보 로드 (Properties에서 못 찾으면 시스템 환경변수 사용)
-        accessKey = properties.getProperty("AWS_S3_ACCESS_KEY", System.getenv("AWS_S3_ACCESS_KEY"));
-        secretKey = properties.getProperty("AWS_S3_SECRET_KEY", System.getenv("AWS_S3_SECRET_KEY"));
-        region = properties.getProperty("AWS_S3_REGION", System.getenv("AWS_S3_REGION"));
-        bucketName = properties.getProperty("AWS_S3_BUCKET", System.getenv("AWS_S3_BUCKET"));
-
-        // AWS Credentials 설정
-        AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKey, secretKey);
-
-        // S3Client 초기화
-        s3Client = S3Client.builder()
-                .region(Region.of(region))
-                .credentialsProvider(StaticCredentialsProvider.create(credentials))
-                .build();
-
-        // S3Presigner 초기화
-        s3Presigner = S3Presigner.builder()
-                .region(Region.of(region))
-                .credentialsProvider(StaticCredentialsProvider.create(credentials))
-                .build();
+  @BeforeEach
+  void setUp() throws IOException {
+    // Properties 클래스를 활용해서 .env에 정의한 AWS 정보를 로드
+    Properties properties = new Properties();
+    try (InputStream input = getClass().getClassLoader().getResourceAsStream(".env")) {
+      if (input != null) {
+        properties.load(input);
+      }
     }
 
-    @Test
-    @DisplayName("S3 업로드 테스트")
-    @EnabledIfEnvironmentVariable(named = "AWS_S3_ACCESS_KEY", matches = ".+")
-    void testUpload() {
-        // given
-        String key = "test-upload-file.txt";
-        String content = "Hello AWS S3!";
-        byte[] contentBytes = content.getBytes();
+    // 환경변수에서 AWS 정보 로드 (Properties에서 못 찾으면 시스템 환경변수 사용)
+    accessKey = properties.getProperty("AWS_S3_ACCESS_KEY", System.getenv("AWS_S3_ACCESS_KEY"));
+    secretKey = properties.getProperty("AWS_S3_SECRET_KEY", System.getenv("AWS_S3_SECRET_KEY"));
+    region = properties.getProperty("AWS_S3_REGION", System.getenv("AWS_S3_REGION"));
+    bucketName = properties.getProperty("AWS_S3_BUCKET", System.getenv("AWS_S3_BUCKET"));
 
-        // when
-        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                .bucket(bucketName)
-                .key(key)
-                .contentType("text/plain")
-                .build();
+    // AWS Credentials 설정
+    AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKey, secretKey);
 
-        s3Client.putObject(putObjectRequest, RequestBody.fromBytes(contentBytes));
+    // S3Client 초기화
+    s3Client = S3Client.builder()
+        .region(Region.of(region))
+        .credentialsProvider(StaticCredentialsProvider.create(credentials))
+        .build();
 
-        // then
-        HeadObjectRequest headObjectRequest = HeadObjectRequest.builder()
-                .bucket(bucketName)
-                .key(key)
-                .build();
+    // S3Presigner 초기화
+    s3Presigner = S3Presigner.builder()
+        .region(Region.of(region))
+        .credentialsProvider(StaticCredentialsProvider.create(credentials))
+        .build();
+  }
 
-        HeadObjectResponse headObjectResponse = s3Client.headObject(headObjectRequest);
+  @Test
+  @DisplayName("S3 버킷에 데이터를 업로드하면, HeadObject를 통해 정상 저장 여부 및 메타데이터(크기, 타입)를 확인할 수 있다")
+  @EnabledIfEnvironmentVariable(named = "AWS_S3_ACCESS_KEY", matches = ".+")
+  void testUpload() {
+    // given
+    String key = "test-upload-file.txt";
+    String content = "Hello AWS S3!";
+    byte[] contentBytes = content.getBytes();
 
-        assertThat(headObjectResponse.contentLength()).isEqualTo(contentBytes.length);
-        assertThat(headObjectResponse.contentType()).isEqualTo("text/plain");
+    // when
+    PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+        .bucket(bucketName)
+        .key(key)
+        .contentType("text/plain")
+        .build();
 
-        // cleanup
-        DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
-                .bucket(bucketName)
-                .key(key)
-                .build();
-        s3Client.deleteObject(deleteRequest);
-    }
+    s3Client.putObject(putObjectRequest, RequestBody.fromBytes(contentBytes));
 
-    @Test
-    @DisplayName("S3 다운로드 테스트")
-    @EnabledIfEnvironmentVariable(named = "AWS_S3_ACCESS_KEY", matches = ".+")
-    void testDownload() {
-        // given
-        String key = "test-download-file.txt";
-        String content = "Download Test Content";
-        byte[] contentBytes = content.getBytes();
+    // then
+    HeadObjectRequest headObjectRequest = HeadObjectRequest.builder()
+        .bucket(bucketName)
+        .key(key)
+        .build();
 
-        // 먼저 파일 업로드
-        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                .bucket(bucketName)
-                .key(key)
-                .contentType("text/plain")
-                .build();
+    HeadObjectResponse headObjectResponse = s3Client.headObject(headObjectRequest);
 
-        s3Client.putObject(putObjectRequest, RequestBody.fromBytes(contentBytes));
+    assertThat(headObjectResponse.contentLength()).isEqualTo(contentBytes.length);
+    assertThat(headObjectResponse.contentType()).isEqualTo("text/plain");
 
-        // when - 다운로드
-        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                .bucket(bucketName)
-                .key(key)
-                .build();
+    // cleanup
+    DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
+        .bucket(bucketName)
+        .key(key)
+        .build();
+    s3Client.deleteObject(deleteRequest);
+  }
 
-        ResponseBytes<GetObjectResponse> objectBytes = s3Client.getObjectAsBytes(getObjectRequest);
+  @Test
+  @DisplayName("S3 버킷에 저장된 객체를 다운로드하면, 원본 파일의 내용 및 콘텐츠 타입과 정확히 일치한다")
+  @EnabledIfEnvironmentVariable(named = "AWS_S3_ACCESS_KEY", matches = ".+")
+  void testDownload() {
+    // given
+    String key = "test-download-file.txt";
+    String content = "Download Test Content";
+    byte[] contentBytes = content.getBytes();
 
-        // then
-        String downloadedContent = objectBytes.asUtf8String();
-        assertThat(downloadedContent).isEqualTo(content);
-        assertThat(objectBytes.response().contentType()).isEqualTo("text/plain");
+    // 먼저 파일 업로드
+    PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+        .bucket(bucketName)
+        .key(key)
+        .contentType("text/plain")
+        .build();
 
-        // cleanup
-        DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
-                .bucket(bucketName)
-                .key(key)
-                .build();
-        s3Client.deleteObject(deleteRequest);
-    }
+    s3Client.putObject(putObjectRequest, RequestBody.fromBytes(contentBytes));
 
-    @Test
-    @DisplayName("PresignedUrl 생성 테스트")
-    @EnabledIfEnvironmentVariable(named = "AWS_S3_ACCESS_KEY", matches = ".+")
-    void testGeneratePresignedUrl() {
-        // given
-        String key = "test-presigned-url-file.txt";
-        String content = "Presigned URL Test Content";
-        byte[] contentBytes = content.getBytes();
+    // when - 다운로드
+    GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+        .bucket(bucketName)
+        .key(key)
+        .build();
 
-        // 먼저 파일 업로드
-        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                .bucket(bucketName)
-                .key(key)
-                .contentType("text/plain")
-                .build();
+    ResponseBytes<GetObjectResponse> objectBytes = s3Client.getObjectAsBytes(getObjectRequest);
 
-        s3Client.putObject(putObjectRequest, RequestBody.fromBytes(contentBytes));
+    // then
+    String downloadedContent = objectBytes.asUtf8String();
+    assertThat(downloadedContent).isEqualTo(content);
+    assertThat(objectBytes.response().contentType()).isEqualTo("text/plain");
 
-        // when - Presigned URL 생성
-        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                .bucket(bucketName)
-                .key(key)
-                .build();
+    // cleanup
+    DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
+        .bucket(bucketName)
+        .key(key)
+        .build();
+    s3Client.deleteObject(deleteRequest);
+  }
 
-        GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-                .signatureDuration(Duration.ofMinutes(10))
-                .getObjectRequest(getObjectRequest)
-                .build();
+  @Test
+  @DisplayName("S3 객체에 대한 Presigned URL을 생성하면, 버킷명, 키, 서명(Signature) 정보가 포함된 유효한 접근 URL이 반환된다")
+  @EnabledIfEnvironmentVariable(named = "AWS_S3_ACCESS_KEY", matches = ".+")
+  void testGeneratePresignedUrl() {
+    // given
+    String key = "test-presigned-url-file.txt";
+    String content = "Presigned URL Test Content";
+    byte[] contentBytes = content.getBytes();
 
-        PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(presignRequest);
+    // 먼저 파일 업로드
+    PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+        .bucket(bucketName)
+        .key(key)
+        .contentType("text/plain")
+        .build();
 
-        // then
-        assertThat(presignedRequest.url()).isNotNull();
-        assertThat(presignedRequest.url().toString()).contains(bucketName);
-        assertThat(presignedRequest.url().toString()).contains(key);
-        assertThat(presignedRequest.url().toString()).contains("X-Amz-Signature");
+    s3Client.putObject(putObjectRequest, RequestBody.fromBytes(contentBytes));
 
-        System.out.println("Generated Presigned URL: " + presignedRequest.url());
+    // when - Presigned URL 생성
+    GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+        .bucket(bucketName)
+        .key(key)
+        .build();
 
-        // cleanup
-        DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
-                .bucket(bucketName)
-                .key(key)
-                .build();
-        s3Client.deleteObject(deleteRequest);
-    }
+    GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+        .signatureDuration(Duration.ofMinutes(10))
+        .getObjectRequest(getObjectRequest)
+        .build();
+
+    PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(presignRequest);
+
+    // then
+    assertThat(presignedRequest.url()).isNotNull();
+    assertThat(presignedRequest.url().toString()).contains(bucketName);
+    assertThat(presignedRequest.url().toString()).contains(key);
+    assertThat(presignedRequest.url().toString()).contains("X-Amz-Signature");
+
+    System.out.println("Generated Presigned URL: " + presignedRequest.url());
+
+    // cleanup
+    DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
+        .bucket(bucketName)
+        .key(key)
+        .build();
+    s3Client.deleteObject(deleteRequest);
+  }
 }
