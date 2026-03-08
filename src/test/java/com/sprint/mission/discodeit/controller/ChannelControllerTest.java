@@ -49,7 +49,7 @@ class ChannelControllerTest extends ControllerTestSupport {
   void createPublic_Fail_InvalidInput() throws Exception {
     // given
     PublicChannelCreateRequest request = new PublicChannelCreateRequest("", "Desc"); // 이름 없음
-
+ 
     // when & then
     mockMvc.perform(post("/api/channels/public")
             .contentType(MediaType.APPLICATION_JSON)
