@@ -29,38 +29,20 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequ
 @ConditionalOnProperty(name = "discodeit.storage.type", havingValue = "s3")
 public class S3BinaryContentStorage implements BinaryContentStorage {
 
-  private static final String ACCESS_KEY = "${discodeit.storage.s3.access-key}";
-  private static final String SECRET_KEY = "${discodeit.storage.s3.secret-key}";
-  private static final String REGION = "${discodeit.storage.s3.region}";
-  private static final String BUCKET = "${discodeit.storage.s3.bucket}";
-  private static final String PRESIGNED_URL_EXPIRATION = "${discodeit.storage.s3.presigned-url-expiration}";
+  private final S3Properties s3Properties;
 
-  private final String accessKey;
-  private final String secretKey;
-  private final String region;
-  private final String bucket;
-  private final int presignedUrlExpiration; // 초단위
-
-  // 생성자 의존성 주입
-  public S3BinaryContentStorage(@Value(ACCESS_KEY) String accessKey,
-      @Value(SECRET_KEY) String secretKey,
-      @Value(REGION) String region,
-      @Value(BUCKET) String bucket,
-      @Value(PRESIGNED_URL_EXPIRATION) int presignedUrlExpiration
-  ) {
-    this.accessKey = accessKey;
-    this.secretKey = secretKey;
-    this.region = region;
-    this.bucket = bucket;
-    this.presignedUrlExpiration = presignedUrlExpiration;
-
+  public S3BinaryContentStorage(S3Properties s3Properties) {
+    this.s3Properties = s3Properties;
   }
 
   private S3Client getS3Client() {
-    AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKey, secretKey);
+    AwsBasicCredentials credentials = AwsBasicCredentials.create(
+        s3Properties.accessKey(),
+        s3Properties.secretKey()
+    );
 
     return S3Client.builder()
-        .region(Region.of(region))
+        .region(Region.of(s3Properties.region()))
         .credentialsProvider(StaticCredentialsProvider.create(credentials))
         .build();
   }
@@ -72,7 +54,7 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
 
     try {
       PutObjectRequest putRequest = PutObjectRequest.builder()
-          .bucket(bucket)
+          .bucket(s3Properties.bucket())
           .key(id.toString())
           .build();
 
@@ -90,7 +72,7 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
 
     try {
       GetObjectRequest getRequest = GetObjectRequest.builder()
-          .bucket(bucket)
+          .bucket(s3Properties.bucket())
           .key(id.toString())
           .build();
 
@@ -116,22 +98,25 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
 
   // generatePresignedUrl 메소드
   private String generatePresignedUrl(String key, String contentType) {
-    AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKey, secretKey);
+    AwsBasicCredentials credentials = AwsBasicCredentials.create(
+        s3Properties.accessKey(),
+        s3Properties.secretKey()
+    );
 
     S3Presigner presigner = S3Presigner.builder()
-        .region(Region.of(region))
+        .region(Region.of(s3Properties.region()))
         .credentialsProvider(StaticCredentialsProvider.create(credentials))
         .build();
 
     try {
       GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-          .bucket(bucket)
+          .bucket(s3Properties.bucket())
           .key(key)
           .responseContentType(contentType)
           .build();
 
       GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-          .signatureDuration(Duration.ofSeconds(presignedUrlExpiration))
+          .signatureDuration(Duration.ofSeconds(s3Properties.presignedUrlExpiration()))
           .getObjectRequest(getObjectRequest)
           .build();
 

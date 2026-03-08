@@ -20,31 +20,20 @@ import software.amazon.awssdk.services.s3.S3Client;
 public class S3BinaryContentStorageTest {
 
   private S3BinaryContentStorage storage;
-
-  // 환경변수에서 가져옴
-  private String accessKey;
-  private String secretKey;
-  private String region;
-  private String bucket;
-  private int presignedUrlExpiration;
+  private S3Properties s3Properties;
 
   @BeforeEach
   void setUp() {
     // 환경변수 로드
-    accessKey = System.getenv("AWS_S3_ACCESS_KEY");
-    secretKey = System.getenv("AWS_S3_SECRET_KEY");
-    region = System.getenv("AWS_S3_REGION");
-    bucket = System.getenv("AWS_S3_BUCKET");
-    presignedUrlExpiration = 600;
-
-    // S3BinaryContentStorage 초기화
-    storage = new S3BinaryContentStorage(
-        accessKey,
-        secretKey,
-        region,
-        bucket,
-        presignedUrlExpiration
+    s3Properties = new S3Properties(
+        System.getenv("AWS_S3_ACCESS_KEY"),
+        System.getenv("AWS_S3_SECRET_KEY"),
+        System.getenv("AWS_S3_REGION"),
+        System.getenv("AWS_S3_BUCKET"),
+        600
     );
+
+    storage = new S3BinaryContentStorage(s3Properties);
   }
 
   @Test
@@ -111,7 +100,7 @@ public class S3BinaryContentStorageTest {
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
     assertThat(response.getHeaders().getLocation()).isNotNull();
     assertThat(response.getHeaders().getLocation().toString())
-        .contains(bucket)
+        .contains(s3Properties.bucket())
         .contains(id.toString())
         .contains("X-Amz-Signature");
 
@@ -122,16 +111,19 @@ public class S3BinaryContentStorageTest {
   }
 
   private void deleteFromS3(UUID id) {
-    AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKey, secretKey);
+    AwsBasicCredentials credentials = AwsBasicCredentials.create(
+        s3Properties.accessKey(),
+        s3Properties.secretKey()
+    );
 
     S3Client s3Client = S3Client.builder()
-        .region(Region.of(region))
+        .region(Region.of(s3Properties.region()))
         .credentialsProvider(StaticCredentialsProvider.create(credentials))
         .build();
 
     try {
       s3Client.deleteObject(builder -> builder
-          .bucket(bucket)
+          .bucket(s3Properties.bucket())
           .key(id.toString()));
     } finally {
       s3Client.close();
