@@ -24,6 +24,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +39,9 @@ public class BasicUserService implements UserService {
   private final BinaryContentService binaryContentService;
   private final UserMapper userMapper;
 
+  // PasswordEncoder 주입
+  private final PasswordEncoder passwordEncoder;
+
   @Override
   @Transactional
   public UserResponse create(UserCreateRequest request) {
@@ -51,10 +55,13 @@ public class BasicUserService implements UserService {
       throw new UserException(UserErrorCode.DUPLICATE_EMAIL);
     }
 
+    // 평문 비밀번호 암호화
+    String encodedPassword = passwordEncoder.encode(request.password());
+
     User user = new User(
         request.username(),
         request.email(),
-        request.password()
+        encodedPassword
     );
 
     if (request.profile() != null) {
