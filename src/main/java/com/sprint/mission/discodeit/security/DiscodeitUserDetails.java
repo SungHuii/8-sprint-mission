@@ -1,7 +1,6 @@
 package com.sprint.mission.discodeit.security;
 
 import com.sprint.mission.discodeit.dto.user.UserResponse;
-import com.sprint.mission.discodeit.entity.enums.Role;
 import java.util.Collection;
 import java.util.List;
 import lombok.Getter;
