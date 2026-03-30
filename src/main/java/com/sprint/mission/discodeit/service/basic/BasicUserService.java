@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.user.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.user.UserResponse;
+import com.sprint.mission.discodeit.dto.user.UserRoleUpdateRequest;
 import com.sprint.mission.discodeit.dto.user.UserSummaryResponse;
 import com.sprint.mission.discodeit.dto.user.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
@@ -173,6 +174,18 @@ public class BasicUserService implements UserService {
 
     log.info("유저 정보 수정 완료 : userId={}", updated.getId());
     return userMapper.toUserResponse(updated, online);
+  }
+
+  @Override
+  @Transactional
+  public UserResponse updateUserRole(UserRoleUpdateRequest request) {
+
+    User user = userRepository.findById(request.userId())
+        .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
+
+    user.updateRole(request.newRole());
+
+    return userMapper.toUserResponse(user, false);
   }
 
   @Override

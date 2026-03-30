@@ -53,11 +53,14 @@ public class SecurityConfig {
                 .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
         )
         // 최소한의 권한 설정 추가
-        .authorizeHttpRequests(auth -> auth
-            // 토큰 발급, 회원가입, 그리고 로그인 API는 누구나 접근 가능해야 함
-            .requestMatchers("/api/auth/csrf-token", "/api/users", "/api/auth/login").permitAll()
-            // 그 외의 요청은 인증 필요
-            .anyRequest().authenticated()
+        .authorizeHttpRequests(auth ->
+            auth
+                .requestMatchers("/", "/index.html").permitAll()
+                // 토큰 발급, 회원가입, 그리고 로그인 API는 누구나 접근 가능해야 함
+                .requestMatchers("/api/auth/csrf-token", "/api/users", "/api/auth/login")
+                .permitAll()
+                // 그 외의 요청은 인증 필요
+                .anyRequest().authenticated()
         )
         .build();
   }
@@ -74,6 +77,6 @@ public class SecurityConfig {
         // 브라우저 기본 요청 및 에러 페이지
         .requestMatchers("/favicon.ico", "/error")
         // 정적 리소스
-        .requestMatchers("/static/**", "/css/**", "/js/**", "/images/**");
+        .requestMatchers("/static/**", "/css/**", "/js/**", "/images/**", "/assets/**");
   }
 }

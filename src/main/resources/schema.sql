@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS users
     email      VARCHAR(100)             NOT NULL UNIQUE,
     password   VARCHAR(60)              NOT NULL,
     profile_id uuid UNIQUE,
+    role       varchar(20)              NOT NULL DEFAULT 'USER',
     CONSTRAINT fk_users_profile FOREIGN KEY (profile_id) REFERENCES binary_contents (id) ON DELETE SET NULL
 );
 
