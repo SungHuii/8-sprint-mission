@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.config;
 
 import com.sprint.mission.discodeit.config.csrf.SpaCsrfTokenRequestHandler;
+import com.sprint.mission.discodeit.security.DiscodeitUserDetailsService;
 import com.sprint.mission.discodeit.security.LoginFailureHandler;
 import com.sprint.mission.discodeit.security.LoginSuccessHandler;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +35,8 @@ public class SecurityConfig {
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http, LoginSuccessHandler loginSuccessHandler,
       LoginFailureHandler loginFailureHandler,
-      SessionRegistry sessionRegistry) throws Exception {
+      SessionRegistry sessionRegistry,
+      DiscodeitUserDetailsService discodeitUserDetailsService) throws Exception {
     return http
         // csrf 설정
         .csrf(csrf ->
@@ -54,6 +56,26 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/actuator/**").permitAll()
                 // 그 외의 요청은 인증 필요
                 .anyRequest().authenticated()
+        )
+        // 세션 관리 설정
+        .sessionManagement(management ->
+            management
+                .sessionConcurrency(concurrency ->
+                    concurrency
+                        .maximumSessions(1) // 동시 세션 1개만 허용
+                        .maxSessionsPreventsLogin(
+                            false) // 새로 로그인 시 -> true : 새 로그인 차단, false : 기존 세션 만료
+                        .sessionRegistry(sessionRegistry)
+                )
+        )
+        // Remember-me 설정
+        .rememberMe(rememberMe ->
+            rememberMe
+                // 고정 키 설정
+                .key("discodeit-remember-me-key")
+                // 7일 유지 설정
+                .tokenValiditySeconds(7 * 24 * 60 * 60)
+                .userDetailsService(discodeitUserDetailsService)
         )
         // formLogin 설정
         .formLogin(form ->
@@ -79,16 +101,6 @@ public class SecurityConfig {
                 .accessDeniedHandler((request, response, accessDeniedException) -> {
                   response.setStatus(HttpStatus.FORBIDDEN.value());
                 })
-        )
-        .sessionManagement(management ->
-            management
-                .sessionConcurrency(concurrency ->
-                    concurrency
-                        .maximumSessions(1) // 동시 세션 1개만 허용
-                        .maxSessionsPreventsLogin(
-                            false) // 새로 로그인 시 -> true : 새 로그인 차단, false : 기존 세션 만료
-                        .sessionRegistry(sessionRegistry)
-                )
         )
         .build();
   }
