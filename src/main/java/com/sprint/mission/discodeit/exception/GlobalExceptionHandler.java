@@ -1,11 +1,14 @@
 package com.sprint.mission.discodeit.exception;
 
 import com.sprint.mission.discodeit.dto.error.ErrorResponse;
+import com.sprint.mission.discodeit.exception.enums.AuthErrorCode;
 import com.sprint.mission.discodeit.exception.enums.CommonErrorCode;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -53,6 +56,16 @@ public class GlobalExceptionHandler {
     );
 
     return ResponseEntity.status(response.status()).body(response);
+  }
+
+  @ExceptionHandler(AccessDeniedException.class)
+  public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException e) {
+    log.warn("[AUTH] Access denied: {}", e.getMessage());
+
+    ErrorResponse response = ErrorResponse.of(AuthErrorCode.ACCESS_DENIED,
+        e.getClass().getSimpleName());
+
+    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
   }
 
   // 그 외 위 예외에 걸리지 않는 모든 예외에 대해 500 에러 반환

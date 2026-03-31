@@ -27,6 +27,7 @@ import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,6 +52,7 @@ public class BasicChannelService implements ChannelService {
   private final UserMapper userMapper;
 
   @Override
+  @PreAuthorize("hasRole('CHANNEL_MANAGER')")
   @Transactional
   public ChannelResponse createPublic(PublicChannelCreateRequest request) {
     validatePublicCreateRequest(request);
@@ -123,6 +125,7 @@ public class BasicChannelService implements ChannelService {
   }
 
   @Override
+  @PreAuthorize("hasRole('CHANNEL_MANAGER')")
   @Transactional
   public ChannelResponse update(UUID channelId, ChannelUpdateRequest request) {
     validateUpdateRequest(channelId, request);
@@ -147,6 +150,7 @@ public class BasicChannelService implements ChannelService {
   }
 
   @Override
+  @PreAuthorize("hasRole('CHANNEL_MANAGER')")
   @Transactional
   public void deleteById(UUID channelId) {
     if (channelId == null) {
@@ -201,7 +205,8 @@ public class BasicChannelService implements ChannelService {
       throw new DiscodeitException(CommonErrorCode.INVALID_INPUT_VALUE, "요청이 null입니다.");
     }
     if (request.participantIds() == null || request.participantIds().isEmpty()) {
-      throw new DiscodeitException(CommonErrorCode.INVALID_INPUT_VALUE, "participantIds는 필수이며 비어 있을 수 없습니다.");
+      throw new DiscodeitException(CommonErrorCode.INVALID_INPUT_VALUE,
+          "participantIds는 필수이며 비어 있을 수 없습니다.");
     }
   }
 
