@@ -10,19 +10,15 @@ import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.exception.DiscodeitException;
 import com.sprint.mission.discodeit.exception.enums.CommonErrorCode;
 import com.sprint.mission.discodeit.exception.enums.UserErrorCode;
-import com.sprint.mission.discodeit.exception.enums.UserStatusErrorCode;
 import com.sprint.mission.discodeit.exception.user.UserException;
-import com.sprint.mission.discodeit.exception.userstatus.UserStatusException;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.security.DiscodeitUserDetails;
 import com.sprint.mission.discodeit.service.AuthService;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.service.UserService;
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -98,8 +94,6 @@ public class BasicUserService implements UserService {
     List<User> users = userRepository.findAllWithProfile();
     log.debug("전체 유저 요약 조회 요청");
 
-    Instant now = Instant.now();
-
     return users.stream()
         .map(user ->
             userMapper.toUserSummaryResponse(user, isOnline(user.getId()))
@@ -109,6 +103,8 @@ public class BasicUserService implements UserService {
 
   @Override
   @Transactional
+  // 사용자 정보 수정은 본인만 가능
+  @PreAuthorize("@userSecurity.isOwner(authentication, #userId)")
   public UserResponse update(UUID userId, UserUpdateRequest request) {
     validateUpdateRequest(userId, request);
     log.info("유저 정보 수정 요청 : userId={}", userId);
@@ -165,6 +161,8 @@ public class BasicUserService implements UserService {
 
   @Override
   @Transactional
+  // 사용자 정보 삭제는 본인만 가능
+  @PreAuthorize("@userSecurity.isOwner(authentication, #userId)")
   public void deleteById(UUID userId) {
     if (userId == null) {
       throw new DiscodeitException(CommonErrorCode.INVALID_INPUT_VALUE, "userId는 필수입니다.");
