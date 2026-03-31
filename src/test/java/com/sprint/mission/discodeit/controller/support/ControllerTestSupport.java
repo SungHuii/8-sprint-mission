@@ -13,14 +13,12 @@ import com.sprint.mission.discodeit.mapper.ChannelMapper;
 import com.sprint.mission.discodeit.mapper.MessageMapper;
 import com.sprint.mission.discodeit.mapper.ReadStatusMapper;
 import com.sprint.mission.discodeit.mapper.UserMapper;
-import com.sprint.mission.discodeit.mapper.UserStatusMapper;
 import com.sprint.mission.discodeit.service.AuthService;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.ReadStatusService;
 import com.sprint.mission.discodeit.service.UserService;
-import com.sprint.mission.discodeit.service.UserStatusService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -52,9 +50,6 @@ public abstract class ControllerTestSupport {
   protected UserService userService;
 
   @MockitoBean
-  protected UserStatusService userStatusService;
-
-  @MockitoBean
   protected ChannelService channelService;
 
   @MockitoBean
@@ -78,9 +73,6 @@ public abstract class ControllerTestSupport {
 
   @MockitoBean
   protected MessageMapper messageMapper;
-
-  @MockitoBean
-  protected UserStatusMapper userStatusMapper;
 
   @MockitoBean
   protected ReadStatusMapper readStatusMapper;

@@ -15,12 +15,15 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 @Configuration
 @EnableWebSecurity
@@ -30,7 +33,8 @@ public class SecurityConfig {
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http, LoginSuccessHandler loginSuccessHandler,
-      LoginFailureHandler loginFailureHandler) throws Exception {
+      LoginFailureHandler loginFailureHandler,
+      SessionRegistry sessionRegistry) throws Exception {
     return http
         // csrf 설정
         .csrf(csrf ->
@@ -76,6 +80,16 @@ public class SecurityConfig {
                   response.setStatus(HttpStatus.FORBIDDEN.value());
                 })
         )
+        .sessionManagement(management ->
+            management
+                .sessionConcurrency(concurrency ->
+                    concurrency
+                        .maximumSessions(1) // 동시 세션 1개만 허용
+                        .maxSessionsPreventsLogin(
+                            false) // 새로 로그인 시 -> true : 새 로그인 차단, false : 기존 세션 만료
+                        .sessionRegistry(sessionRegistry)
+                )
+        )
         .build();
   }
 
@@ -109,5 +123,16 @@ public class SecurityConfig {
     DefaultMethodSecurityExpressionHandler handler = new DefaultMethodSecurityExpressionHandler();
     handler.setRoleHierarchy(roleHierarchy);
     return handler;
+  }
+
+  @Bean
+  public SessionRegistry sessionRegistry() {
+    return new SessionRegistryImpl();
+  }
+
+  // 세션이 만료될 때 SessionRegistry에도 자동 반영
+  @Bean
+  public HttpSessionEventPublisher httpSessionEventPublisher() {
+    return new HttpSessionEventPublisher();
   }
 }

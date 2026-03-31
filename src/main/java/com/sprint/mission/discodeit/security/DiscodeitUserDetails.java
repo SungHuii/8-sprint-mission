@@ -50,4 +50,20 @@ public class DiscodeitUserDetails implements UserDetails {
   public boolean isEnabled() {
     return true;
   }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof DiscodeitUserDetails other)) {
+      return false;
+    }
+    return this.userResponse.id().equals(other.userResponse.id());
+  }
+
+  @Override
+  public int hashCode() {
+    return this.userResponse.id().hashCode();
+  }
 }

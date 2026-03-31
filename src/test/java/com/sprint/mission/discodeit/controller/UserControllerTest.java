@@ -12,6 +12,7 @@ import com.sprint.mission.discodeit.controller.support.ControllerTestSupport;
 import com.sprint.mission.discodeit.dto.user.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.user.UserResponse;
 import com.sprint.mission.discodeit.dto.user.UserUpdateRequest;
+import com.sprint.mission.discodeit.entity.enums.Role;
 import com.sprint.mission.discodeit.exception.enums.UserErrorCode;
 import com.sprint.mission.discodeit.exception.user.UserException;
 import java.nio.charset.StandardCharsets;
@@ -31,7 +32,7 @@ class UserControllerTest extends ControllerTestSupport {
     UserCreateRequest request = new UserCreateRequest("test@test.com", "testuser", "password",
         null);
     UserResponse response = new UserResponse(UUID.randomUUID(), "testuser", "test@test.com", null,
-        true);
+        true, Role.USER);
 
     MockMultipartFile requestPart = new MockMultipartFile(
         "userCreateRequest",
@@ -80,7 +81,8 @@ class UserControllerTest extends ControllerTestSupport {
     // given
     UUID userId = UUID.randomUUID();
     UserUpdateRequest request = new UserUpdateRequest("newUsername", null, null, null);
-    UserResponse response = new UserResponse(userId, "newUsername", "test@test.com", null, true);
+    UserResponse response = new UserResponse(userId, "newUsername", "test@test.com", null, true,
+        Role.USER);
 
     MockMultipartFile requestPart = new MockMultipartFile(
         "userUpdateRequest",

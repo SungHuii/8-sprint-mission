@@ -9,7 +9,6 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.entity.enums.ChannelType;
 import com.sprint.mission.discodeit.exception.DiscodeitException;
 import com.sprint.mission.discodeit.exception.channel.ChannelException;
@@ -23,11 +22,12 @@ import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.repository.UserStatusRepository;
+import com.sprint.mission.discodeit.security.DiscodeitUserDetails;
 import com.sprint.mission.discodeit.service.ChannelService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,9 +47,9 @@ public class BasicChannelService implements ChannelService {
   private final MessageRepository messageRepository;
   private final ReadStatusRepository readStatusRepository;
   private final UserRepository userRepository;
-  private final UserStatusRepository userStatusRepository;
   private final ChannelMapper channelMapper;
   private final UserMapper userMapper;
+  private final SessionRegistry sessionRegistry;
 
   @Override
   @PreAuthorize("hasRole('CHANNEL_MANAGER')")
@@ -164,6 +164,14 @@ public class BasicChannelService implements ChannelService {
     channelRepository.deleteById(channelId);
   }
 
+  private boolean isOnline(UUID userId) {
+    return sessionRegistry.getAllPrincipals().stream()
+        .filter(principal -> principal instanceof DiscodeitUserDetails userDetails
+            && userDetails.getUserResponse().id().equals(userId))
+        .flatMap(principal -> sessionRegistry.getAllSessions(principal, false).stream())
+        .anyMatch(session -> !session.isExpired());
+  }
+
   private ChannelResponse toChannelResponse(Channel channel) {
     Instant lastMessageAt = findLastMessageAt(channel.getId());
     List<UserSummaryResponse> participants = findParticipants(channel);
@@ -179,15 +187,12 @@ public class BasicChannelService implements ChannelService {
 
   private List<UserSummaryResponse> findParticipants(Channel channel) {
     List<ReadStatus> readStatuses = channel.getReadStatuses();
-    Instant now = Instant.now();
 
     return readStatuses.stream()
         .map(ReadStatus::getUser)
-        .map(user -> {
-          UserStatus status = userStatusRepository.findByUserId(user.getId()).orElse(null);
-          boolean isOnline = status != null && status.isOnline(now);
-          return userMapper.toUserSummaryResponse(user, isOnline);
-        })
+        .map(user ->
+            userMapper.toUserSummaryResponse(user, isOnline(user.getId()))
+        )
         .toList();
   }
 

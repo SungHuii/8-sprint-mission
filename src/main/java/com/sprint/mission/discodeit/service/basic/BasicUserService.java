@@ -7,7 +7,6 @@ import com.sprint.mission.discodeit.dto.user.UserSummaryResponse;
 import com.sprint.mission.discodeit.dto.user.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.exception.DiscodeitException;
 import com.sprint.mission.discodeit.exception.enums.CommonErrorCode;
 import com.sprint.mission.discodeit.exception.enums.UserErrorCode;
@@ -16,7 +15,8 @@ import com.sprint.mission.discodeit.exception.user.UserException;
 import com.sprint.mission.discodeit.exception.userstatus.UserStatusException;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.repository.UserStatusRepository;
+import com.sprint.mission.discodeit.security.DiscodeitUserDetails;
+import com.sprint.mission.discodeit.service.AuthService;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.service.UserService;
 import java.time.Instant;
@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,12 +38,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class BasicUserService implements UserService {
 
   private final UserRepository userRepository;
-  private final UserStatusRepository userStatusRepository;
   private final BinaryContentService binaryContentService;
   private final UserMapper userMapper;
 
   // PasswordEncoder 주입
   private final PasswordEncoder passwordEncoder;
+
+  private final AuthService authService;
+  private final SessionRegistry sessionRegistry;
 
   @Override
   @Transactional
@@ -73,8 +76,6 @@ public class BasicUserService implements UserService {
 
     User savedUser = userRepository.save(user);
 
-    Instant now = Instant.now();
-    userStatusRepository.save(new UserStatus(savedUser, now));
     log.info("회원가입 완료: userId={}", savedUser.getId());
 
     return userMapper.toUserResponse(savedUser, true);
@@ -83,52 +84,26 @@ public class BasicUserService implements UserService {
   @Override
   public List<UserResponse> findAll() {
     List<User> users = userRepository.findAllWithProfile();
-    List<UserStatus> userStatuses = userStatusRepository.findAll();
     log.debug("전체 유저 조회 요청");
 
-    var statusMap = userStatuses.stream()
-        .collect(Collectors.toMap(
-            s -> s.getUser().getId(),
-            s -> s,
-            (a, b) -> a
-        ));
-
-    Instant now = Instant.now();
-
     return users.stream()
-        .map(user -> {
-          UserStatus status = statusMap.get(user.getId());
-          if (status == null) {
-            throw new UserStatusException(UserStatusErrorCode.USER_STATUS_NOT_FOUND);
-          }
-          return userMapper.toUserResponse(user, status.isOnline(now));
-        })
+        .map(user ->
+            userMapper.toUserResponse(user, isOnline(user.getId()))
+        )
         .toList();
   }
 
   @Override
   public List<UserSummaryResponse> findAllUserSummaries() {
     List<User> users = userRepository.findAllWithProfile();
-    List<UserStatus> userStatuses = userStatusRepository.findAll();
     log.debug("전체 유저 요약 조회 요청");
-
-    var statusMap = userStatuses.stream()
-        .collect(Collectors.toMap(
-            s -> s.getUser().getId(),
-            s -> s,
-            (a, b) -> a
-        ));
 
     Instant now = Instant.now();
 
     return users.stream()
-        .map(user -> {
-          UserStatus status = statusMap.get(user.getId());
-          if (status == null) {
-            throw new UserStatusException(UserStatusErrorCode.USER_STATUS_NOT_FOUND);
-          }
-          return userMapper.toUserSummaryResponse(user, status.isOnline(now));
-        })
+        .map(user ->
+            userMapper.toUserSummaryResponse(user, isOnline(user.getId()))
+        )
         .toList();
   }
 
@@ -168,13 +143,8 @@ public class BasicUserService implements UserService {
 
     User updated = userRepository.save(user);
 
-    UserStatus status = userStatusRepository.findByUserId(updated.getId())
-        .orElseThrow(() -> new UserStatusException(UserStatusErrorCode.USER_STATUS_NOT_FOUND));
-
-    boolean online = status.isOnline(Instant.now());
-
     log.info("유저 정보 수정 완료 : userId={}", updated.getId());
-    return userMapper.toUserResponse(updated, online);
+    return userMapper.toUserResponse(updated, isOnline(updated.getId()));
   }
 
   @Override
@@ -186,6 +156,9 @@ public class BasicUserService implements UserService {
         .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
 
     user.updateRole(request.newRole());
+
+    // 변경 후 세션 무효화
+    authService.invalidateUserSessions(request.userId());
 
     return userMapper.toUserResponse(user, false);
   }
@@ -199,6 +172,14 @@ public class BasicUserService implements UserService {
     log.info("유저 삭제 요청 : userId={}", userId);
 
     userRepository.deleteById(userId);
+  }
+
+  private boolean isOnline(UUID userId) {
+    return sessionRegistry.getAllPrincipals().stream()
+        .filter(principal -> principal instanceof DiscodeitUserDetails userDetails
+            && userDetails.getUserResponse().id().equals(userId))
+        .flatMap(principal -> sessionRegistry.getAllSessions(principal, false).stream())
+        .anyMatch(session -> !session.isExpired());
   }
 
   private void validateCreateRequest(UserCreateRequest request) {

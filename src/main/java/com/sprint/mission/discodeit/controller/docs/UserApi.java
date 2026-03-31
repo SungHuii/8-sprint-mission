@@ -4,8 +4,6 @@ import com.sprint.mission.discodeit.dto.user.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.user.UserResponse;
 import com.sprint.mission.discodeit.dto.user.UserSummaryResponse;
 import com.sprint.mission.discodeit.dto.user.UserUpdateRequest;
-import com.sprint.mission.discodeit.dto.userstatus.UserStatusResponse;
-import com.sprint.mission.discodeit.dto.userstatus.UserStatusUpdatePayload;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -13,15 +11,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.multipart.MultipartFile;
 
 @Tag(name = "User", description = "사용자 관리 API")
 public interface UserApi {
@@ -65,15 +61,5 @@ public interface UserApi {
   })
   ResponseEntity<Void> delete(
       @Parameter(description = "사용자 ID", required = true) @PathVariable UUID userId
-  );
-
-  @Operation(summary = "사용자 상태 업데이트", description = "사용자의 상태(마지막 활동 시간)를 업데이트합니다.")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "업데이트 성공"),
-      @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음", content = @Content)
-  })
-  ResponseEntity<UserStatusResponse> updateStatus(
-      @Parameter(description = "사용자 ID", required = true) @PathVariable UUID userId,
-      @RequestBody UserStatusUpdatePayload payload
   );
 }
