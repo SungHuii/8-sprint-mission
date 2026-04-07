@@ -23,6 +23,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   private final JwtTokenProvider jwtTokenProvider;
   private final UserDetailsService userDetailsService;
+  private final JwtRegistry jwtRegistry;
 
   @Override
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -40,7 +41,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     String token = authHeader.substring(7);
 
     // 토큰 유효성 검증
-    if (jwtTokenProvider.validateToken(token)) {
+    if (jwtTokenProvider.validateToken(token)
+        && jwtRegistry.hasActiveJwtInformationByAccessToken(token)) {
       // 유효하면 username 추출해서 유저 정보 DB 조회
       String username = jwtTokenProvider.extractUsername(token);
       UserDetails userDetails = userDetailsService.loadUserByUsername(username);

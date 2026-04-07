@@ -2,11 +2,14 @@ package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.auth.JwtDto;
 import com.sprint.mission.discodeit.dto.auth.TokenRefreshResult;
+import com.sprint.mission.discodeit.dto.user.UserResponse;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.exception.DiscodeitException;
 import com.sprint.mission.discodeit.exception.enums.AuthErrorCode;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.security.JwtInformation;
+import com.sprint.mission.discodeit.security.JwtRegistry;
 import com.sprint.mission.discodeit.security.JwtTokenProvider;
 import com.sprint.mission.discodeit.service.AuthService;
 import java.util.UUID;
@@ -24,12 +27,18 @@ public class BasicAuthService implements AuthService {
   private final UserRepository userRepository;
   private final UserMapper userMapper;
   private final JwtTokenProvider jwtTokenProvider;
+  private final JwtRegistry jwtRegistry;
 
   @Override
   public TokenRefreshResult refresh(String refreshToken) {
 
     // 유효성 검사
     if (!jwtTokenProvider.validateToken(refreshToken)) {
+      throw new DiscodeitException(AuthErrorCode.INVALID_TOKEN);
+    }
+
+    // Registry에 존재하는지 검사 (로그아웃된 토큰 차단)
+    if (!jwtRegistry.hasActiveJwtInformationByRefreshToken(refreshToken)) {
       throw new DiscodeitException(AuthErrorCode.INVALID_TOKEN);
     }
 
@@ -42,9 +51,17 @@ public class BasicAuthService implements AuthService {
     String newAccessToken = jwtTokenProvider.generateAccessToken(userId, user.getUsername());
     String newRefreshToken = jwtTokenProvider.generateRefreshToken(userId);
 
-    JwtDto jwtDto = new JwtDto(userMapper.toUserResponse(user, false), newAccessToken);
+    // Registry에서 Rotation 돌리기
+    UserResponse userResponse = userMapper.toUserResponse(user, isOnline(userId));
+    JwtInformation newJwtInfo = new JwtInformation(userResponse, newAccessToken, newRefreshToken);
+    jwtRegistry.rotateJwtInformation(refreshToken, newJwtInfo);
+
+    JwtDto jwtDto = new JwtDto(userMapper.toUserResponse(user, isOnline(userId)), newAccessToken);
 
     return new TokenRefreshResult(jwtDto, newRefreshToken);
   }
 
+  private boolean isOnline(UUID userId) {
+    return jwtRegistry.hasActiveJwtInformationByUserId(userId);
+  }
 }

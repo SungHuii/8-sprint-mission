@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.security;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Arrays;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 public class JwtLogoutHandler implements LogoutHandler {
 
   private final JwtTokenProvider jwtTokenProvider;
+  private final JwtRegistry jwtRegistry;
 
   @Override
   public void logout(HttpServletRequest request, HttpServletResponse response,
@@ -27,9 +29,12 @@ public class JwtLogoutHandler implements LogoutHandler {
       Arrays.stream(request.getCookies())
           .filter(cookie -> cookie.getName().equals(JwtTokenProvider.REFRESH_TOKEN_COOKIE_NAME))
           .findFirst()
-          .ifPresent(cookie -> response.addCookie(
-              jwtTokenProvider.buildExpiredRefreshTokenCookie()
-          ));
+          .ifPresent(cookie -> {
+            // Registry에서 토큰 정보 삭제
+            jwtRegistry.invalidateJwtInformationByRefreshToken(cookie.getValue());
+            // 쿠키 만료
+            response.addCookie(jwtTokenProvider.buildExpiredRefreshTokenCookie());
+          });
     }
 
     log.info("JWT 로그아웃 처리 완료");

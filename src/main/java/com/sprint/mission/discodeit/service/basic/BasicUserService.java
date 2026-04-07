@@ -13,6 +13,7 @@ import com.sprint.mission.discodeit.exception.enums.UserErrorCode;
 import com.sprint.mission.discodeit.exception.user.UserException;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.security.JwtRegistry;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.service.UserService;
 import java.util.List;
@@ -36,6 +37,7 @@ public class BasicUserService implements UserService {
 
   // PasswordEncoder 주입
   private final PasswordEncoder passwordEncoder;
+  private final JwtRegistry jwtRegistry;
 
   @Override
   @Transactional
@@ -68,7 +70,7 @@ public class BasicUserService implements UserService {
 
     log.info("회원가입 완료: userId={}", savedUser.getId());
 
-    return userMapper.toUserResponse(savedUser, true);
+    return userMapper.toUserResponse(savedUser, isOnline(savedUser.getId()));
   }
 
   @Override
@@ -78,7 +80,7 @@ public class BasicUserService implements UserService {
 
     return users.stream()
         .map(user ->
-            userMapper.toUserResponse(user, false)
+            userMapper.toUserResponse(user, isOnline(user.getId()))
         )
         .toList();
   }
@@ -90,7 +92,7 @@ public class BasicUserService implements UserService {
 
     return users.stream()
         .map(user ->
-            userMapper.toUserSummaryResponse(user, false)
+            userMapper.toUserSummaryResponse(user, isOnline(user.getId()))
         )
         .toList();
   }
@@ -134,7 +136,7 @@ public class BasicUserService implements UserService {
     User updated = userRepository.save(user);
 
     log.info("유저 정보 수정 완료 : userId={}", updated.getId());
-    return userMapper.toUserResponse(updated, false);
+    return userMapper.toUserResponse(updated, isOnline(userId));
   }
 
   @Override
@@ -147,7 +149,10 @@ public class BasicUserService implements UserService {
 
     user.updateRole(request.newRole());
 
-    return userMapper.toUserResponse(user, false);
+    // Jwt Registry에서 해당 유저 토큰 전체 무효화 (강제 로그아웃 처리)
+    jwtRegistry.invalidateJwtInformationByUserId(request.userId());
+
+    return userMapper.toUserResponse(user, isOnline(request.userId()));
   }
 
   @Override
@@ -195,5 +200,9 @@ public class BasicUserService implements UserService {
     if (!hasAnyUpdate) {
       throw new DiscodeitException(CommonErrorCode.INVALID_INPUT_VALUE, "수정할 정보가 없습니다.");
     }
+  }
+
+  private boolean isOnline(UUID userId) {
+    return jwtRegistry.hasActiveJwtInformationByUserId(userId);
   }
 }

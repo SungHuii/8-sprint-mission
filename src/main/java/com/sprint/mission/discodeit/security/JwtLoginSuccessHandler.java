@@ -22,6 +22,7 @@ public class JwtLoginSuccessHandler implements AuthenticationSuccessHandler {
 
   private final ObjectMapper objectMapper;
   private final JwtTokenProvider jwtTokenProvider;
+  private final JwtRegistry jwtRegistry;
 
   @Override
   public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -42,6 +43,10 @@ public class JwtLoginSuccessHandler implements AuthenticationSuccessHandler {
     // Provider로 토큰 발급
     String accessToken = jwtTokenProvider.generateAccessToken(userId, username);
     String refreshToken = jwtTokenProvider.generateRefreshToken(userId);
+
+    // JwtInformation 객체 등록
+    JwtInformation jwtInformation = new JwtInformation(userResponse, accessToken, refreshToken);
+    jwtRegistry.registerJwtInformation(jwtInformation);
 
     // refresh 토큰 HttpOnly 처리
     response.addCookie(jwtTokenProvider.buildRefreshTokenCookie(refreshToken));
