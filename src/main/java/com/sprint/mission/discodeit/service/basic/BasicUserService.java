@@ -13,8 +13,6 @@ import com.sprint.mission.discodeit.exception.enums.UserErrorCode;
 import com.sprint.mission.discodeit.exception.user.UserException;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.security.DiscodeitUserDetails;
-import com.sprint.mission.discodeit.service.AuthService;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.service.UserService;
 import java.util.List;
@@ -22,7 +20,6 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,9 +36,6 @@ public class BasicUserService implements UserService {
 
   // PasswordEncoder 주입
   private final PasswordEncoder passwordEncoder;
-
-  private final AuthService authService;
-  private final SessionRegistry sessionRegistry;
 
   @Override
   @Transactional
@@ -84,7 +78,7 @@ public class BasicUserService implements UserService {
 
     return users.stream()
         .map(user ->
-            userMapper.toUserResponse(user, isOnline(user.getId()))
+            userMapper.toUserResponse(user, false)
         )
         .toList();
   }
@@ -96,7 +90,7 @@ public class BasicUserService implements UserService {
 
     return users.stream()
         .map(user ->
-            userMapper.toUserSummaryResponse(user, isOnline(user.getId()))
+            userMapper.toUserSummaryResponse(user, false)
         )
         .toList();
   }
@@ -140,7 +134,7 @@ public class BasicUserService implements UserService {
     User updated = userRepository.save(user);
 
     log.info("유저 정보 수정 완료 : userId={}", updated.getId());
-    return userMapper.toUserResponse(updated, isOnline(updated.getId()));
+    return userMapper.toUserResponse(updated, false);
   }
 
   @Override
@@ -152,9 +146,6 @@ public class BasicUserService implements UserService {
         .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
 
     user.updateRole(request.newRole());
-
-    // 변경 후 세션 무효화
-    authService.invalidateUserSessions(request.userId());
 
     return userMapper.toUserResponse(user, false);
   }
@@ -170,14 +161,6 @@ public class BasicUserService implements UserService {
     log.info("유저 삭제 요청 : userId={}", userId);
 
     userRepository.deleteById(userId);
-  }
-
-  private boolean isOnline(UUID userId) {
-    return sessionRegistry.getAllPrincipals().stream()
-        .filter(principal -> principal instanceof DiscodeitUserDetails userDetails
-            && userDetails.getUserResponse().id().equals(userId))
-        .flatMap(principal -> sessionRegistry.getAllSessions(principal, false).stream())
-        .anyMatch(session -> !session.isExpired());
   }
 
   private void validateCreateRequest(UserCreateRequest request) {

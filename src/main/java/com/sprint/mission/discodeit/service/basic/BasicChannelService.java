@@ -49,7 +49,6 @@ public class BasicChannelService implements ChannelService {
   private final UserRepository userRepository;
   private final ChannelMapper channelMapper;
   private final UserMapper userMapper;
-  private final SessionRegistry sessionRegistry;
 
   @Override
   @PreAuthorize("hasRole('CHANNEL_MANAGER')")
@@ -164,14 +163,6 @@ public class BasicChannelService implements ChannelService {
     channelRepository.deleteById(channelId);
   }
 
-  private boolean isOnline(UUID userId) {
-    return sessionRegistry.getAllPrincipals().stream()
-        .filter(principal -> principal instanceof DiscodeitUserDetails userDetails
-            && userDetails.getUserResponse().id().equals(userId))
-        .flatMap(principal -> sessionRegistry.getAllSessions(principal, false).stream())
-        .anyMatch(session -> !session.isExpired());
-  }
-
   private ChannelResponse toChannelResponse(Channel channel) {
     Instant lastMessageAt = findLastMessageAt(channel.getId());
     List<UserSummaryResponse> participants = findParticipants(channel);
@@ -191,7 +182,7 @@ public class BasicChannelService implements ChannelService {
     return readStatuses.stream()
         .map(ReadStatus::getUser)
         .map(user ->
-            userMapper.toUserSummaryResponse(user, isOnline(user.getId()))
+            userMapper.toUserSummaryResponse(user, false)
         )
         .toList();
   }
