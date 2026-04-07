@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.config;
 
 import com.sprint.mission.discodeit.config.csrf.SpaCsrfTokenRequestHandler;
 import com.sprint.mission.discodeit.security.DiscodeitUserDetailsService;
+import com.sprint.mission.discodeit.security.JwtLoginSuccessHandler;
 import com.sprint.mission.discodeit.security.LoginFailureHandler;
 import com.sprint.mission.discodeit.security.LoginSuccessHandler;
 import java.util.List;
@@ -19,6 +20,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -51,9 +53,9 @@ public class SecurityConfig {
   }
 
   @Bean
-  public SecurityFilterChain filterChain(HttpSecurity http, LoginSuccessHandler loginSuccessHandler,
+  public SecurityFilterChain filterChain(HttpSecurity http,
+      JwtLoginSuccessHandler jwtLoginSuccessHandler,
       LoginFailureHandler loginFailureHandler,
-      SessionRegistry sessionRegistry,
       DiscodeitUserDetailsService discodeitUserDetailsService) throws Exception {
     return http
         // csrf 설정
@@ -78,27 +80,12 @@ public class SecurityConfig {
         // 세션 관리 설정
         .sessionManagement(management ->
             management
-                .sessionConcurrency(concurrency ->
-                    concurrency
-                        .maximumSessions(1) // 동시 세션 1개만 허용
-                        .maxSessionsPreventsLogin(
-                            false) // 새로 로그인 시 -> true : 새 로그인 차단, false : 기존 세션 만료
-                        .sessionRegistry(sessionRegistry)
-                )
-        )
-        // Remember-me 설정
-        .rememberMe(rememberMe ->
-            rememberMe
-                // 고정 키 설정
-                .key("discodeit-remember-me-key")
-                // 7일 유지 설정
-                .tokenValiditySeconds(7 * 24 * 60 * 60)
-                .userDetailsService(discodeitUserDetailsService)
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         )
         // formLogin 설정
         .formLogin(form ->
             form.loginProcessingUrl("/api/auth/login")
-                .successHandler(loginSuccessHandler)
+                .successHandler(jwtLoginSuccessHandler)
                 .failureHandler(loginFailureHandler)
                 .permitAll()
         )
@@ -153,16 +140,5 @@ public class SecurityConfig {
     DefaultMethodSecurityExpressionHandler handler = new DefaultMethodSecurityExpressionHandler();
     handler.setRoleHierarchy(roleHierarchy);
     return handler;
-  }
-
-  @Bean
-  public SessionRegistry sessionRegistry() {
-    return new SessionRegistryImpl();
-  }
-
-  // 세션이 만료될 때 SessionRegistry에도 자동 반영
-  @Bean
-  public HttpSessionEventPublisher httpSessionEventPublisher() {
-    return new HttpSessionEventPublisher();
   }
 }
