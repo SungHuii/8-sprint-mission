@@ -6,7 +6,6 @@ import com.sprint.mission.discodeit.security.JwtAuthenticationFilter;
 import com.sprint.mission.discodeit.security.JwtLoginSuccessHandler;
 import com.sprint.mission.discodeit.security.JwtLogoutHandler;
 import com.sprint.mission.discodeit.security.LoginFailureHandler;
-import com.sprint.mission.discodeit.security.LoginSuccessHandler;
 import java.util.List;
 import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
@@ -23,8 +22,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.session.SessionRegistry;
-import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -32,7 +29,6 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 @Configuration
 @EnableWebSecurity
@@ -60,14 +56,14 @@ public class SecurityConfig {
       JwtLoginSuccessHandler jwtLoginSuccessHandler,
       JwtLogoutHandler jwtLogoutHandler,
       LoginFailureHandler loginFailureHandler,
-      JwtAuthenticationFilter jwtAuthenticationFilter,
-      DiscodeitUserDetailsService discodeitUserDetailsService) throws Exception {
+      JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
     return http
         // csrf 설정
         .csrf(csrf ->
             csrf
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler())
+                .ignoringRequestMatchers("/api/auth/refresh", "/api/auth/logout")
         )
         // 권한 설정
         .authorizeHttpRequests(auth ->
@@ -75,7 +71,7 @@ public class SecurityConfig {
                 .requestMatchers("/", "/index.html").permitAll()
                 // 토큰 발급, 회원가입, 그리고 로그인 API는 누구나 접근 가능해야 함
                 .requestMatchers("/api/auth/csrf-token", "/api/users", "/api/auth/login",
-                    "/api/auth/logout")
+                    "/api/auth/logout", "/api/auth/refresh")
                 .permitAll()
                 // Swagger, API 문서 경로, Actuator
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/actuator/**").permitAll()
