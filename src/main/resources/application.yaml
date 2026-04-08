@@ -63,3 +63,12 @@ info:
     multipart:
       max-file-size: ${spring.servlet.multipart.max-file-size}
       max-request-size: ${spring.servlet.multipart.max-request-size}
+
+# remember-me
+security:
+  remember-me:
+    key: ${REMEMBER_ME_KEY:very-very-loooooong-long-key-for-remember-me-key}
+
+# admin 초기 설정
+admin:
+  default-password: ${ADMIN_PASSWORD:admin}

@@ -22,20 +22,18 @@ import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.security.DiscodeitUserDetails;
 import com.sprint.mission.discodeit.service.ChannelService;
+import java.time.Instant;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -50,6 +48,7 @@ public class BasicChannelService implements ChannelService {
   private final ChannelMapper channelMapper;
   private final UserMapper userMapper;
   private final SessionRegistry sessionRegistry;
+  private final SessionStatusService sessionStatusService;
 
   @Override
   @PreAuthorize("hasRole('CHANNEL_MANAGER')")
@@ -164,14 +163,6 @@ public class BasicChannelService implements ChannelService {
     channelRepository.deleteById(channelId);
   }
 
-  private boolean isOnline(UUID userId) {
-    return sessionRegistry.getAllPrincipals().stream()
-        .filter(principal -> principal instanceof DiscodeitUserDetails userDetails
-            && userDetails.getUserResponse().id().equals(userId))
-        .flatMap(principal -> sessionRegistry.getAllSessions(principal, false).stream())
-        .anyMatch(session -> !session.isExpired());
-  }
-
   private ChannelResponse toChannelResponse(Channel channel) {
     Instant lastMessageAt = findLastMessageAt(channel.getId());
     List<UserSummaryResponse> participants = findParticipants(channel);
@@ -191,7 +182,7 @@ public class BasicChannelService implements ChannelService {
     return readStatuses.stream()
         .map(ReadStatus::getUser)
         .map(user ->
-            userMapper.toUserSummaryResponse(user, isOnline(user.getId()))
+            userMapper.toUserSummaryResponse(user, sessionStatusService.isOnline(user.getId()))
         )
         .toList();
   }

@@ -5,6 +5,7 @@ import com.sprint.mission.discodeit.entity.enums.Role;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,6 +15,11 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class AdminInitializer implements ApplicationRunner {
+
+  private static final String ADMIN_DEFAULT_PASSWORD = "${admin.default-password}";
+
+  @Value(ADMIN_DEFAULT_PASSWORD)
+  private String adminPassword;
 
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
@@ -28,7 +34,7 @@ public class AdminInitializer implements ApplicationRunner {
       log.info("ADMIN 계정이 존재하지 않습니다. 새로 생성합니다.");
 
       // ADMIN 비밀번호 암호화
-      String encodedPassword = passwordEncoder.encode("admin");
+      String encodedPassword = passwordEncoder.encode(adminPassword);
 
       // User 엔티티 생성
       User adminUser = new User(

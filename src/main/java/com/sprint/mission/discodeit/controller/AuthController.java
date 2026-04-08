@@ -3,8 +3,6 @@ package com.sprint.mission.discodeit.controller;
 import com.sprint.mission.discodeit.controller.docs.AuthApi;
 import com.sprint.mission.discodeit.dto.user.UserResponse;
 import com.sprint.mission.discodeit.dto.user.UserRoleUpdateRequest;
-import com.sprint.mission.discodeit.exception.DiscodeitException;
-import com.sprint.mission.discodeit.exception.enums.AuthErrorCode;
 import com.sprint.mission.discodeit.security.DiscodeitUserDetails;
 import com.sprint.mission.discodeit.service.UserService;
 import jakarta.validation.Valid;
@@ -41,11 +39,6 @@ public class AuthController implements AuthApi {
       // Spring Security가 현재 세션(JSESSIONID)을 확인해서 로그인된 유저 객체를 주입시킴
       @AuthenticationPrincipal DiscodeitUserDetails userDetails
   ) {
-
-    // 필터를 뚫고 permitAll로 들어올 경우 방어 로직
-    if (userDetails == null) {
-      throw new DiscodeitException(AuthErrorCode.AUTHENTICATION_FAILED);
-    }
 
     return ResponseEntity.ok(userDetails.getUserResponse());
   }

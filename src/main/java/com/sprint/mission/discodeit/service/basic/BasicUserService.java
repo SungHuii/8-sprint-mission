@@ -13,7 +13,6 @@ import com.sprint.mission.discodeit.exception.enums.UserErrorCode;
 import com.sprint.mission.discodeit.exception.user.UserException;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.security.DiscodeitUserDetails;
 import com.sprint.mission.discodeit.service.AuthService;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.service.UserService;
@@ -36,6 +35,7 @@ public class BasicUserService implements UserService {
   private final UserRepository userRepository;
   private final BinaryContentService binaryContentService;
   private final UserMapper userMapper;
+  private final SessionStatusService sessionStatusService;
 
   // PasswordEncoder 주입
   private final PasswordEncoder passwordEncoder;
@@ -84,7 +84,7 @@ public class BasicUserService implements UserService {
 
     return users.stream()
         .map(user ->
-            userMapper.toUserResponse(user, isOnline(user.getId()))
+            userMapper.toUserResponse(user, sessionStatusService.isOnline(user.getId()))
         )
         .toList();
   }
@@ -96,7 +96,7 @@ public class BasicUserService implements UserService {
 
     return users.stream()
         .map(user ->
-            userMapper.toUserSummaryResponse(user, isOnline(user.getId()))
+            userMapper.toUserSummaryResponse(user, sessionStatusService.isOnline(user.getId()))
         )
         .toList();
   }
@@ -140,7 +140,7 @@ public class BasicUserService implements UserService {
     User updated = userRepository.save(user);
 
     log.info("유저 정보 수정 완료 : userId={}", updated.getId());
-    return userMapper.toUserResponse(updated, isOnline(updated.getId()));
+    return userMapper.toUserResponse(updated, sessionStatusService.isOnline(updated.getId()));
   }
 
   @Override
@@ -170,14 +170,6 @@ public class BasicUserService implements UserService {
     log.info("유저 삭제 요청 : userId={}", userId);
 
     userRepository.deleteById(userId);
-  }
-
-  private boolean isOnline(UUID userId) {
-    return sessionRegistry.getAllPrincipals().stream()
-        .filter(principal -> principal instanceof DiscodeitUserDetails userDetails
-            && userDetails.getUserResponse().id().equals(userId))
-        .flatMap(principal -> sessionRegistry.getAllSessions(principal, false).stream())
-        .anyMatch(session -> !session.isExpired());
   }
 
   private void validateCreateRequest(UserCreateRequest request) {

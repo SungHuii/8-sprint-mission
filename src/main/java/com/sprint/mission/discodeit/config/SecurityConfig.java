@@ -7,9 +7,13 @@ import com.sprint.mission.discodeit.security.LoginSuccessHandler;
 import java.util.List;
 import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
@@ -24,18 +28,25 @@ import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
+@Slf4j
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+  private static final String REMEMBER_ME_KEY = "${security.remember-me.key}";
+
+  @Value(REMEMBER_ME_KEY)
+  private String rememberMeKey;
+
   @Bean
+  @Profile("dev")
   public CommandLineRunner debugFilterChain(SecurityFilterChain filterChain) {
     return args -> {
       int filterSize = filterChain.getFilters().size();
@@ -45,8 +56,8 @@ public class SecurityConfig {
               filterChain.getFilters().get(idx).getClass()))
           .toList();
 
-      System.out.println("현재 적용된 필터 체인 목록:");
-      filterNames.forEach(System.out::println);
+      log.debug("현재 적용된 필터 체인 목록:");
+      filterNames.forEach(log::debug);
     };
   }
 
@@ -54,7 +65,8 @@ public class SecurityConfig {
   public SecurityFilterChain filterChain(HttpSecurity http, LoginSuccessHandler loginSuccessHandler,
       LoginFailureHandler loginFailureHandler,
       SessionRegistry sessionRegistry,
-      DiscodeitUserDetailsService discodeitUserDetailsService) throws Exception {
+      DiscodeitUserDetailsService discodeitUserDetailsService,
+      @Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver) throws Exception {
     return http
         // csrf 설정
         .csrf(csrf ->
@@ -90,7 +102,7 @@ public class SecurityConfig {
         .rememberMe(rememberMe ->
             rememberMe
                 // 고정 키 설정
-                .key("discodeit-remember-me-key")
+                .key(rememberMeKey)
                 // 7일 유지 설정
                 .tokenValiditySeconds(7 * 24 * 60 * 60)
                 .userDetailsService(discodeitUserDetailsService)
@@ -114,10 +126,12 @@ public class SecurityConfig {
         .exceptionHandling(exceptions ->
             exceptions
                 // 인증되지 않은 사용자(로그인 안 한 상태)가 접근했을 때 로그인 페이지로 리다이렉트 하지 않고 401 에러를 반환
-                .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                .authenticationEntryPoint((request, response, authException) -> {
+                  resolver.resolveException(request, response, null, authException);
+                })
                 // 403 에러(권한 없음) 처리
                 .accessDeniedHandler((request, response, accessDeniedException) -> {
-                  response.setStatus(HttpStatus.FORBIDDEN.value());
+                  resolver.resolveException(request, response, null, accessDeniedException);
                 })
         )
         .build();
