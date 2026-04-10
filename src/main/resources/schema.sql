@@ -38,17 +38,8 @@ CREATE TABLE IF NOT EXISTS users
     email      VARCHAR(100)             NOT NULL UNIQUE,
     password   VARCHAR(60)              NOT NULL,
     profile_id uuid UNIQUE,
+    role       varchar(20)              NOT NULL DEFAULT 'USER',
     CONSTRAINT fk_users_profile FOREIGN KEY (profile_id) REFERENCES binary_contents (id) ON DELETE SET NULL
-);
-
-CREATE TABLE IF NOT EXISTS user_statuses
-(
-    id             uuid PRIMARY KEY,
-    created_at     timestamp with time zone NOT NULL,
-    updated_at     timestamp with time zone,
-    user_id        uuid UNIQUE              NOT NULL,
-    last_active_at timestamp with time zone NOT NULL,
-    CONSTRAINT fk_user_statuses_user_id FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS read_statuses
@@ -92,7 +83,6 @@ CREATE INDEX idx_read_statuses_channel_id ON read_statuses (channel_id);
 
 /*
 users(profile_id) 1(only) : 1 or 0 binary_contents(id)
-users(id) 1(only) : 1 user_statuses(user_id)
 users(id) 1(only) : 0 or N read_statuses(user_id)
 users(id) 1(only) : 0 or N messages(author_id)
 channels(id) 1(only) : 0 or N messages(channel_id)

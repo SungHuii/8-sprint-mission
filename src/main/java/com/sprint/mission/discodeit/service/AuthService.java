@@ -1,9 +1,9 @@
 package com.sprint.mission.discodeit.service;
 
-import com.sprint.mission.discodeit.dto.auth.AuthResponse;
-import com.sprint.mission.discodeit.dto.auth.LoginRequest;
+import java.util.UUID;
 
 public interface AuthService {
 
-  AuthResponse login(LoginRequest request);
+  // updateUserRole() 호출 후 해당 유저의 세션 강제 만료
+  void invalidateUserSessions(UUID userId);
 }

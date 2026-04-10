@@ -22,6 +22,12 @@ jobs:
 
       - name: Test with Gradle and Generate Coverage Report
         run: ./gradlew test jacocoTestReport --no-daemon
+        env:
+          # GitHub Secrets에서 값을 가져와 환경 변수로 주입
+          AWS_S3_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_S3_SECRET_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_S3_REGION: ${{ vars.AWS_REGION }}
+          AWS_S3_BUCKET: ${{ vars.AWS_S3_BUCKET }}
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4.0.1

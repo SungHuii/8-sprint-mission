@@ -30,6 +30,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1 # Public ECR은 us-east-1 필수
+          # 인증 토큰을 발급하고 관리하는 컨트롤 플레인이 us-east-1 리전에만 존재함. 로그인을 위해서는 해당 리전 지정이 필수
 
       - name: Login to Amazon ECR Public
         id: login-ecr-public
@@ -40,8 +41,7 @@ jobs:
       - name: Build, tag, and push image to Amazon ECR Public
         id: build-image
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr-public.outputs.registry }}
-          ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY_URI }}
+          ECR_IMAGE_URI: ${{ vars.ECR_REPOSITORY_URI }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
           # latest 태그와 커밋 해시 태그 모두 빌드 및 푸시

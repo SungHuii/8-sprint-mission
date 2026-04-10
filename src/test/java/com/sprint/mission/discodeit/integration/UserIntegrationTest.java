@@ -9,12 +9,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.sprint.mission.discodeit.dto.user.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.user.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.integration.support.IntegrationTestSupport;
 import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,9 +24,6 @@ class UserIntegrationTest extends IntegrationTestSupport {
 
   @Autowired
   private UserRepository userRepository;
-
-  @Autowired
-  private UserStatusRepository userStatusRepository;
 
   @Test
   @DisplayName("회원가입 성공")
@@ -58,7 +52,6 @@ class UserIntegrationTest extends IntegrationTestSupport {
   void createUser_Fail_Duplicate() throws Exception {
     // given
     User user = userRepository.save(new User("existing", "test@test.com", "pw"));
-    userStatusRepository.save(new UserStatus(user, Instant.now()));
 
     UserCreateRequest request = new UserCreateRequest("test@test.com", "newuser", "password", null);
     MockMultipartFile requestPart = new MockMultipartFile(
@@ -81,7 +74,6 @@ class UserIntegrationTest extends IntegrationTestSupport {
   void updateUser_Success() throws Exception {
     // given
     User user = userRepository.save(new User("oldName", "old@test.com", "pw"));
-    userStatusRepository.save(new UserStatus(user, Instant.now()));
 
     UserUpdateRequest request = new UserUpdateRequest("newName", null, null, null);
 
@@ -127,7 +119,6 @@ class UserIntegrationTest extends IntegrationTestSupport {
   void deleteUser_Success() throws Exception {
     // given
     User user = userRepository.save(new User("delUser", "del@test.com", "pw"));
-    userStatusRepository.save(new UserStatus(user, Instant.now()));
 
     // when & then
     mockMvc.perform(delete("/api/users/{userId}", user.getId()))
@@ -139,10 +130,7 @@ class UserIntegrationTest extends IntegrationTestSupport {
   void findAll_Success() throws Exception {
     // given
     User u1 = userRepository.save(new User("u1", "u1@test.com", "pw"));
-    userStatusRepository.save(new UserStatus(u1, Instant.now()));
-
     User u2 = userRepository.save(new User("u2", "u2@test.com", "pw"));
-    userStatusRepository.save(new UserStatus(u2, Instant.now()));
 
     // when & then
     mockMvc.perform(get("/api/users"))

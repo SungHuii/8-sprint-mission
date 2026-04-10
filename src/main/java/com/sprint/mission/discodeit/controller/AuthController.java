@@ -1,26 +1,52 @@
 package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.controller.docs.AuthApi;
-import com.sprint.mission.discodeit.dto.auth.AuthResponse;
-import com.sprint.mission.discodeit.dto.auth.LoginRequest;
-import com.sprint.mission.discodeit.service.AuthService;
+import com.sprint.mission.discodeit.dto.user.UserResponse;
+import com.sprint.mission.discodeit.dto.user.UserRoleUpdateRequest;
+import com.sprint.mission.discodeit.security.DiscodeitUserDetails;
+import com.sprint.mission.discodeit.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController implements AuthApi {
 
-  private final AuthService authService;
+  private final UserService userService;
 
-  @Override
-  @PostMapping("/login")
-  public AuthResponse login(@Valid @RequestBody LoginRequest request) {
-    return authService.login(request);
+  @GetMapping("csrf-token")
+  public ResponseEntity<Void> getCsrfToken(CsrfToken csrfToken) {
+    String tokenValue = csrfToken.getToken();
+    log.debug("CSRF 토큰 요청: {}", tokenValue);
+
+    return ResponseEntity.status(HttpStatus.NON_AUTHORITATIVE_INFORMATION).build();
+  }
+
+  @GetMapping("/me")
+  public ResponseEntity<UserResponse> getCurrentUser(
+      // Spring Security가 현재 세션(JSESSIONID)을 확인해서 로그인된 유저 객체를 주입시킴
+      @AuthenticationPrincipal DiscodeitUserDetails userDetails
+  ) {
+
+    return ResponseEntity.ok(userDetails.getUserResponse());
+  }
+
+  @PutMapping("/role")
+  public ResponseEntity<UserResponse> updateRole(
+      @Valid @RequestBody UserRoleUpdateRequest request) {
+    UserResponse response = userService.updateUserRole(request);
+    return ResponseEntity.ok(response);
   }
 }

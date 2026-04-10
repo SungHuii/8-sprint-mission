@@ -26,3 +26,4 @@ logging:
   level:
     root: INFO
     com.sprint.mission.discodeit: DEBUG
+    org.springframework.security: TRACE
