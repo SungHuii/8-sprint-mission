@@ -48,8 +48,7 @@ RESTful API 설계, Swagger 문서화, 그리고 React 기반 프론트엔드와
 
 API 명세 및 테스트를 위해 Swagger UI를 제공합니다.
 
-- **Swagger UI
-  **: [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+- **Swagger UI**: [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
 
 ## 설정 (`application.yaml`)
 
@@ -138,3 +137,4 @@ src
 
 - **프로파일 분리**: 개발(`dev`)과 운영(`prod`) 환경 설정을 분리하여 유연한 배포 환경 구성.
 - **유효성 검사**: DTO Validation(`@Valid`)을 통해 잘못된 요청을 조기에 차단.
+---

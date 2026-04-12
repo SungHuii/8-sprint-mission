@@ -34,6 +34,13 @@ public class BasicUserService implements UserService {
   private final UserRepository userRepository;
   private final BinaryContentService binaryContentService;
   private final UserMapper userMapper;
+  private final SessionStatusService sessionStatusService;
+
+  // PasswordEncoder 주입
+  private final PasswordEncoder passwordEncoder;
+
+  private final AuthService authService;
+  private final SessionRegistry sessionRegistry;
 
   // PasswordEncoder 주입
   private final PasswordEncoder passwordEncoder;
