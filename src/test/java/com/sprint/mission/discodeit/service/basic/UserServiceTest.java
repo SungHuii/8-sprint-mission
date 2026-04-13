@@ -11,13 +11,12 @@ import com.sprint.mission.discodeit.dto.user.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.user.UserResponse;
 import com.sprint.mission.discodeit.dto.user.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.entity.enums.Role;
 import com.sprint.mission.discodeit.exception.enums.UserErrorCode;
 import com.sprint.mission.discodeit.exception.user.UserException;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.repository.UserStatusRepository;
-import java.time.Instant;
+import com.sprint.mission.discodeit.service.AuthService;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
@@ -26,6 +25,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 // Mockito 확장
 @ExtendWith(MockitoExtension.class)
@@ -38,9 +39,13 @@ class UserServiceTest {
   @Mock
   private UserRepository userRepository;
   @Mock
-  private UserStatusRepository userStatusRepository;
-  @Mock
   private UserMapper userMapper;
+  @Mock
+  private PasswordEncoder passwordEncoder;
+  @Mock
+  private AuthService authService;
+  @Mock
+  private SessionRegistry sessionRegistry;
 
   @Test
   @DisplayName("회원가입 성공")
@@ -50,7 +55,7 @@ class UserServiceTest {
         null);
     User user = new User("testuser", "test@test.com", "testpassword");
     UserResponse expectedResponse = new UserResponse(UUID.randomUUID(), "testuser", "test@test.com",
-        null, true);
+        null, true, Role.USER);
 
     // BDD 적용
     given(userRepository.findByUsername(anyString())).willReturn(Optional.empty()); // 중복 없음
@@ -58,6 +63,7 @@ class UserServiceTest {
     given(userRepository.save(any(User.class))).willReturn(user);                         // 저장 성공
     given(userMapper.toUserResponse(any(User.class), any(Boolean.class))).willReturn(
         expectedResponse); // 매핑
+    given(passwordEncoder.encode(anyString())).willReturn("hashedPassword");
 
     // when
     UserResponse response = userService.create(request);
@@ -98,14 +104,12 @@ class UserServiceTest {
     User updatedUser = new User("newUsername", "test@test.com", "password");
 
     UserResponse expectedResponse = new UserResponse(userId, "newUsername", "test@test.com", null,
-        true);
+        true, Role.USER);
 
     // BDD 적용
     given(userRepository.findById(userId)).willReturn(Optional.of(existingUser));
     given(userRepository.findByUsername("newUsername")).willReturn(Optional.empty()); // 중복 없음
     given(userRepository.save(any(User.class))).willReturn(updatedUser); // 저장 성공
-    given(userStatusRepository.findByUserId(any())).willReturn(
-        Optional.of(new UserStatus(updatedUser, Instant.now())));
     given(userMapper.toUserResponse(any(User.class), any(Boolean.class))).willReturn(
         expectedResponse); // 매핑
 

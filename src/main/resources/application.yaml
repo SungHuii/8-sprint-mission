@@ -63,3 +63,13 @@ info:
     multipart:
       max-file-size: ${spring.servlet.multipart.max-file-size}
       max-request-size: ${spring.servlet.multipart.max-request-size}
+
+# jwt
+jwt:
+  secret: "my-secret-secret-key-must-be-longer-than-32-characters" # 32자 이상 문자열
+  access-token-expiry: 3600000 # 1시간 (1000 * 60 * 60)
+  refresh-token-expiry: 604800000 # 7일 (1000 * 60 * 60 * 24 * 7)
+
+# admin 초기 설정
+admin:
+  default-password: ${ADMIN_PASSWORD:admin}

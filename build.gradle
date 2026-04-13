@@ -19,7 +19,7 @@ jacocoTestReport {
 }
 
 group = 'com.sprint.mission'
-version = '1.2-M8'
+version = '2.1-M10'
 description = 'discodeit'
 
 java {
@@ -64,6 +64,13 @@ dependencies {
 
     // AWS
     implementation 'software.amazon.awssdk:s3:2.31.7'
+
+    // Spring Security
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    testImplementation 'org.springframework.security:spring-security-test'
+
+    // JWT
+    implementation 'com.nimbusds:nimbus-jose-jwt:10.3'
 }
 
 dependencyManagement {

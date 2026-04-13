@@ -2,28 +2,26 @@ package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.user.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.user.UserResponse;
+import com.sprint.mission.discodeit.dto.user.UserRoleUpdateRequest;
 import com.sprint.mission.discodeit.dto.user.UserSummaryResponse;
 import com.sprint.mission.discodeit.dto.user.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.exception.DiscodeitException;
 import com.sprint.mission.discodeit.exception.enums.CommonErrorCode;
 import com.sprint.mission.discodeit.exception.enums.UserErrorCode;
-import com.sprint.mission.discodeit.exception.enums.UserStatusErrorCode;
 import com.sprint.mission.discodeit.exception.user.UserException;
-import com.sprint.mission.discodeit.exception.userstatus.UserStatusException;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.repository.UserStatusRepository;
+import com.sprint.mission.discodeit.security.JwtRegistry;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.service.UserService;
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,9 +32,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class BasicUserService implements UserService {
 
   private final UserRepository userRepository;
-  private final UserStatusRepository userStatusRepository;
   private final BinaryContentService binaryContentService;
   private final UserMapper userMapper;
+
+  // PasswordEncoder 주입
+  private final PasswordEncoder passwordEncoder;
+  private final JwtRegistry jwtRegistry;
 
   @Override
   @Transactional
@@ -51,10 +52,13 @@ public class BasicUserService implements UserService {
       throw new UserException(UserErrorCode.DUPLICATE_EMAIL);
     }
 
+    // 평문 비밀번호 암호화
+    String encodedPassword = passwordEncoder.encode(request.password());
+
     User user = new User(
         request.username(),
         request.email(),
-        request.password()
+        encodedPassword
     );
 
     if (request.profile() != null) {
@@ -64,67 +68,39 @@ public class BasicUserService implements UserService {
 
     User savedUser = userRepository.save(user);
 
-    Instant now = Instant.now();
-    userStatusRepository.save(new UserStatus(savedUser, now));
     log.info("회원가입 완료: userId={}", savedUser.getId());
 
-    return userMapper.toUserResponse(savedUser, true);
+    return userMapper.toUserResponse(savedUser, isOnline(savedUser.getId()));
   }
 
   @Override
   public List<UserResponse> findAll() {
     List<User> users = userRepository.findAllWithProfile();
-    List<UserStatus> userStatuses = userStatusRepository.findAll();
     log.debug("전체 유저 조회 요청");
 
-    var statusMap = userStatuses.stream()
-        .collect(Collectors.toMap(
-            s -> s.getUser().getId(),
-            s -> s,
-            (a, b) -> a
-        ));
-
-    Instant now = Instant.now();
-
     return users.stream()
-        .map(user -> {
-          UserStatus status = statusMap.get(user.getId());
-          if (status == null) {
-            throw new UserStatusException(UserStatusErrorCode.USER_STATUS_NOT_FOUND);
-          }
-          return userMapper.toUserResponse(user, status.isOnline(now));
-        })
+        .map(user ->
+            userMapper.toUserResponse(user, isOnline(user.getId()))
+        )
         .toList();
   }
 
   @Override
   public List<UserSummaryResponse> findAllUserSummaries() {
     List<User> users = userRepository.findAllWithProfile();
-    List<UserStatus> userStatuses = userStatusRepository.findAll();
     log.debug("전체 유저 요약 조회 요청");
 
-    var statusMap = userStatuses.stream()
-        .collect(Collectors.toMap(
-            s -> s.getUser().getId(),
-            s -> s,
-            (a, b) -> a
-        ));
-
-    Instant now = Instant.now();
-
     return users.stream()
-        .map(user -> {
-          UserStatus status = statusMap.get(user.getId());
-          if (status == null) {
-            throw new UserStatusException(UserStatusErrorCode.USER_STATUS_NOT_FOUND);
-          }
-          return userMapper.toUserSummaryResponse(user, status.isOnline(now));
-        })
+        .map(user ->
+            userMapper.toUserSummaryResponse(user, isOnline(user.getId()))
+        )
         .toList();
   }
 
   @Override
   @Transactional
+  // 사용자 정보 수정은 본인만 가능
+  @PreAuthorize("@userSecurity.isOwner(authentication, #userId)")
   public UserResponse update(UUID userId, UserUpdateRequest request) {
     validateUpdateRequest(userId, request);
     log.info("유저 정보 수정 요청 : userId={}", userId);
@@ -159,17 +135,30 @@ public class BasicUserService implements UserService {
 
     User updated = userRepository.save(user);
 
-    UserStatus status = userStatusRepository.findByUserId(updated.getId())
-        .orElseThrow(() -> new UserStatusException(UserStatusErrorCode.USER_STATUS_NOT_FOUND));
-
-    boolean online = status.isOnline(Instant.now());
-
     log.info("유저 정보 수정 완료 : userId={}", updated.getId());
-    return userMapper.toUserResponse(updated, online);
+    return userMapper.toUserResponse(updated, isOnline(userId));
+  }
+
+  @Override
+  @PreAuthorize("hasRole('ADMIN')")
+  @Transactional
+  public UserResponse updateUserRole(UserRoleUpdateRequest request) {
+
+    User user = userRepository.findById(request.userId())
+        .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
+
+    user.updateRole(request.newRole());
+
+    // Jwt Registry에서 해당 유저 토큰 전체 무효화 (강제 로그아웃 처리)
+    jwtRegistry.invalidateJwtInformationByUserId(request.userId());
+
+    return userMapper.toUserResponse(user, isOnline(request.userId()));
   }
 
   @Override
   @Transactional
+  // 사용자 정보 삭제는 본인만 가능
+  @PreAuthorize("@userSecurity.isOwner(authentication, #userId)")
   public void deleteById(UUID userId) {
     if (userId == null) {
       throw new DiscodeitException(CommonErrorCode.INVALID_INPUT_VALUE, "userId는 필수입니다.");
@@ -211,5 +200,9 @@ public class BasicUserService implements UserService {
     if (!hasAnyUpdate) {
       throw new DiscodeitException(CommonErrorCode.INVALID_INPUT_VALUE, "수정할 정보가 없습니다.");
     }
+  }
+
+  private boolean isOnline(UUID userId) {
+    return jwtRegistry.hasActiveJwtInformationByUserId(userId);
   }
 }

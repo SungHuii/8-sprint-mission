@@ -27,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,7 +64,8 @@ public class BasicMessageService implements MessageService {
     if (request.attachments() != null) {
       for (BinaryContentCreateRequest attachmentRequest : request.attachments()) {
         if (attachmentRequest == null) {
-          throw new DiscodeitException(CommonErrorCode.INVALID_INPUT_VALUE, "attachment 요청이 null입니다.");
+          throw new DiscodeitException(CommonErrorCode.INVALID_INPUT_VALUE,
+              "attachment 요청이 null입니다.");
         }
 
         BinaryContent saved = binaryContentService.create(attachmentRequest);
@@ -84,7 +86,8 @@ public class BasicMessageService implements MessageService {
   }
 
   @Override
-  public PageResponse<MessageResponse> findAllByChannelId(UUID channelId, Instant cursor, Pageable pageable) {
+  public PageResponse<MessageResponse> findAllByChannelId(UUID channelId, Instant cursor,
+      Pageable pageable) {
     if (channelId == null) {
       throw new DiscodeitException(CommonErrorCode.INVALID_INPUT_VALUE, "channelId는 필수입니다.");
     }
@@ -121,6 +124,8 @@ public class BasicMessageService implements MessageService {
 
   @Override
   @Transactional
+  // 메시지 수정은 작성자만 가능
+  @PreAuthorize("@messageSecurity.isAuthor(authentication, #messageId)")
   public MessageResponse update(UUID messageId, MessageUpdateRequest request) {
     validateUpdateRequest(messageId, request);
     log.info("메시지 수정 요청: messageId={}", messageId);
@@ -136,6 +141,8 @@ public class BasicMessageService implements MessageService {
 
   @Override
   @Transactional
+  // 메시지 삭제는 작성자만 가능
+  @PreAuthorize("@messageSecurity.isAuthor(authentication, #messageId)")
   public void deleteById(UUID messageId) {
     if (messageId == null) {
       throw new DiscodeitException(CommonErrorCode.INVALID_INPUT_VALUE, "messageId는 필수입니다.");

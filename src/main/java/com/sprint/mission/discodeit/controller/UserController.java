@@ -6,14 +6,9 @@ import com.sprint.mission.discodeit.dto.user.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.user.UserResponse;
 import com.sprint.mission.discodeit.dto.user.UserSummaryResponse;
 import com.sprint.mission.discodeit.dto.user.UserUpdateRequest;
-import com.sprint.mission.discodeit.dto.userstatus.UserStatusResponse;
-import com.sprint.mission.discodeit.dto.userstatus.UserStatusUpdateByUserIdRequest;
-import com.sprint.mission.discodeit.dto.userstatus.UserStatusUpdatePayload;
 import com.sprint.mission.discodeit.service.UserService;
-import com.sprint.mission.discodeit.service.UserStatusService;
 import jakarta.validation.Valid;
 import java.io.IOException;
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +20,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -41,7 +35,6 @@ public class UserController implements UserApi {
   private static final String PART_PROFILE = "profile";
 
   private final UserService userService;
-  private final UserStatusService userStatusService;
 
   @Override
   @GetMapping
@@ -91,24 +84,6 @@ public class UserController implements UserApi {
   public ResponseEntity<Void> delete(@PathVariable UUID userId) {
     userService.deleteById(userId);
     return ResponseEntity.noContent().build();
-  }
-
-  @Override
-  @PatchMapping("/{userId}/userStatus")
-  public ResponseEntity<UserStatusResponse> updateStatus(
-      @PathVariable UUID userId,
-      @Valid @RequestBody UserStatusUpdatePayload payload
-  ) {
-    String lastActiveAtStr = payload.newLastActiveAt();
-
-    UserStatusUpdateByUserIdRequest request = new UserStatusUpdateByUserIdRequest(
-        userId,
-        lastActiveAtStr != null
-            ? Instant.parse(lastActiveAtStr)
-            : Instant.now()
-    );
-
-    return ResponseEntity.ok(userStatusService.updateByUserId(request));
   }
 
   private BinaryContentCreateRequest toBinaryContentRequest(MultipartFile file) throws IOException {

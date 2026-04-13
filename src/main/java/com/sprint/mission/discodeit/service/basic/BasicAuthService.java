@@ -1,22 +1,18 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.auth.AuthResponse;
-import com.sprint.mission.discodeit.dto.auth.LoginRequest;
+import com.sprint.mission.discodeit.dto.auth.JwtDto;
+import com.sprint.mission.discodeit.dto.auth.TokenRefreshResult;
+import com.sprint.mission.discodeit.dto.user.UserResponse;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.exception.DiscodeitException;
-import com.sprint.mission.discodeit.exception.auth.AuthException;
 import com.sprint.mission.discodeit.exception.enums.AuthErrorCode;
-import com.sprint.mission.discodeit.exception.enums.CommonErrorCode;
-import com.sprint.mission.discodeit.exception.enums.UserErrorCode;
-import com.sprint.mission.discodeit.exception.enums.UserStatusErrorCode;
-import com.sprint.mission.discodeit.exception.user.UserException;
-import com.sprint.mission.discodeit.exception.userstatus.UserStatusException;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.repository.UserStatusRepository;
+import com.sprint.mission.discodeit.security.JwtInformation;
+import com.sprint.mission.discodeit.security.JwtRegistry;
+import com.sprint.mission.discodeit.security.JwtTokenProvider;
 import com.sprint.mission.discodeit.service.AuthService;
-import java.time.Instant;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,44 +25,44 @@ import org.springframework.transaction.annotation.Transactional;
 public class BasicAuthService implements AuthService {
 
   private final UserRepository userRepository;
-  private final UserStatusRepository userStatusRepository;
   private final UserMapper userMapper;
+  private final JwtTokenProvider jwtTokenProvider;
+  private final JwtRegistry jwtRegistry;
 
+  // updateUserRole() 호출 후 해당 유저의 세션 강제 만료
   @Override
-  public AuthResponse login(LoginRequest request) {
-    validateLoginRequest(request);
-    log.info("로그인 요청: username={}", request.username());
+  public TokenRefreshResult refresh(String refreshToken) {
 
-    String username = request.username().trim();
-
-    // 1. 사용자 조회 (없으면 USER_NOT_FOUND)
-    User user = userRepository.findByUsername(username)
-        .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
-
-    // 2. 비밀번호 검증 (틀리면 INVALID_CREDENTIALS)
-    if (user.getPassword() == null || !user.getPassword().equals(request.password())) {
-      throw new AuthException(AuthErrorCode.INVALID_CREDENTIALS);
+    // 유효성 검사
+    if (!jwtTokenProvider.validateToken(refreshToken)) {
+      throw new DiscodeitException(AuthErrorCode.INVALID_TOKEN);
     }
 
-    // 3. 유저 상태 조회 (없으면 USER_STATUS_NOT_FOUND)
-    UserStatus status = userStatusRepository.findByUserId(user.getId())
-        .orElseThrow(() -> new UserStatusException(UserStatusErrorCode.USER_STATUS_NOT_FOUND));
+    // Registry에 존재하는지 검사 (로그아웃된 토큰 차단)
+    if (!jwtRegistry.hasActiveJwtInformationByRefreshToken(refreshToken)) {
+      throw new DiscodeitException(AuthErrorCode.INVALID_TOKEN);
+    }
 
-    boolean isOnline = status.isOnline(Instant.now());
+    // userId 추출 후 DB 조회
+    UUID userId = jwtTokenProvider.extractUserId(refreshToken);
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new DiscodeitException(AuthErrorCode.INVALID_TOKEN));
 
-    log.info("로그인 성공: userId={}", user.getId());
-    return userMapper.toAuthResponse(user, isOnline);
+    // Rotation 새 토큰 발급
+    String newAccessToken = jwtTokenProvider.generateAccessToken(userId, user.getUsername());
+    String newRefreshToken = jwtTokenProvider.generateRefreshToken(userId);
+
+    // Registry에서 Rotation 돌리기
+    UserResponse userResponse = userMapper.toUserResponse(user, isOnline(userId));
+    JwtInformation newJwtInfo = new JwtInformation(userResponse, newAccessToken, newRefreshToken);
+    jwtRegistry.rotateJwtInformation(refreshToken, newJwtInfo);
+
+    JwtDto jwtDto = new JwtDto(userMapper.toUserResponse(user, isOnline(userId)), newAccessToken);
+
+    return new TokenRefreshResult(jwtDto, newRefreshToken);
   }
 
-  private void validateLoginRequest(LoginRequest request) {
-    if (request == null) {
-      throw new DiscodeitException(CommonErrorCode.INVALID_INPUT_VALUE, "요청이 null입니다.");
-    }
-    if (request.username() == null || request.username().isBlank()) {
-      throw new DiscodeitException(CommonErrorCode.INVALID_INPUT_VALUE, "사용자명은 필수입니다.");
-    }
-    if (request.password() == null || request.password().isBlank()) {
-      throw new DiscodeitException(CommonErrorCode.INVALID_INPUT_VALUE, "비밀번호는 필수입니다.");
-    }
+  private boolean isOnline(UUID userId) {
+    return jwtRegistry.hasActiveJwtInformationByUserId(userId);
   }
 }

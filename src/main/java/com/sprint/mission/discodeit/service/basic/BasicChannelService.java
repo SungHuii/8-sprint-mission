@@ -9,7 +9,6 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.entity.enums.ChannelType;
 import com.sprint.mission.discodeit.exception.DiscodeitException;
 import com.sprint.mission.discodeit.exception.channel.ChannelException;
@@ -23,18 +22,18 @@ import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.repository.UserStatusRepository;
+import com.sprint.mission.discodeit.security.JwtRegistry;
 import com.sprint.mission.discodeit.service.ChannelService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -46,11 +45,12 @@ public class BasicChannelService implements ChannelService {
   private final MessageRepository messageRepository;
   private final ReadStatusRepository readStatusRepository;
   private final UserRepository userRepository;
-  private final UserStatusRepository userStatusRepository;
   private final ChannelMapper channelMapper;
   private final UserMapper userMapper;
+  private final JwtRegistry jwtRegistry;
 
   @Override
+  @PreAuthorize("hasRole('CHANNEL_MANAGER')")
   @Transactional
   public ChannelResponse createPublic(PublicChannelCreateRequest request) {
     validatePublicCreateRequest(request);
@@ -123,6 +123,7 @@ public class BasicChannelService implements ChannelService {
   }
 
   @Override
+  @PreAuthorize("hasRole('CHANNEL_MANAGER')")
   @Transactional
   public ChannelResponse update(UUID channelId, ChannelUpdateRequest request) {
     validateUpdateRequest(channelId, request);
@@ -147,6 +148,7 @@ public class BasicChannelService implements ChannelService {
   }
 
   @Override
+  @PreAuthorize("hasRole('CHANNEL_MANAGER')")
   @Transactional
   public void deleteById(UUID channelId) {
     if (channelId == null) {
@@ -175,15 +177,12 @@ public class BasicChannelService implements ChannelService {
 
   private List<UserSummaryResponse> findParticipants(Channel channel) {
     List<ReadStatus> readStatuses = channel.getReadStatuses();
-    Instant now = Instant.now();
 
     return readStatuses.stream()
         .map(ReadStatus::getUser)
-        .map(user -> {
-          UserStatus status = userStatusRepository.findByUserId(user.getId()).orElse(null);
-          boolean isOnline = status != null && status.isOnline(now);
-          return userMapper.toUserSummaryResponse(user, isOnline);
-        })
+        .map(user ->
+            userMapper.toUserSummaryResponse(user, isOnline(user.getId()))
+        )
         .toList();
   }
 
@@ -201,7 +200,8 @@ public class BasicChannelService implements ChannelService {
       throw new DiscodeitException(CommonErrorCode.INVALID_INPUT_VALUE, "요청이 null입니다.");
     }
     if (request.participantIds() == null || request.participantIds().isEmpty()) {
-      throw new DiscodeitException(CommonErrorCode.INVALID_INPUT_VALUE, "participantIds는 필수이며 비어 있을 수 없습니다.");
+      throw new DiscodeitException(CommonErrorCode.INVALID_INPUT_VALUE,
+          "participantIds는 필수이며 비어 있을 수 없습니다.");
     }
   }
 
@@ -215,5 +215,9 @@ public class BasicChannelService implements ChannelService {
     if (request.newName() == null && request.newDescription() == null) {
       throw new DiscodeitException(CommonErrorCode.INVALID_INPUT_VALUE, "수정할 값이 없습니다.");
     }
+  }
+
+  private boolean isOnline(UUID userId) {
+    return jwtRegistry.hasActiveJwtInformationByUserId(userId);
   }
 }
