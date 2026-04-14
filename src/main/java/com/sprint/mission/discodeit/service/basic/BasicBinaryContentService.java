@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -90,7 +91,7 @@ public class BasicBinaryContentService implements BinaryContentService {
 
   // 리스너의 파일 업로드 성공/실패 여부로 상태를 변경하는 메서드
   @Override
-  @Transactional
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public BinaryContent updateStatus(UUID binaryContentId, BinaryContentStatus status) {
     BinaryContent binaryContent = binaryContentRepository.findById(binaryContentId)
         .orElseThrow(() -> new BinaryContentException(BinaryContentErrorCode.FILE_NOT_FOUND));
