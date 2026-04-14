@@ -4,6 +4,8 @@ import com.sprint.mission.discodeit.entity.base.BaseUpdatableEntity;
 import com.sprint.mission.discodeit.entity.enums.BinaryContentStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -24,6 +26,7 @@ public class BinaryContent extends BaseUpdatableEntity {
   @Column(nullable = false)
   private long size;
 
+  @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private BinaryContentStatus status;
 
