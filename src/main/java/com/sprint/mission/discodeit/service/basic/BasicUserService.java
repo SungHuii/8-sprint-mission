@@ -7,6 +7,8 @@ import com.sprint.mission.discodeit.dto.user.UserSummaryResponse;
 import com.sprint.mission.discodeit.dto.user.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.entity.enums.Role;
+import com.sprint.mission.discodeit.event.RoleUpdatedEvent;
 import com.sprint.mission.discodeit.exception.DiscodeitException;
 import com.sprint.mission.discodeit.exception.enums.CommonErrorCode;
 import com.sprint.mission.discodeit.exception.enums.UserErrorCode;
@@ -20,6 +22,7 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -38,6 +41,8 @@ public class BasicUserService implements UserService {
   // PasswordEncoder 주입
   private final PasswordEncoder passwordEncoder;
   private final JwtRegistry jwtRegistry;
+
+  private final ApplicationEventPublisher eventPublisher;
 
   @Override
   @Transactional
@@ -147,7 +152,14 @@ public class BasicUserService implements UserService {
     User user = userRepository.findById(request.userId())
         .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
 
+    Role oldRole = user.getRole();
     user.updateRole(request.newRole());
+
+    eventPublisher.publishEvent(new RoleUpdatedEvent(
+        user.getId(),
+        oldRole,
+        request.newRole()
+    ));
 
     // Jwt Registry에서 해당 유저 토큰 전체 무효화 (강제 로그아웃 처리)
     jwtRegistry.invalidateJwtInformationByUserId(request.userId());

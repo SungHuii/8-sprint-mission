@@ -9,6 +9,7 @@ import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.event.MessageCreatedEvent;
 import com.sprint.mission.discodeit.exception.DiscodeitException;
 import com.sprint.mission.discodeit.exception.channel.ChannelException;
 import com.sprint.mission.discodeit.exception.enums.ChannelErrorCode;
@@ -25,6 +26,7 @@ import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -47,6 +49,7 @@ public class BasicMessageService implements MessageService {
   private final ChannelRepository channelRepository;
   private final BinaryContentService binaryContentService;
   private final MessageMapper messageMapper;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Override
   @Transactional
@@ -80,6 +83,14 @@ public class BasicMessageService implements MessageService {
         attachments
     );
     Message saved = messageRepository.save(message);
+
+    eventPublisher.publishEvent(new MessageCreatedEvent(
+        saved.getId(),
+        author.getId(),
+        channel.getId(),
+        channel.getName(),
+        saved.getContent()
+    ));
 
     log.info("메시지 생성 완료: messageId={}", saved.getId());
     return messageMapper.toMessageResponse(saved);

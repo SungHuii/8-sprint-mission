@@ -46,12 +46,13 @@ CREATE TABLE IF NOT EXISTS users
 
 CREATE TABLE IF NOT EXISTS read_statuses
 (
-    id           uuid PRIMARY KEY,
-    created_at   timestamp with time zone NOT NULL,
-    updated_at   timestamp with time zone,
-    user_id      uuid                     NOT NULL,
-    channel_id   uuid                     NOT NULL,
-    last_read_at timestamp with time zone NOT NULL,
+    id                   uuid PRIMARY KEY,
+    created_at           timestamp with time zone NOT NULL,
+    updated_at           timestamp with time zone,
+    user_id              uuid                     NOT NULL,
+    channel_id           uuid                     NOT NULL,
+    last_read_at         timestamp with time zone NOT NULL,
+    notification_enabled boolean                  NOT NULL,
     CONSTRAINT unique_user_channel UNIQUE (user_id, channel_id),
     CONSTRAINT fk_read_statuses_user_id FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
     CONSTRAINT fk_read_statuses_channel_id FOREIGN KEY (channel_id) REFERENCES channels (id) ON DELETE CASCADE
