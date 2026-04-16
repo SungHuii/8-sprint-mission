@@ -32,7 +32,7 @@ public class NotificationRequiredEventListener {
         continue;
       }
 
-      String title = "새로운 메시지 (" + event.channelName() + ")";
+      String title = event.authorName() + "(#" + event.channelName() + ")";
       notificationService.create(status.getUser().getId(), title, event.content());
     }
 

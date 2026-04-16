@@ -84,11 +84,15 @@ public class BasicMessageService implements MessageService {
     );
     Message saved = messageRepository.save(message);
 
+    // 알림에 어디서 온(public/private) 메시지인지 나오게 할 문구 설정
+    String displayChannelName = channel.getName() != null ? channel.getName() : "개인 DM";
+
     eventPublisher.publishEvent(new MessageCreatedEvent(
         saved.getId(),
         author.getId(),
+        author.getUsername(),
         channel.getId(),
-        channel.getName(),
+        displayChannelName,
         saved.getContent()
     ));
 
