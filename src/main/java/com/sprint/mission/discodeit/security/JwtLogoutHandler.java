@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.stereotype.Component;
@@ -33,7 +34,8 @@ public class JwtLogoutHandler implements LogoutHandler {
             // Registry에서 토큰 정보 삭제
             jwtRegistry.invalidateJwtInformationByRefreshToken(cookie.getValue());
             // 쿠키 만료
-            response.addCookie(jwtTokenProvider.buildExpiredRefreshTokenCookie());
+            response.addHeader(HttpHeaders.SET_COOKIE,
+                jwtTokenProvider.buildExpiredRefreshTokenCookie().toString());
           });
     }
 

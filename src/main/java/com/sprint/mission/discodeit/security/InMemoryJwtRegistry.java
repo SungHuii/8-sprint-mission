@@ -25,7 +25,7 @@ public class InMemoryJwtRegistry implements JwtRegistry {
 
   public InMemoryJwtRegistry(
       JwtTokenProvider jwtTokenProvider,
-      @Value("${jwt.max-active-count:1") int maxActiveJwtCount) {
+      @Value("${jwt.max-active-count:1}") int maxActiveJwtCount) {
     this.jwtTokenProvider = jwtTokenProvider;
     this.maxActiveJwtCount = maxActiveJwtCount;
   }
@@ -115,9 +115,7 @@ public class InMemoryJwtRegistry implements JwtRegistry {
   public void clearExpiredJwtInformation() {
 
     jwtInfoMap.forEach((userId, queue) -> {
-      queue.removeIf(info ->
-          !jwtTokenProvider.validateToken(info.getAccessToken())
-              && !jwtTokenProvider.validateToken(info.getRefreshToken()));
+      queue.removeIf(info -> !info.isActive());
     });
 
     jwtInfoMap.entrySet().removeIf(entry -> entry.getValue().isEmpty());

@@ -6,9 +6,11 @@ import com.sprint.mission.discodeit.dto.user.UserResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
@@ -23,6 +25,7 @@ public class JwtLoginSuccessHandler implements AuthenticationSuccessHandler {
   private final ObjectMapper objectMapper;
   private final JwtTokenProvider jwtTokenProvider;
   private final JwtRegistry jwtRegistry;
+  private final JwtProperties jwtProperties;
 
   @Override
   public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -44,12 +47,19 @@ public class JwtLoginSuccessHandler implements AuthenticationSuccessHandler {
     String accessToken = jwtTokenProvider.generateAccessToken(userId, username);
     String refreshToken = jwtTokenProvider.generateRefreshToken(userId);
 
+    // 토큰 만료시간
+    Instant now = Instant.now();
+    Instant accessExpiry = now.plusMillis(jwtProperties.accessTokenExpiry());
+    Instant refreshExpiry = now.plusMillis(jwtProperties.refreshTokenExpiry());
+
     // JwtInformation 객체 등록
-    JwtInformation jwtInformation = new JwtInformation(userResponse, accessToken, refreshToken);
+    JwtInformation jwtInformation = new JwtInformation(userResponse, accessToken, refreshToken,
+        accessExpiry, refreshExpiry);
     jwtRegistry.registerJwtInformation(jwtInformation);
 
-    // refresh 토큰 HttpOnly 처리
-    response.addCookie(jwtTokenProvider.buildRefreshTokenCookie(refreshToken));
+    // refresh 토큰 ResponseCookie로 생성 후 헤더 추가
+    response.addHeader(HttpHeaders.SET_COOKIE,
+        jwtTokenProvider.buildRefreshTokenCookie(refreshToken).toString());
 
     // access 토큰 + 유저 정보 -> dto
     JwtDto jwtDto = new JwtDto(userResponse, accessToken);

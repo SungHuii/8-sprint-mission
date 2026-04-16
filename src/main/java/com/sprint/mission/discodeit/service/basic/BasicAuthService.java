@@ -9,9 +9,11 @@ import com.sprint.mission.discodeit.exception.enums.AuthErrorCode;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.security.JwtInformation;
+import com.sprint.mission.discodeit.security.JwtProperties;
 import com.sprint.mission.discodeit.security.JwtRegistry;
 import com.sprint.mission.discodeit.security.JwtTokenProvider;
 import com.sprint.mission.discodeit.service.AuthService;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +30,7 @@ public class BasicAuthService implements AuthService {
   private final UserMapper userMapper;
   private final JwtTokenProvider jwtTokenProvider;
   private final JwtRegistry jwtRegistry;
+  private final JwtProperties jwtProperties;
 
   // updateUserRole() 호출 후 해당 유저의 세션 강제 만료
   @Override
@@ -54,7 +57,12 @@ public class BasicAuthService implements AuthService {
 
     // Registry에서 Rotation 돌리기
     UserResponse userResponse = userMapper.toUserResponse(user, isOnline(userId));
-    JwtInformation newJwtInfo = new JwtInformation(userResponse, newAccessToken, newRefreshToken);
+    
+    Instant now = Instant.now();
+    Instant accessExpiry = now.plusMillis(jwtProperties.accessTokenExpiry());
+    Instant refreshExpiry = now.plusMillis(jwtProperties.refreshTokenExpiry());
+    
+    JwtInformation newJwtInfo = new JwtInformation(userResponse, newAccessToken, newRefreshToken, accessExpiry, refreshExpiry);
     jwtRegistry.rotateJwtInformation(refreshToken, newJwtInfo);
 
     JwtDto jwtDto = new JwtDto(userMapper.toUserResponse(user, isOnline(userId)), newAccessToken);
