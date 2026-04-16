@@ -17,26 +17,19 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class JwtTokenProvider {
 
   public static final String REFRESH_TOKEN_COOKIE_NAME = "REFRESH_TOKEN";
   private static final String ACCESS_TOKEN_CLAIM_KEY = "userId";
 
-  private static final String SECRET_KEY = "${jwt.secret}";
-  private static final String ACCESS_TOKEN_EXPIRY = "${jwt.access-token-expiry:3600000}";
-  private static final String REFRESH_TOKEN_EXPIRY = "${jwt.refresh-token-expiry:604800000}";
-
-  @Value(SECRET_KEY)
-  private String secretKey;
-  @Value(ACCESS_TOKEN_EXPIRY)
-  private long accessTokenExpiry;
-  @Value(REFRESH_TOKEN_EXPIRY)
-  private long refreshTokenExpiry;
-
+  private final JwtProperties jwtProperties;
 
   // HMAC 서명 알고리즘
   private final JWSAlgorithm algorithm = JWSAlgorithm.HS256;
@@ -47,7 +40,7 @@ public class JwtTokenProvider {
     Map<String, Object> extraClaims = Map.of(ACCESS_TOKEN_CLAIM_KEY, userId.toString());
 
     try {
-      return generateToken(username, accessTokenExpiry, extraClaims);
+      return generateToken(username, jwtProperties.accessTokenExpiry(), extraClaims);
     } catch (JOSEException e) {
       throw new DiscodeitException(AuthErrorCode.AUTHENTICATION_FAILED, e.getMessage());
     }
@@ -57,7 +50,7 @@ public class JwtTokenProvider {
   public String generateRefreshToken(UUID userId) {
 
     try {
-      return generateToken(userId.toString(), refreshTokenExpiry, null);
+      return generateToken(userId.toString(), jwtProperties.refreshTokenExpiry(), null);
     } catch (JOSEException e) {
       throw new DiscodeitException(AuthErrorCode.AUTHENTICATION_FAILED, e.getMessage());
     }
@@ -95,23 +88,27 @@ public class JwtTokenProvider {
   }
 
   // RefreshToken을 HttpOnly 쿠키로 만듬
-  public Cookie buildRefreshTokenCookie(String refreshToken) {
+  public ResponseCookie buildRefreshTokenCookie(String refreshToken) {
 
-    Cookie cookie = new Cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken);
-    cookie.setHttpOnly(true);
-    cookie.setPath("/");
-    cookie.setMaxAge((int) (refreshTokenExpiry / 1000));
-    return cookie;
+    return ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, refreshToken)
+        .httpOnly(true)
+        .secure(true)
+        .sameSite("Lax")
+        .path("/")
+        .maxAge(jwtProperties.refreshTokenExpiry() / 1000)
+        .build();
   }
 
   // 빈 RefreshToken 쿠키 -> 삭제용도
-  public Cookie buildExpiredRefreshTokenCookie() {
+  public ResponseCookie buildExpiredRefreshTokenCookie() {
 
-    Cookie cookie = new Cookie(REFRESH_TOKEN_COOKIE_NAME, "");
-    cookie.setHttpOnly(true);
-    cookie.setPath("/");
-    cookie.setMaxAge(0);
-    return cookie;
+    return ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, "")
+        .httpOnly(true)
+        .secure(true)
+        .sameSite("Lax")
+        .path("/")
+        .maxAge(0)
+        .build();
   }
 
   // 토큰 유효성 검증
@@ -119,7 +116,7 @@ public class JwtTokenProvider {
 
     try {
       SignedJWT signedJWT = SignedJWT.parse(token);
-      JWSVerifier verifier = new MACVerifier(secretKey.getBytes());
+      JWSVerifier verifier = new MACVerifier(jwtProperties.secret().getBytes());
       return signedJWT.verify(verifier) &&
           signedJWT.getJWTClaimsSet().getExpirationTime().after(new Date());
     } catch (Exception e) {
@@ -132,7 +129,7 @@ public class JwtTokenProvider {
       throws JOSEException {
 
     Instant now = Instant.now();
-    JWSSigner signer = new MACSigner(secretKey.getBytes());
+    JWSSigner signer = new MACSigner(jwtProperties.secret().getBytes());
 
     JWTClaimsSet.Builder builder = new Builder()
         .subject(subject)
