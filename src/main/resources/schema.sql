@@ -1,4 +1,5 @@
 -- 기존 테이블 삭제 (순서 중요: FK 참조 관계 역순)
+DROP TABLE IF EXISTS notifications;
 DROP TABLE IF EXISTS message_attachments;
 DROP TABLE IF EXISTS messages;
 DROP TABLE IF EXISTS read_statuses;
