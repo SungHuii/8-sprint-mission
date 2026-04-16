@@ -71,6 +71,10 @@ dependencies {
 
     // JWT
     implementation 'com.nimbusds:nimbus-jose-jwt:10.3'
+
+    // retry
+    implementation 'org.springframework.retry:spring-retry'
+    implementation 'org.springframework:spring-aspects' // Retry AOP 처리
 }
 
 dependencyManagement {

@@ -28,6 +28,10 @@ management:
   info:
     env:
       enabled: true # info
+  # 메시지 생성 API 실행시간 측정용
+  observations:
+    annotations:
+      enabled: true
 
 
 # 커스텀
