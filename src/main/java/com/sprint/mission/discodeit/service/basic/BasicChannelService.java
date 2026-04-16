@@ -22,6 +22,7 @@ import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.security.JwtRegistry;
 import com.sprint.mission.discodeit.service.ChannelService;
 import java.time.Instant;
 import java.util.HashSet;
@@ -31,7 +32,6 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,8 +47,7 @@ public class BasicChannelService implements ChannelService {
   private final UserRepository userRepository;
   private final ChannelMapper channelMapper;
   private final UserMapper userMapper;
-  private final SessionRegistry sessionRegistry;
-  private final SessionStatusService sessionStatusService;
+  private final JwtRegistry jwtRegistry;
 
   @Override
   @PreAuthorize("hasRole('CHANNEL_MANAGER')")
@@ -182,7 +181,7 @@ public class BasicChannelService implements ChannelService {
     return readStatuses.stream()
         .map(ReadStatus::getUser)
         .map(user ->
-            userMapper.toUserSummaryResponse(user, sessionStatusService.isOnline(user.getId()))
+            userMapper.toUserSummaryResponse(user, isOnline(user.getId()))
         )
         .toList();
   }
@@ -216,5 +215,9 @@ public class BasicChannelService implements ChannelService {
     if (request.newName() == null && request.newDescription() == null) {
       throw new DiscodeitException(CommonErrorCode.INVALID_INPUT_VALUE, "수정할 값이 없습니다.");
     }
+  }
+
+  private boolean isOnline(UUID userId) {
+    return jwtRegistry.hasActiveJwtInformationByUserId(userId);
   }
 }

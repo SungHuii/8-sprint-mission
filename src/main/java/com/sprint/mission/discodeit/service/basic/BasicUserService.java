@@ -13,7 +13,7 @@ import com.sprint.mission.discodeit.exception.enums.UserErrorCode;
 import com.sprint.mission.discodeit.exception.user.UserException;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.service.AuthService;
+import com.sprint.mission.discodeit.security.JwtRegistry;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.service.UserService;
 import java.util.List;
@@ -21,7 +21,6 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,13 +34,10 @@ public class BasicUserService implements UserService {
   private final UserRepository userRepository;
   private final BinaryContentService binaryContentService;
   private final UserMapper userMapper;
-  private final SessionStatusService sessionStatusService;
 
   // PasswordEncoder 주입
   private final PasswordEncoder passwordEncoder;
-
-  private final AuthService authService;
-  private final SessionRegistry sessionRegistry;
+  private final JwtRegistry jwtRegistry;
 
   @Override
   @Transactional
@@ -74,7 +70,7 @@ public class BasicUserService implements UserService {
 
     log.info("회원가입 완료: userId={}", savedUser.getId());
 
-    return userMapper.toUserResponse(savedUser, true);
+    return userMapper.toUserResponse(savedUser, isOnline(savedUser.getId()));
   }
 
   @Override
@@ -84,7 +80,7 @@ public class BasicUserService implements UserService {
 
     return users.stream()
         .map(user ->
-            userMapper.toUserResponse(user, sessionStatusService.isOnline(user.getId()))
+            userMapper.toUserResponse(user, isOnline(user.getId()))
         )
         .toList();
   }
@@ -96,7 +92,7 @@ public class BasicUserService implements UserService {
 
     return users.stream()
         .map(user ->
-            userMapper.toUserSummaryResponse(user, sessionStatusService.isOnline(user.getId()))
+            userMapper.toUserSummaryResponse(user, isOnline(user.getId()))
         )
         .toList();
   }
@@ -140,7 +136,7 @@ public class BasicUserService implements UserService {
     User updated = userRepository.save(user);
 
     log.info("유저 정보 수정 완료 : userId={}", updated.getId());
-    return userMapper.toUserResponse(updated, sessionStatusService.isOnline(updated.getId()));
+    return userMapper.toUserResponse(updated, isOnline(userId));
   }
 
   @Override
@@ -153,10 +149,10 @@ public class BasicUserService implements UserService {
 
     user.updateRole(request.newRole());
 
-    // 변경 후 세션 무효화
-    authService.invalidateUserSessions(request.userId());
+    // Jwt Registry에서 해당 유저 토큰 전체 무효화 (강제 로그아웃 처리)
+    jwtRegistry.invalidateJwtInformationByUserId(request.userId());
 
-    return userMapper.toUserResponse(user, false);
+    return userMapper.toUserResponse(user, isOnline(request.userId()));
   }
 
   @Override
@@ -204,5 +200,9 @@ public class BasicUserService implements UserService {
     if (!hasAnyUpdate) {
       throw new DiscodeitException(CommonErrorCode.INVALID_INPUT_VALUE, "수정할 정보가 없습니다.");
     }
+  }
+
+  private boolean isOnline(UUID userId) {
+    return jwtRegistry.hasActiveJwtInformationByUserId(userId);
   }
 }

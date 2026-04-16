@@ -19,7 +19,7 @@ jacocoTestReport {
 }
 
 group = 'com.sprint.mission'
-version = '2.0-M9'
+version = '2.1-M10'
 description = 'discodeit'
 
 java {
@@ -68,6 +68,9 @@ dependencies {
     // Spring Security
     implementation 'org.springframework.boot:spring-boot-starter-security'
     testImplementation 'org.springframework.security:spring-security-test'
+
+    // JWT
+    implementation 'com.nimbusds:nimbus-jose-jwt:10.3'
 }
 
 dependencyManagement {

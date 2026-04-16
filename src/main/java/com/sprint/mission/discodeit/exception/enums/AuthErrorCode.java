@@ -13,7 +13,10 @@ public enum AuthErrorCode implements ErrorCode {
       "사용자명 또는 비밀번호가 올바르지 않습니다."),
   ACCOUNT_DISABLED(4002, "ACCOUNT_DISABLED", HttpStatus.UNAUTHORIZED, "계정이 비활성화 되었습니다."),
   ACCESS_DENIED(4003, "ACCESS_DENIED", HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
-  AUTHENTICATION_FAILED(4004, "AUTHENTICATION_FAILED", HttpStatus.UNAUTHORIZED, "인증에 실패했습니다.");
+  AUTHENTICATION_FAILED(4004, "AUTHENTICATION_FAILED", HttpStatus.UNAUTHORIZED, "인증에 실패했습니다."),
+  // JWT 토큰 관련 에러코드
+  INVALID_TOKEN(4005, "INVALID_TOKEN", HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
+  EXPIRED_TOKEN(4006, "EXPIRED_TOKEN", HttpStatus.UNAUTHORIZED, "만료된 토큰입니다.");
 
   private final int numeric;
   private final String errorKey;
