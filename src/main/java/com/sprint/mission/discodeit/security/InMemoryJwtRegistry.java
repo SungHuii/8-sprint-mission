@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -19,8 +20,15 @@ public class InMemoryJwtRegistry implements JwtRegistry {
   // 유저ID, 유저가 발급받은 토큰 정보 큐
   private final Map<UUID, Queue<JwtInformation>> jwtInfoMap = new ConcurrentHashMap<>();
   // 최대 동시 로그인
-  private final int maxActiveJwtCount = 1;
+  private final int maxActiveJwtCount;
   private final JwtTokenProvider jwtTokenProvider;
+
+  public InMemoryJwtRegistry(
+      JwtTokenProvider jwtTokenProvider,
+      @Value("${jwt.max-active-count:1") int maxActiveJwtCount) {
+    this.jwtTokenProvider = jwtTokenProvider;
+    this.maxActiveJwtCount = maxActiveJwtCount;
+  }
 
   @Override
   public void registerJwtInformation(JwtInformation jwtInformation) {
@@ -54,10 +62,9 @@ public class InMemoryJwtRegistry implements JwtRegistry {
     if (queue == null || queue.isEmpty()) {
       return false;
     }
-    return queue.stream().anyMatch(
-        info -> jwtTokenProvider.validateToken(info.getAccessToken())
-            || jwtTokenProvider.validateToken(info.getRefreshToken())
-    );
+
+    // Registry에 토큰 만료시각을 JwtInformation에 캐싱 후, 캐싱된 시간으로 검사
+    return queue.stream().anyMatch(JwtInformation::isActive);
   }
 
   @Override
@@ -87,8 +94,12 @@ public class InMemoryJwtRegistry implements JwtRegistry {
           .filter(info -> info.getRefreshToken().equals(oldRefreshToken))
           .findFirst()
           .ifPresent(info -> info.rotateToken(
+              // userResponse 반영하도록 추가
+              newJwtInformation.getUserResponse(),
               newJwtInformation.getAccessToken(),
-              newJwtInformation.getRefreshToken()
+              newJwtInformation.getRefreshToken(),
+              newJwtInformation.getAccessTokenExpiry(),
+              newJwtInformation.getRefreshTokenExpiry()
           ));
     }
   }
