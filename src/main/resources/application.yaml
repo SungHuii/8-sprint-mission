@@ -18,13 +18,24 @@ spring:
       client:
         instance:
           name: discodeit
+  cache:
+    type: caffeine
+    cache-names:
+      - channels
+      - notifications
+      - users
+    caffeine:
+      spec: >
+        maximumSize=100,
+        expireAfterAccess=600s,
+        recordStats
 
 # Actuator 설정
 management:
   endpoints:
     web:
       exposure:
-        include: health, info, metrics, loggers
+        include: health, info, metrics, loggers, caches
   info:
     env:
       enabled: true # info

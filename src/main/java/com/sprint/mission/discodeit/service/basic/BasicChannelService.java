@@ -31,6 +31,8 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,6 +53,7 @@ public class BasicChannelService implements ChannelService {
 
   @Override
   @PreAuthorize("hasRole('CHANNEL_MANAGER')")
+  @CacheEvict(value = "channels", allEntries = true)
   @Transactional
   public ChannelResponse createPublic(PublicChannelCreateRequest request) {
     validatePublicCreateRequest(request);
@@ -65,6 +68,7 @@ public class BasicChannelService implements ChannelService {
   }
 
   @Override
+  @CacheEvict(value = "channels", allEntries = true)
   @Transactional
   public ChannelResponse createPrivate(PrivateChannelCreateRequest request) {
     validatePrivateCreateRequest(request);
@@ -85,6 +89,7 @@ public class BasicChannelService implements ChannelService {
   }
 
   @Override
+  @Cacheable(value = "channels")
   public List<ChannelResponse> findAllByUserId(UUID userId) {
     if (userId == null) {
       throw new DiscodeitException(CommonErrorCode.INVALID_INPUT_VALUE, "userId는 필수입니다.");
@@ -124,6 +129,7 @@ public class BasicChannelService implements ChannelService {
 
   @Override
   @PreAuthorize("hasRole('CHANNEL_MANAGER')")
+  @CacheEvict(value = "channels", allEntries = true)
   @Transactional
   public ChannelResponse update(UUID channelId, ChannelUpdateRequest request) {
     validateUpdateRequest(channelId, request);
@@ -149,6 +155,7 @@ public class BasicChannelService implements ChannelService {
 
   @Override
   @PreAuthorize("hasRole('CHANNEL_MANAGER')")
+  @CacheEvict(value = "channels", allEntries = true)
   @Transactional
   public void deleteById(UUID channelId) {
     if (channelId == null) {

@@ -75,6 +75,10 @@ dependencies {
     // retry
     implementation 'org.springframework.retry:spring-retry'
     implementation 'org.springframework:spring-aspects' // Retry AOP 처리
+
+    // Caffeine Cache
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation 'com.github.ben-manes.caffeine:caffeine'
 }
 
 dependencyManagement {
