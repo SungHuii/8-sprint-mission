@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.storage;
 
 import com.sprint.mission.discodeit.dto.binary.BinaryContentResponse;
+import com.sprint.mission.discodeit.event.S3UploadFailedEvent;
 import com.sprint.mission.discodeit.exception.DiscodeitException;
 import com.sprint.mission.discodeit.exception.binary.BinaryContentException;
 import com.sprint.mission.discodeit.exception.enums.BinaryContentErrorCode;
@@ -19,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -35,6 +37,7 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(name = "discodeit.storage.type", havingValue = "local", matchIfMissing = true)
 public class LocalBinaryContentStorage implements BinaryContentStorage {
 
+  private final ApplicationEventPublisher applicationEventPublisher;
   @Value("${discodeit.storage.local.root-path:.discodeit/storage}")
   private String rootPathStr;
 
@@ -86,6 +89,9 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
     if (requestId == null) {
       requestId = "N/A";
     }
+
+    // 이벤트 발행 추가
+    applicationEventPublisher.publishEvent(new S3UploadFailedEvent(requestId, id, e.getMessage()));
 
     // 관리자 통지 로그
     log.error("""
