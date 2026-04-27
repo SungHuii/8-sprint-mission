@@ -16,7 +16,8 @@ public enum AuthErrorCode implements ErrorCode {
   AUTHENTICATION_FAILED(7004, "AUTHENTICATION_FAILED", HttpStatus.UNAUTHORIZED, "인증에 실패했습니다."),
   // JWT 토큰 관련 에러코드
   INVALID_TOKEN(7005, "INVALID_TOKEN", HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
-  EXPIRED_TOKEN(7006, "EXPIRED_TOKEN", HttpStatus.UNAUTHORIZED, "만료된 토큰입니다.");
+  EXPIRED_TOKEN(7006, "EXPIRED_TOKEN", HttpStatus.UNAUTHORIZED, "만료된 토큰입니다."),
+  INVALID_USER_TYPE(7007, "INVALID_USER_TYPE", HttpStatus.UNAUTHORIZED, "유효하지 않은 사용자 타입입니다.");
 
   private final int numeric;
   private final String errorKey;
