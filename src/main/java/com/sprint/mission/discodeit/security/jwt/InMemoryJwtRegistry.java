@@ -12,7 +12,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Slf4j
-@Component
+//@Component
 public class InMemoryJwtRegistry implements JwtRegistry {
 
   // 유저ID, 유저가 발급받은 토큰 정보 큐
