@@ -72,9 +72,7 @@ public class NotificationRequiredTopicListener {
     try {
       S3UploadFailedEvent event = objectMapper.readValue(kafkaEvent, S3UploadFailedEvent.class);
       // 모든 관리자(ADMIN)에게 알림
-      List<User> admins = userRepository.findAll().stream()
-          .filter(u -> u.getRole() == Role.ADMIN)
-          .toList();
+      List<User> admins = userRepository.findAllByRole(Role.ADMIN);
 
       String title = "[시스템 에러] 파일 업로드 최종 실패";
       String content = String.format("RequestId: %s\nContentId: %s\nError: %s",
