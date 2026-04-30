@@ -24,7 +24,7 @@ public class KafkaProduceRequiredEventListener {
 
   @Async("eventTaskExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void on(MessageCreatedEvent event) throws JsonProcessingException {
+  public void on(MessageCreatedEvent event) {
 
     try {
       // 이벤트 객체 JSON 문자열 변환
