@@ -38,7 +38,7 @@ public class BasicNotificationService implements NotificationService {
   }
 
   @Override
-  @Cacheable(value = "notifications")
+  @Cacheable(value = "notifications", key = "#receiverId")
   public List<NotificationDto> findAllByReceiverId(UUID receiverId) {
 
     return notificationRepository.findAllByReceiverIdOrderByCreatedAtDesc(receiverId)
