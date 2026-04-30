@@ -69,6 +69,7 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
 
     try (FileOutputStream fos = new FileOutputStream(filePath.toFile())) {
       fos.write(bytes);
+      // TODO: 성능 비교 테스트용 지연. -> 프로덕션 배포 전 제거 필요
       Thread.sleep(3000);
       log.debug("파일 저장 : id={}", id);
       return id;
