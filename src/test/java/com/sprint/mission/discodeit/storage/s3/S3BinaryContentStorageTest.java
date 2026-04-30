@@ -1,14 +1,17 @@
 package com.sprint.mission.discodeit.storage.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 import com.sprint.mission.discodeit.dto.binary.BinaryContentResponse;
+import com.sprint.mission.discodeit.entity.enums.BinaryContentStatus;
 import java.io.InputStream;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -21,6 +24,7 @@ public class S3BinaryContentStorageTest {
 
   private S3BinaryContentStorage storage;
   private S3Properties s3Properties;
+  private ApplicationEventPublisher eventPublisher;
 
   @BeforeEach
   void setUp() {
@@ -33,7 +37,9 @@ public class S3BinaryContentStorageTest {
         600
     );
 
-    storage = new S3BinaryContentStorage(s3Properties);
+    eventPublisher = mock(ApplicationEventPublisher.class);
+
+    storage = new S3BinaryContentStorage(s3Properties, eventPublisher);
   }
 
   @Test
@@ -90,7 +96,9 @@ public class S3BinaryContentStorageTest {
         id,
         "test-file.txt",
         bytes.length,
-        "text/plain"
+        "text/plain",
+        "",
+        BinaryContentStatus.SUCCESS
     );
 
     // when
