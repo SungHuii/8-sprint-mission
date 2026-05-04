@@ -9,6 +9,7 @@ import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -47,16 +48,20 @@ public class AsyncConfig implements AsyncConfigurer {
     public Runnable decorate(Runnable runnable) {
 
       // 기존 스레드 정보 복사
-      SecurityContext securityContext = SecurityContextHolder.getContext();
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
       Map<String, String> mdcContext = MDC.getCopyOfContextMap();
 
       return () -> {
         try {
           // 새로운 스레드에 복사한 정보 붙여넣기
-          SecurityContextHolder.setContext(securityContext);
+          SecurityContext newContext = SecurityContextHolder.createEmptyContext();
+          newContext.setAuthentication(authentication);
+          SecurityContextHolder.setContext(newContext);
+
           if (mdcContext != null) {
             MDC.setContextMap(mdcContext);
           }
+
           // 비동기 로직 실행
           runnable.run();
         } finally {

@@ -33,11 +33,14 @@ public class BinaryContentEventListener {
       // 성공 시, 상태 업데이트
       binaryContentService.updateStatus(event.binaryContentId(), BinaryContentStatus.SUCCESS);
       log.info("파일 업로드 이벤트 수신: 성공");
-    } catch (Exception e) {
-      log.error("파일 스토리지 업로드 실패 (id:={}", event.binaryContentId(), e);
+    } catch (RuntimeException e) {
+      log.error("파일 스토리지 업로드 최종 실패 (id={})", event.binaryContentId(), e);
 
       // 실패 시, 상태 업데이트
       binaryContentService.updateStatus(event.binaryContentId(), BinaryContentStatus.FAIL);
+
+      // 비동기 스레드 풀의 에러 핸들러로 예외를 전파하여 의도를 명확히 함
+      throw e;
     }
   }
 }

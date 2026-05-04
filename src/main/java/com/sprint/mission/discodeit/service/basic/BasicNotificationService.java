@@ -9,7 +9,6 @@ import com.sprint.mission.discodeit.mapper.NotificationMapper;
 import com.sprint.mission.discodeit.repository.NotificationRepository;
 import com.sprint.mission.discodeit.service.NotificationService;
 import com.sprint.mission.discodeit.service.SseService;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -46,7 +45,7 @@ public class BasicNotificationService implements NotificationService {
   }
 
   @Override
-  @Cacheable(value = "notifications")
+  @Cacheable(value = "notifications", key = "#receiverId")
   public List<NotificationDto> findAllByReceiverId(UUID receiverId) {
 
     return notificationRepository.findAllByReceiverIdOrderByCreatedAtDesc(receiverId)
