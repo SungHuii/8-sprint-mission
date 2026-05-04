@@ -88,6 +88,10 @@ public class BasicReadStatusService implements ReadStatusService {
     ReadStatus readStatus = readStatusRepository.findById(readStatusId)
         .orElseThrow(() -> new ReadStatusException(ReadStatusErrorCode.READ_STATUS_NOT_FOUND));
 
+    if (request.newNotificationEnabled() != null) {
+      readStatus.updateNotificationEnabled(request.newNotificationEnabled());
+    }
+
     readStatus.updateLastReadAt(request.newLastReadAt());
 
     log.info("읽음 상태 수정 완료: readStatusId={}", readStatusId);

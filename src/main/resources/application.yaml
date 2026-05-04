@@ -18,16 +18,47 @@ spring:
       client:
         instance:
           name: discodeit
+  cache:
+    type: redis
+    cache-names:
+      - channels
+      - notifications
+      - users
+    caffeine:
+      spec: >
+        maximumSize=100,
+        expireAfterAccess=600s,
+        recordStats
+    redis:
+      enable-statistics: true
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      group-id: discodeit-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
 # Actuator 설정
 management:
   endpoints:
     web:
       exposure:
-        include: health, info, metrics, loggers
+        include: health, info, metrics, loggers, caches
   info:
     env:
       enabled: true # info
+  # 메시지 생성 API 실행시간 측정용
+  observations:
+    annotations:
+      enabled: true
 
 
 # 커스텀
@@ -66,7 +97,7 @@ info:
 
 # jwt
 jwt:
-  secret: ${JWT_SECRET} # 32자 이상 문자열
+  secret: ${JWT_SECRET:my-secret-secret-key-must-be-longer-than-32-characters} # 32자 이상 문자열 / 로컬용
   access-token-expiry: 3600000 # 1시간 (1000 * 60 * 60)
   refresh-token-expiry: 604800000 # 7일 (1000 * 60 * 60 * 24 * 7)
   max-active-count: 1

@@ -7,6 +7,8 @@ import com.sprint.mission.discodeit.dto.user.UserSummaryResponse;
 import com.sprint.mission.discodeit.dto.user.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.entity.enums.Role;
+import com.sprint.mission.discodeit.event.RoleUpdatedEvent;
 import com.sprint.mission.discodeit.exception.DiscodeitException;
 import com.sprint.mission.discodeit.exception.enums.CommonErrorCode;
 import com.sprint.mission.discodeit.exception.enums.UserErrorCode;
@@ -20,6 +22,9 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -39,7 +44,10 @@ public class BasicUserService implements UserService {
   private final PasswordEncoder passwordEncoder;
   private final JwtRegistry jwtRegistry;
 
+  private final ApplicationEventPublisher eventPublisher;
+
   @Override
+  @CacheEvict(value = "users", allEntries = true)
   @Transactional
   public UserResponse create(UserCreateRequest request) {
     validateCreateRequest(request);
@@ -74,6 +82,7 @@ public class BasicUserService implements UserService {
   }
 
   @Override
+  @Cacheable(value = "users")
   public List<UserResponse> findAll() {
     List<User> users = userRepository.findAllWithProfile();
     log.debug("전체 유저 조회 요청");
@@ -86,6 +95,7 @@ public class BasicUserService implements UserService {
   }
 
   @Override
+  @Cacheable(value = "users")
   public List<UserSummaryResponse> findAllUserSummaries() {
     List<User> users = userRepository.findAllWithProfile();
     log.debug("전체 유저 요약 조회 요청");
@@ -101,6 +111,7 @@ public class BasicUserService implements UserService {
   @Transactional
   // 사용자 정보 수정은 본인만 가능
   @PreAuthorize("@userSecurity.isOwner(authentication, #userId)")
+  @CacheEvict(value = "users", allEntries = true)
   public UserResponse update(UUID userId, UserUpdateRequest request) {
     validateUpdateRequest(userId, request);
     log.info("유저 정보 수정 요청 : userId={}", userId);
@@ -141,13 +152,21 @@ public class BasicUserService implements UserService {
 
   @Override
   @PreAuthorize("hasRole('ADMIN')")
+  @CacheEvict(value = "users", allEntries = true)
   @Transactional
   public UserResponse updateUserRole(UserRoleUpdateRequest request) {
 
     User user = userRepository.findById(request.userId())
         .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
 
+    Role oldRole = user.getRole();
     user.updateRole(request.newRole());
+
+    eventPublisher.publishEvent(new RoleUpdatedEvent(
+        user.getId(),
+        oldRole,
+        request.newRole()
+    ));
 
     // Jwt Registry에서 해당 유저 토큰 전체 무효화 (강제 로그아웃 처리)
     jwtRegistry.invalidateJwtInformationByUserId(request.userId());
@@ -159,6 +178,7 @@ public class BasicUserService implements UserService {
   @Transactional
   // 사용자 정보 삭제는 본인만 가능
   @PreAuthorize("@userSecurity.isOwner(authentication, #userId)")
+  @CacheEvict(value = "users", allEntries = true)
   public void deleteById(UUID userId) {
     if (userId == null) {
       throw new DiscodeitException(CommonErrorCode.INVALID_INPUT_VALUE, "userId는 필수입니다.");

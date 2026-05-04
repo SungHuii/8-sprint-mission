@@ -13,9 +13,11 @@ CREATE TABLE IF NOT EXISTS binary_contents
 (
     id           uuid PRIMARY KEY,
     created_at   timestamp with time zone NOT NULL,
+    updated_at   timestamp with time zone,
     file_name    VARCHAR(255)             NOT NULL,
     size         BIGINT                   NOT NULL,
-    content_type VARCHAR(100)             NOT NULL
+    content_type VARCHAR(100)             NOT NULL,
+    status       VARCHAR(20)              NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS channels
@@ -45,12 +47,13 @@ CREATE TABLE IF NOT EXISTS users
 
 CREATE TABLE IF NOT EXISTS read_statuses
 (
-    id           uuid PRIMARY KEY,
-    created_at   timestamp with time zone NOT NULL,
-    updated_at   timestamp with time zone,
-    user_id      uuid                     NOT NULL,
-    channel_id   uuid                     NOT NULL,
-    last_read_at timestamp with time zone NOT NULL,
+    id                   uuid PRIMARY KEY,
+    created_at           timestamp with time zone NOT NULL,
+    updated_at           timestamp with time zone,
+    user_id              uuid                     NOT NULL,
+    channel_id           uuid                     NOT NULL,
+    last_read_at         timestamp with time zone NOT NULL,
+    notification_enabled boolean                  NOT NULL DEFAULT TRUE,
     CONSTRAINT unique_user_channel UNIQUE (user_id, channel_id),
     CONSTRAINT fk_read_statuses_user_id FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
     CONSTRAINT fk_read_statuses_channel_id FOREIGN KEY (channel_id) REFERENCES channels (id) ON DELETE CASCADE
@@ -75,6 +78,17 @@ CREATE TABLE IF NOT EXISTS message_attachments
     PRIMARY KEY (message_id, attachment_id), -- 복합키 설정 (중복 매핑 방지, 인덱싱+)
     CONSTRAINT fk_message_attachments_message_id FOREIGN KEY (message_id) REFERENCES messages (id) ON DELETE CASCADE,
     CONSTRAINT fk_message_attachments_attachment_id FOREIGN KEY (attachment_id) REFERENCES binary_contents (id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS notifications
+(
+    id          uuid PRIMARY KEY,
+    created_at  timestamp with time zone NOT NULL,
+    updated_at  timestamp with time zone,
+    receiver_id uuid                     NOT NULL,
+    title       VARCHAR(255)             NOT NULL,
+    content     text                     NOT NULL,
+    CONSTRAINT fk_notifications_receiver_id FOREIGN KEY (receiver_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
 -- 인덱스 추가

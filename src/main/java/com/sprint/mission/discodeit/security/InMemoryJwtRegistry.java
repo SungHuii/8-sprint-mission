@@ -19,10 +19,12 @@ public class InMemoryJwtRegistry implements JwtRegistry {
   private final Map<UUID, Queue<JwtInformation>> jwtInfoMap = new ConcurrentHashMap<>();
   // 최대 동시 로그인
   private final int maxActiveJwtCount;
+  private final JwtTokenProvider jwtTokenProvider;
 
   public InMemoryJwtRegistry(
       JwtTokenProvider jwtTokenProvider,
       @Value("${jwt.max-active-count:1}") int maxActiveJwtCount) {
+    this.jwtTokenProvider = jwtTokenProvider;
     this.maxActiveJwtCount = maxActiveJwtCount;
   }
 

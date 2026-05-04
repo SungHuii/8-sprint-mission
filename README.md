@@ -118,6 +118,9 @@ src
 
 ## 운영 안정성 및 테스트 도입 (스프린트 미션 7 추가)
 
+#### CodeCov Badge
+[![codecov](https://codecov.io/github/SungHuii/8-sprint-mission/graph/badge.svg?token=363AFSX0JQ)](https://codecov.io/github/SungHuii/8-sprint-mission)
+
 ### 1. 테스트 코드 작성
 
 - **단위/슬라이스/통합 테스트**: 서비스, 레포지토리, 컨트롤러 및 전체 통합 테스트를 작성하여 안정성 확보.

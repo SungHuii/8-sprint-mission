@@ -12,13 +12,11 @@ import com.nimbusds.jwt.JWTClaimsSet.Builder;
 import com.nimbusds.jwt.SignedJWT;
 import com.sprint.mission.discodeit.exception.DiscodeitException;
 import com.sprint.mission.discodeit.exception.enums.AuthErrorCode;
-import jakarta.servlet.http.Cookie;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
@@ -28,11 +26,10 @@ public class JwtTokenProvider {
 
   public static final String REFRESH_TOKEN_COOKIE_NAME = "REFRESH_TOKEN";
   private static final String ACCESS_TOKEN_CLAIM_KEY = "userId";
+  // HMAC 서명 알고리즘
+  private static final JWSAlgorithm algorithm = JWSAlgorithm.HS256;
 
   private final JwtProperties jwtProperties;
-
-  // HMAC 서명 알고리즘
-  private final JWSAlgorithm algorithm = JWSAlgorithm.HS256;
 
   // 액세스 토큰 발급
   public String generateAccessToken(UUID userId, String username) {

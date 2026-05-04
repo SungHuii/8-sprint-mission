@@ -1,8 +1,11 @@
 package com.sprint.mission.discodeit.entity;
 
-import com.sprint.mission.discodeit.entity.base.BaseEntity;
+import com.sprint.mission.discodeit.entity.base.BaseUpdatableEntity;
+import com.sprint.mission.discodeit.entity.enums.BinaryContentStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -12,7 +15,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "binary_contents")
-public class BinaryContent extends BaseEntity {
+public class BinaryContent extends BaseUpdatableEntity {
 
   @Column(name = "content_type", nullable = false)
   private String contentType;
@@ -23,9 +26,19 @@ public class BinaryContent extends BaseEntity {
   @Column(nullable = false)
   private long size;
 
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private BinaryContentStatus status;
+
   public BinaryContent(String contentType, String originalName, long size) {
     this.contentType = contentType;
     this.originalName = originalName;
     this.size = size;
+    this.status = BinaryContentStatus.PROCESSING;
+  }
+
+  public BinaryContentStatus updateStatus(BinaryContentStatus status) {
+    this.status = status;
+    return status;
   }
 }
