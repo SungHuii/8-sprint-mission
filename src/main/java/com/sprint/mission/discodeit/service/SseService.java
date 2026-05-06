@@ -40,7 +40,7 @@ public class SseService {
     // 유실된 이벤트가 있다면 재전송
     if (lastEventId != null) {
       List<SseMessageRepository.SseMessage> missedMessages = messageRepository.findAllAfter(
-          lastEventId);
+          lastEventId, receiverId);
       for (SseMessageRepository.SseMessage missedMessage : missedMessages) {
         sendToClientWithEventId(
             receiverId,
@@ -60,11 +60,11 @@ public class SseService {
 
     UUID eventId = UUID.randomUUID();
 
-    // 메모리에 메시지 캐싱 (이벤트 유실 복원용)
-    messageRepository.save(eventId, eventName, data);
-
     // 수신자에게 각각 발송
     for (UUID receiverId : receiverIds) {
+      // 메모리에 메시지 캐싱 (이벤트 유실 복원용)
+      messageRepository.save(eventId, eventName, data, receiverId);
+
       List<SseEmitter> emitters = emitterRepository.findAllByUserId(receiverId);
       for (SseEmitter emitter : emitters) {
         sendToClientWithEventId(receiverId, emitter, eventId, eventName, data);
@@ -78,7 +78,7 @@ public class SseService {
     UUID eventId = UUID.randomUUID();
 
     // 메모리에 메시지 캐싱 (이벤트 유실 복원용
-    messageRepository.save(eventId, eventName, data);
+    messageRepository.save(eventId, eventName, data, null);
 
     // 모든 연결된 유저에게 발송
     Map<UUID, List<SseEmitter>> allEmitters = emitterRepository.findAll();
