@@ -1,18 +1,18 @@
 package com.sprint.mission.discodeit.security.jwt;
 
 import com.sprint.mission.discodeit.event.UserLogInOutEvent;
-import com.sprint.mission.discodeit.redis.RedisLockProvider.RedisLockAcquisitionException;
 import com.sprint.mission.discodeit.redis.RedisLockProvider;
+import com.sprint.mission.discodeit.redis.RedisLockProvider.RedisLockAcquisitionException;
 import java.time.Duration;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -157,32 +157,36 @@ public class RedisJwtRegistry implements JwtRegistry {
   @Scheduled(fixedDelay = 1000 * 60 * 5)
   @Override
   public void clearExpiredJwtInformation() {
-    Set<String> userKeys = redisTemplate.keys(USER_JWT_KEY_PREFIX + "*");
 
-    for (String userKey : userKeys) {
-      List<Object> tokens = redisTemplate.opsForList().range(userKey, 0, -1);
+    // SCAN 명령으로 100개씩 끊어서 가져오기
+    ScanOptions options = ScanOptions.scanOptions()
+        .match(USER_JWT_KEY_PREFIX + "*")
+        .count(100)
+        .build();
 
-      if (tokens != null) {
-        boolean hasValidTokens = false;
+    try (Cursor<String> cursor = redisTemplate.scan(options)) {
+      while (cursor.hasNext()) {
+        String userKey = cursor.next();
 
-        for (int i = tokens.size() - 1; i >= 0; i--) {
-          if (tokens.get(i) instanceof JwtInformation jwtInfo) {
-            boolean isExpired =
-                !jwtTokenProvider.validateToken(jwtInfo.getAccessToken()) ||
-                    !jwtTokenProvider.validateToken(jwtInfo.getRefreshToken());
+        List<Object> tokens = redisTemplate.opsForList().range(userKey, 0, -1);
+        if (tokens != null) {
+          boolean hasValidTokens = false;
 
-            if (isExpired) {
-              redisTemplate.opsForList().set(userKey, i, "EXPIRED");
-              redisTemplate.opsForList().remove(userKey, 1, "EXPIRED");
-              removeTokenIndex(jwtInfo.getAccessToken(), jwtInfo.getRefreshToken());
-            } else {
-              hasValidTokens = true;
+          for (int i = tokens.size() - 1; i >= 0; i--) {
+            if (tokens.get(i) instanceof JwtInformation jwtInfo) {
+
+              boolean isExpired = !jwtTokenProvider.validateToken(jwtInfo.getAccessToken()) ||
+                  !jwtTokenProvider.validateToken(jwtInfo.getRefreshToken());
+
+              if (isExpired) {
+                redisTemplate.opsForList().set(userKey, i, "TO_DELETE");
+                redisTemplate.opsForList().remove(userKey, 1, "TO_DELETE");
+                removeTokenIndex(jwtInfo.getAccessToken(), jwtInfo.getRefreshToken());
+              } else {
+                hasValidTokens = true;
+              }
             }
           }
-        }
-
-        if (!hasValidTokens) {
-          redisTemplate.delete(userKey);
         }
       }
     }
@@ -191,10 +195,18 @@ public class RedisJwtRegistry implements JwtRegistry {
   @Override
   public void invalidateJwtInformationByRefreshToken(String refreshToken) {
 
-    Set<String> userKeys = redisTemplate.keys(USER_JWT_KEY_PREFIX + "*");
-    if (userKeys != null) {
-      for (String userKey : userKeys) {
+    // SCAN
+    ScanOptions options = ScanOptions.scanOptions()
+        .match(USER_JWT_KEY_PREFIX + "*")
+        .count(100)
+        .build();
+
+    try (Cursor<String> cursor = redisTemplate.scan(options)) {
+      while (cursor.hasNext()) {
+        String userKey = cursor.next();
+
         List<Object> tokens = redisTemplate.opsForList().range(userKey, 0, -1);
+
         if (tokens != null) {
           for (int i = 0; i < tokens.size(); i++) {
             if (tokens.get(i) instanceof JwtInformation jwtInfo &&
