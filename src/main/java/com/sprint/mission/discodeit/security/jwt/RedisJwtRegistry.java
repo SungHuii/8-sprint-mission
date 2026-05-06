@@ -231,10 +231,6 @@ public class RedisJwtRegistry implements JwtRegistry {
     // Set에 토큰 추가 (add: 중복되면 무시됨)
     redisTemplate.opsForSet().add(ACCESS_TOKEN_INDEX_KEY, accessToken);
     redisTemplate.opsForSet().add(REFRESH_TOKEN_INDEX_KEY, refreshToken);
-
-    // 인덱스 키에도 만료 시간 설정 (메모리 누수 방지)
-    redisTemplate.expire(ACCESS_TOKEN_INDEX_KEY, DEFAULT_TTL);
-    redisTemplate.expire(REFRESH_TOKEN_INDEX_KEY, DEFAULT_TTL);
   }
 
   private void removeTokenIndex(String accessToken, String refreshToken) {
